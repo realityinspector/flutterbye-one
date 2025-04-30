@@ -1,0 +1,263 @@
+# Sales Acceleration Platform
+
+## Engineering Plan for React Native Implementation
+
+### Project Overview
+The Sales Acceleration Platform is a comprehensive mobile-first solution designed to empower sales representatives with cutting-edge AI and integration capabilities. This document outlines the engineering plan to implement the platform using React Native, enabling a truly mobile-first experience with a shared codebase.
+
+### Business Goals
+- Accelerate the sales process by providing AI-powered lead generation
+- Streamline product presentation and sharing with customers
+- Enable efficient call management and follow-up tracking
+- Provide comprehensive analytics and performance monitoring
+- Integrate with Shopify for seamless product management
+
+### Technology Stack
+
+#### Core Technologies
+- **Frontend**: React Native with Expo
+- **Backend**: Express.js + Node.js
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: Passport.js with secure token storage
+- **State Management**: Context API and React Query
+- **API Integration**: Axios with interceptors
+- **AI Integration**: OpenAI API for lead generation
+
+#### Development Tools
+- TypeScript for type safety
+- ESLint and Prettier for code quality
+- Jest and React Native Testing Library for testing
+- GitHub Actions for CI/CD
+
+### Key Features & Architecture
+
+#### 1. Authentication & User Management
+- Token-based authentication with secure storage
+- Role-based access control (Admin & Sales roles)
+- Session management with automatic token refresh
+- Password hashing with bcrypt
+
+```
+├── src/
+│   ├── contexts/
+│   │   └── AuthContext.js       # Authentication state management
+│   ├── screens/
+│   │   └── LoginScreen.js       # User login interface
+│   └── services/
+│       └── authService.js       # Authentication API methods
+```
+
+#### 2. Lead Management System
+- Contact database with full CRUD operations
+- AI-powered lead generation with OpenAI
+- Advanced search and filtering capabilities
+- Area-based organization
+
+```
+├── src/
+│   ├── screens/
+│   │   ├── LeadsScreen.js       # Main leads listing screen
+│   │   ├── LeadDetailScreen.js  # Individual lead details
+│   │   └── AddLeadScreen.js     # Manual lead creation
+│   ├── components/
+│   │   ├── LeadCard.js          # Reusable lead display component
+│   │   └── LeadList.js          # Virtualized list for performance
+│   └── services/
+│       └── leadService.js       # Lead management API methods
+```
+
+#### 3. Call Management
+- Active call interface with script suggestions
+- Call outcome tracking and categorization
+- Follow-up scheduling and reminders
+- Call list management with prioritization
+
+```
+├── src/
+│   ├── screens/
+│   │   ├── CallListScreen.js    # Prioritized list of leads to call
+│   │   └── CallScreen.js        # Active call interface
+│   ├── components/
+│   │   ├── CallModal.js         # Call initiation modal
+│   │   └── CallFollowupModal.js # Post-call follow-up actions
+│   └── services/
+│       └── callService.js       # Call logging and management API
+```
+
+#### 4. Product Management & Shopify Integration
+- Product catalog synchronized with Shopify
+- Product sharing via email or SMS
+- Custom product presentation flows
+- Secure API integration with Shopify Admin API
+
+```
+├── src/
+│   ├── screens/
+│   │   ├── ProductsScreen.js    # Product catalog overview
+│   │   ├── ProductDetailScreen.js # Detailed product information
+│   │   └── ShareProductScreen.js # Product sharing interface
+│   ├── components/
+│   │   └── ProductSelector.js   # Product selection component
+│   └── services/
+│       └── shopifyService.js    # Shopify API integration methods
+```
+
+#### 5. Initial Setup & Configuration
+- Guided setup wizard for first-time users
+- Company profile configuration
+- Default settings management
+- Environment-specific configuration
+
+```
+├── src/
+│   ├── screens/
+│   │   └── SetupScreen.js       # Initial setup wizard
+│   ├── contexts/
+│   │   └── SetupContext.js      # Setup state management
+│   └── services/
+│       └── setupService.js      # Configuration API methods
+```
+
+#### 6. Core API & Data Services
+- Centralized API client with error handling
+- Offline data synchronization
+- Secure storage for sensitive information
+- Data validation with Zod schemas
+
+```
+├── src/
+│   └── services/
+│       ├── apiClient.js         # Core API service with interceptors
+│       └── storage/
+│           └── secureStorage.js # Device-secure data persistence
+```
+
+### Database Schema
+The database schema will follow the existing structure with these core entities:
+
+1. **Users** - Authentication and authorization information
+2. **Leads** - Prospective customer contact information
+3. **CallLogs** - Records of customer interactions
+4. **Products** - Product information synced with Shopify
+5. **AppSetup** - Application configuration
+
+### Mobile-Specific Considerations
+
+#### UI/UX Design
+- Implement a mobile-first design approach with responsive components
+- Support both portrait and landscape orientations
+- Design for touch interactions with appropriate hit targets
+- Implement smooth transitions and animations for a polished feel
+
+#### Performance Optimization
+- Implement virtualized lists for long scrolling content
+- Lazy load images and heavy content
+- Optimize navigation transitions
+- Implement efficient state management to minimize re-renders
+
+#### Offline Capabilities
+- Store essential data locally for offline access
+- Implement background synchronization when connectivity is restored
+- Provide clear feedback about online/offline status
+- Queue actions to be performed when back online
+
+#### Platform-Specific Features
+- Utilize device capabilities (camera, contacts, calendar)
+- Implement push notifications for follow-up reminders
+- Support deep linking for improved navigation
+- Integrate with phone for direct calling
+
+### Security Considerations
+- Implement secure storage for tokens and sensitive data
+- Use HTTPS for all API communications
+- Implement certificate pinning
+- Apply input validation and sanitization
+- Implement rate limiting and request throttling
+- Set up proper CORS and CSP policies
+
+### Development Phases
+
+#### Phase 1: Foundation
+- Set up project structure and architecture
+- Implement authentication and user management
+- Create core navigation structure
+- Set up API client with error handling
+- Implement basic design system components
+
+#### Phase 2: Core Features
+- Implement lead management functionality
+- Build call handling and logging features
+- Create product catalog display
+- Set up data persistence and offline capabilities
+- Develop setup wizard flow
+
+#### Phase 3: Advanced Features & Integration
+- Implement Shopify integration
+- Add AI-powered lead generation
+- Develop product sharing capabilities
+- Create analytics dashboard
+- Enhance search and filtering capabilities
+
+#### Phase 4: Polish & Optimization
+- Performance optimization and testing
+- Implement automated testing
+- Add error tracking and reporting
+- Conduct user testing and gather feedback
+- Apply final UI/UX polish
+
+### Testing Strategy
+- Unit testing for core business logic
+- Component testing for UI elements
+- Integration testing for API interactions
+- End-to-end testing for critical flows
+- Manual testing on various devices and screen sizes
+
+### Deployment Strategy
+- CI/CD pipeline with GitHub Actions
+- Beta testing via TestFlight and Google Play Beta
+- Phased rollout to production
+- Monitoring and analytics integration
+- Regular updates and feature enhancements
+
+### Data Integrity & Safety Requirements
+1. NEVER delete user data during migrations or operations
+2. Implement non-destructive operations for all data modifications
+3. Handle external API failures gracefully with fallbacks
+4. Keep sensitive credentials in secure environment variables
+5. Ensure all database operations preserve data integrity
+6. Include proper error handling and reporting
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v18+)
+- Expo CLI
+- Android Studio / Xcode (for native development)
+- PostgreSQL database
+
+### Installation
+1. Clone the repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Set up environment variables
+4. Start the development server:
+   ```
+   npm run dev
+   ```
+5. Start the Expo app:
+   ```
+   cd react-native && npm start
+   ```
+
+### Running on Device/Simulator
+- iOS: `npm run ios`
+- Android: `npm run android`
+- Web: `npm run web`
+
+## Contributing
+Please read the contributing guidelines before submitting pull requests.
+
+## License
+This project is proprietary software.
