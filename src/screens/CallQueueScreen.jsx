@@ -3,213 +3,332 @@ import {
   Box,
   FlatList,
   Heading,
-  Text,
   VStack,
   HStack,
-  IconButton,
+  Text,
   Icon,
-  Button,
+  Badge,
   Spinner,
   Center,
-  Divider,
-  Menu,
   Pressable,
-  Badge,
+  useToast,
+  Button,
+  Select,
+  IconButton,
+  Menu,
 } from 'native-base';
-import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useLeads } from '../hooks/useLeads';
-import LeadCard from '../components/LeadCard';
 import { makePhoneCall } from '../utils/permissions';
-
-// Sort options for the call queue
-const SORT_OPTIONS = [
-  { label: 'Priority (High to Low)', value: 'priority' },
-  { label: 'Last Contact (Oldest First)', value: 'lastContacted' },
-  { label: 'Company Name (A-Z)', value: 'companyName' },
-  { label: 'Status', value: 'status' },
-];
-
-// Status priority order for sorting
-const STATUS_PRIORITY = {
-  'new': 0,
-  'contacted': 1,
-  'qualified': 2,
-  'unqualified': 3,
-  'converted': 4,
-};
+import LeadCard from '../components/LeadCard';
 
 const CallQueueScreen = () => {
   const navigation = useNavigation();
-  const { leads, isLoading, refetchLeads } = useLeads();
-  const [sortOption, setSortOption] = useState('priority');
-  const [filteredLeads, setFilteredLeads] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
+  const toast = useToast();
   
-  // Apply sorting and filtering to leads
-  useEffect(() => {
-    if (!leads) return;
+  const { leads, isLoading, isError, refetch, updateLead } = useLeads();
+  
+  const [sortType, setSortType] = useState('priority'); // 'priority', 'lastContacted', 'reminder'
+  const [filterReminders, setFilterReminders] = useState(false);
+
+  // Filter and sort leads for the call queue
+  const callQueue = React.useMemo(() => {
+    if (!leads) return [];
     
-    let sorted = [...leads];
+    // Start with a copy of the leads array
+    let queue = [...leads];
     
-    // Apply sorting
-    switch (sortOption) {
-      case 'priority':
-        sorted.sort((a, b) => b.priority - a.priority);
-        break;
-      case 'lastContacted':
-        sorted.sort((a, b) => {
-          if (!a.lastContactedAt) return -1;
-          if (!b.lastContactedAt) return 1;
-          return new Date(a.lastContactedAt).getTime() - new Date(b.lastContactedAt).getTime();
-        });
-        break;
-      case 'companyName':
-        sorted.sort((a, b) => {
-          const aName = a.globalLead?.companyName || '';
-          const bName = b.globalLead?.companyName || '';
-          return aName.localeCompare(bName);
-        });
-        break;
-      case 'status':
-        sorted.sort((a, b) => {
-          return STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status];
-        });
-        break;
+    // Filter by reminders if required
+    if (filterReminders) {
+      queue = queue.filter(lead => lead.reminderDate && new Date(lead.reminderDate) <= new Date());
     }
     
-    // Filter out "do not call" leads
-    sorted = sorted.filter(lead => lead.status !== 'unqualified');
+    // Sort the queue based on selected criteria
+    if (sortType === 'priority') {
+      queue.sort((a, b) => b.priority - a.priority);
+    } else if (sortType === 'lastContacted') {
+      queue.sort((a, b) => {
+        // Leads never contacted come first
+        if (!a.lastContactedAt && b.lastContactedAt) return -1;
+        if (a.lastContactedAt && !b.lastContactedAt) return 1;
+        if (!a.lastContactedAt && !b.lastContactedAt) return 0;
+        
+        // Then sort by last contacted date (oldest first)
+        return new Date(a.lastContactedAt) - new Date(b.lastContactedAt);
+      });
+    } else if (sortType === 'reminder') {
+      queue.sort((a, b) => {
+        // Leads with reminders due now come first
+        if (a.reminderDate && !b.reminderDate) return -1;
+        if (!a.reminderDate && b.reminderDate) return 1;
+        if (!a.reminderDate && !b.reminderDate) return 0;
+        
+        // Then sort by reminder date
+        return new Date(a.reminderDate) - new Date(b.reminderDate);
+      });
+    }
     
-    setFilteredLeads(sorted);
-  }, [leads, sortOption]);
-  
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await refetchLeads();
-    setRefreshing(false);
+    return queue;
+  }, [leads, sortType, filterReminders]);
+
+  // Handle making a call
+  const handleCall = async (lead) => {
+    if (lead?.globalLead?.phoneNumber) {
+      try {
+        await makePhoneCall(lead.globalLead.phoneNumber);
+        navigation.navigate('Call', { 
+          leadId: lead.id,
+          phoneNumber: lead.globalLead.phoneNumber,
+          contactName: lead.globalLead.contactName,
+        });
+      } catch (error) {
+        console.error('Error making phone call:', error);
+        toast.show({
+          title: "Couldn't place call",
+          description: error.message || "Please try again",
+          status: "error",
+          placement: "top",
+        });
+      }
+    }
   };
-  
-  const handleStartCall = (lead) => {
-    navigation.navigate('Call', { leadId: lead.id });
+
+  // Mark a lead as contacted and update status
+  const handleMarkContacted = async (lead, newStatus = 'contacted') => {
+    try {
+      await updateLead(lead.id, {
+        status: newStatus,
+        lastContactedAt: new Date().toISOString(),
+      });
+      
+      toast.show({
+        title: "Lead updated",
+        description: "Lead marked as " + newStatus,
+        status: "success",
+        placement: "top",
+      });
+    } catch (error) {
+      console.error('Error updating lead:', error);
+      toast.show({
+        title: "Update failed",
+        description: error.message || "Please try again",
+        status: "error",
+        placement: "top",
+      });
+    }
   };
-  
-  // Render empty state
-  const renderEmptyState = () => (
-    <Center flex={1} p={10}>
-      <Icon as={Feather} name="phone-off" size="4xl" color="gray.300" mb={4} />
-      <Heading size="md" color="gray.500" textAlign="center">
-        No leads in your call queue
-      </Heading>
-      <Text color="gray.400" textAlign="center" mt={2}>
-        Add new leads or generate some with AI to get started
-      </Text>
+
+  // View lead details
+  const handleViewLead = (lead) => {
+    navigation.navigate('LeadDetail', { leadId: lead.id });
+  };
+
+  // Render the right element for lead cards
+  const renderCallButton = (lead) => {
+    return (
       <Button
-        mt={6}
-        leftIcon={<Icon as={Feather} name="user-plus" size="sm" />}
-        onPress={() => navigation.navigate('LeadForm')}
+        onPress={() => handleCall(lead)}
+        leftIcon={<Icon as={Feather} name="phone" size={4} color="white" />}
+        size="sm"
+        colorScheme="success"
       >
-        Add New Lead
+        Call
       </Button>
-    </Center>
-  );
-  
-  // Render a lead item in the queue
-  const renderLeadItem = ({ item }) => (
-    <Box mb={3}>
-      <LeadCard
-        lead={item}
-        onPress={() => navigation.navigate('LeadDetail', { leadId: item.id })}
-        rightElement={
-          <IconButton
-            icon={<Icon as={Feather} name="phone-outgoing" size="sm" color="white" />}
-            onPress={() => handleStartCall(item)}
-            rounded="full"
-            bg="primary.500"
-            _pressed={{ bg: 'primary.600' }}
-            mr={1}
-          />
-        }
-        showStatus
-      />
-    </Box>
-  );
-  
-  return (
-    <Box flex={1} bg="gray.50" safeArea>
-      <VStack px={4} pt={4} pb={2} space={1}>
-        <HStack alignItems="center" justifyContent="space-between">
-          <Heading size="lg" color="primary.600">Call Queue</Heading>
+    );
+  };
+
+  // Render actions menu
+  const renderActionsMenu = (lead) => {
+    return (
+      <Menu
+        trigger={(triggerProps) => {
+          return (
+            <IconButton
+              {...triggerProps}
+              icon={<Icon as={Feather} name="more-vertical" size={5} />}
+              variant="ghost"
+              _icon={{ color: "gray.500" }}
+            />
+          );
+        }}
+        placement="bottom right"
+      >
+        <Menu.Item onPress={() => handleViewLead(lead)}>
+          <HStack alignItems="center" space={2}>
+            <Icon as={Feather} name="eye" size={4} />
+            <Text>View Details</Text>
+          </HStack>
+        </Menu.Item>
+        <Menu.Item onPress={() => handleMarkContacted(lead, 'contacted')}>
+          <HStack alignItems="center" space={2}>
+            <Icon as={Feather} name="check" size={4} />
+            <Text>Mark Contacted</Text>
+          </HStack>
+        </Menu.Item>
+        <Menu.Item onPress={() => handleMarkContacted(lead, 'qualified')}>
+          <HStack alignItems="center" space={2}>
+            <Icon as={Feather} name="thumbs-up" size={4} />
+            <Text>Mark Qualified</Text>
+          </HStack>
+        </Menu.Item>
+        <Menu.Item onPress={() => handleMarkContacted(lead, 'unqualified')}>
+          <HStack alignItems="center" space={2}>
+            <Icon as={Feather} name="thumbs-down" size={4} />
+            <Text>Mark Unqualified</Text>
+          </HStack>
+        </Menu.Item>
+      </Menu>
+    );
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Center flex={1} bg="white" safeArea>
+        <Spinner size="lg" color="primary.500" />
+        <Text mt={4} color="gray.500">Loading call queue...</Text>
+      </Center>
+    );
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <Center flex={1} bg="white" safeArea>
+        <Icon as={Feather} name="alert-circle" size={12} color="error.500" />
+        <Text mt={4} color="error.500">Failed to load call queue</Text>
+        <Button mt={4} onPress={refetch} leftIcon={<Icon as={Feather} name="refresh-cw" size={4} />}>
+          Try Again
+        </Button>
+      </Center>
+    );
+  }
+
+  // Empty queue state
+  if (callQueue.length === 0) {
+    return (
+      <Box flex={1} bg="white" safeArea>
+        <VStack p={4} space={4}>
+          <Heading size="lg">Call Queue</Heading>
           
-          <Menu
-            w="190"
-            trigger={triggerProps => (
-              <Pressable {...triggerProps}>
-                <HStack alignItems="center" space={1}>
-                  <Text color="primary.500" fontWeight="medium">Sort</Text>
-                  <Icon as={Feather} name="chevron-down" size="sm" color="primary.500" />
-                </HStack>
-              </Pressable>
-            )}
-          >
-            {SORT_OPTIONS.map((option) => (
-              <Menu.Item 
-                key={option.value} 
-                onPress={() => setSortOption(option.value)}
+          <HStack space={4} justifyContent="space-between">
+            <Select
+              flex={1}
+              selectedValue={sortType}
+              onValueChange={setSortType}
+              accessibilityLabel="Sort by"
+            >
+              <Select.Item label="Sort by Priority" value="priority" />
+              <Select.Item label="Sort by Last Contact" value="lastContacted" />
+              <Select.Item label="Sort by Reminder" value="reminder" />
+            </Select>
+            
+            <Button.Group space={2}>
+              <Button
+                variant={filterReminders ? "solid" : "outline"}
+                colorScheme={filterReminders ? "primary" : "gray"}
+                leftIcon={<Icon as={Feather} name="clock" size={4} />}
+                onPress={() => setFilterReminders(!filterReminders)}
               >
-                <HStack alignItems="center" space={2}>
-                  {sortOption === option.value && (
-                    <Icon as={Feather} name="check" size="xs" color="primary.500" />
-                  )}
-                  <Text>{option.label}</Text>
-                </HStack>
-              </Menu.Item>
-            ))}
-          </Menu>
+                Due Reminders
+              </Button>
+            </Button.Group>
+          </HStack>
+          
+          <Center flex={1} p={10}>
+            <Icon as={Feather} name="phone-off" size={20} color="gray.300" />
+            <Heading mt={4} size="md" color="gray.500">
+              No leads in call queue
+            </Heading>
+            <Text mt={2} textAlign="center" color="gray.400">
+              {filterReminders 
+                ? "No leads with due reminders found" 
+                : "Add leads to your call queue by setting priorities"}
+            </Text>
+            <Button
+              mt={6}
+              leftIcon={<Icon as={Feather} name="plus" size={5} />}
+              onPress={() => navigation.navigate('LeadForm')}
+            >
+              Add New Lead
+            </Button>
+          </Center>
+        </VStack>
+      </Box>
+    );
+  }
+
+  // Call queue list view
+  return (
+    <Box flex={1} bg="white" safeArea>
+      <VStack p={4} space={4} flex={1}>
+        <Heading size="lg">Call Queue ({callQueue.length})</Heading>
+        
+        <HStack space={4} justifyContent="space-between">
+          <Select
+            flex={1}
+            selectedValue={sortType}
+            onValueChange={setSortType}
+            accessibilityLabel="Sort by"
+          >
+            <Select.Item label="Sort by Priority" value="priority" />
+            <Select.Item label="Sort by Last Contact" value="lastContacted" />
+            <Select.Item label="Sort by Reminder" value="reminder" />
+          </Select>
+          
+          <Button.Group space={2}>
+            <Button
+              variant={filterReminders ? "solid" : "outline"}
+              colorScheme={filterReminders ? "primary" : "gray"}
+              leftIcon={<Icon as={Feather} name="clock" size={4} />}
+              onPress={() => setFilterReminders(!filterReminders)}
+            >
+              Due
+            </Button>
+          </Button.Group>
         </HStack>
         
-        <Text color="gray.500" fontSize="sm">
-          {filteredLeads.length} {filteredLeads.length === 1 ? 'lead' : 'leads'} ready to call
-        </Text>
-      </VStack>
-      
-      <Divider />
-      
-      {isLoading ? (
-        <Center flex={1}>
-          <Spinner size="lg" color="primary.500" />
-          <Text color="gray.500" mt={2}>Loading your call queue...</Text>
-        </Center>
-      ) : (
         <FlatList
-          data={filteredLeads}
-          renderItem={renderLeadItem}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{ 
-            flexGrow: 1,
-            padding: 16,
-            paddingBottom: 24
-          }}
-          ListEmptyComponent={renderEmptyState}
-          onRefresh={handleRefresh}
-          refreshing={refreshing}
+          data={callQueue}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <Box mb={4}>
+              <HStack justifyContent="space-between" alignItems="center" mb={2}>
+                <HStack space={2}>
+                  {item.reminderDate && new Date(item.reminderDate) <= new Date() && (
+                    <Badge colorScheme="amber" variant="subtle">
+                      <HStack space={1} alignItems="center">
+                        <Icon as={Feather} name="clock" size={3} />
+                        <Text fontSize="xs">Reminder Due</Text>
+                      </HStack>
+                    </Badge>
+                  )}
+                  
+                  {!item.lastContactedAt && (
+                    <Badge colorScheme="info" variant="subtle">
+                      <HStack space={1} alignItems="center">
+                        <Icon as={Feather} name="phone-missed" size={3} />
+                        <Text fontSize="xs">Never Contacted</Text>
+                      </HStack>
+                    </Badge>
+                  )}
+                </HStack>
+                
+                {renderActionsMenu(item)}
+              </HStack>
+              
+              <LeadCard 
+                lead={item} 
+                onPress={() => handleViewLead(item)} 
+                rightElement={renderCallButton(item)}
+                showStatus={true}
+              />
+            </Box>
+          )}
+          contentContainerStyle={{ paddingBottom: 20 }}
         />
-      )}
-      
-      {filteredLeads.length > 0 && (
-        <Box position="absolute" bottom={4} right={0} left={0} alignItems="center">
-          <Button
-            size="lg"
-            rounded="full"
-            px={6}
-            leftIcon={<Icon as={Feather} name="phone" size="sm" />}
-            onPress={() => handleStartCall(filteredLeads[0])}
-            shadow={3}
-          >
-            Start Calling
-          </Button>
-        </Box>
-      )}
+      </VStack>
     </Box>
   );
 };

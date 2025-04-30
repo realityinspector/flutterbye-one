@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useToast } from 'native-base';
 
 // Base URL for API
-const API_URL = 'http://localhost:8000/api';
+const API_URL = 'http://localhost:5000/api';
 
 // Lead service axios instance
 const leadsAxios = axios.create({
@@ -11,70 +12,39 @@ const leadsAxios = axios.create({
   withCredentials: true,
 });
 
-// Type for creating a new lead
-export type CreateLeadPayload = {
-  companyName: string;
-  contactName: string;
-  phoneNumber: string;
-  email?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  industry?: string;
-  website?: string;
-  notes?: string;
-};
-
-// Type for user lead data
-export type UserLead = {
-  id: number;
-  userId: number;
-  globalLeadId: number;
-  status: 'new' | 'contacted' | 'qualified' | 'unqualified' | 'converted';
-  priority: number;
-  notes?: string;
-  lastContactedAt?: string;
-  reminderDate?: string;
-  globalLead?: {
-    id: number;
-    companyName: string;
-    contactName: string;
-    phoneNumber: string;
-    email?: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    zipCode?: string;
-    industry?: string;
-    website?: string;
-  };
-};
-
 export const useLeads = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
-  // Get all leads
-  const { data: leads = [], isLoading, error, refetch: refetchLeads } = useQuery({
+  // Fetch all leads
+  const { data: leads = [], refetch } = useQuery({
     queryKey: ['leads'],
     queryFn: async () => {
-      const response = await leadsAxios.get('/leads');
-      return response.data;
-    }
+      try {
+        const response = await leadsAxios.get('/leads');
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching leads:', error);
+        setIsError(true);
+        throw error;
+      }
+    },
   });
 
-  // Get a single lead
-  const getLead = (leadId) => {
-    return useQuery({
-      queryKey: ['leads', leadId],
-      queryFn: async () => {
-        if (!leadId) return null;
-        const response = await leadsAxios.get(`/leads/${leadId}`);
-        return response.data;
-      },
-      enabled: !!leadId,
-    });
+  // Get a single lead by id
+  const getLead = async (leadId) => {
+    try {
+      setIsLoading(true);
+      const response = await leadsAxios.get(`/leads/${leadId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching lead details:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Create a new lead
@@ -86,20 +56,18 @@ export const useLeads = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       toast.show({
-        title: "Lead created",
+        title: "Lead created successfully",
         status: "success",
         placement: "top",
-        duration: 3000,
       });
     },
     onError: (error) => {
-      console.error('Create lead error:', error);
+      console.error('Error creating lead:', error);
       toast.show({
         title: "Failed to create lead",
         description: error.response?.data?.message || "Please try again",
         status: "error",
         placement: "top",
-        duration: 3000,
       });
     },
   });
@@ -112,22 +80,19 @@ export const useLeads = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
-      queryClient.invalidateQueries({ queryKey: ['leads', data.id] });
       toast.show({
-        title: "Lead updated",
+        title: "Lead updated successfully",
         status: "success",
         placement: "top",
-        duration: 3000,
       });
     },
     onError: (error) => {
-      console.error('Update lead error:', error);
+      console.error('Error updating lead:', error);
       toast.show({
         title: "Failed to update lead",
         description: error.response?.data?.message || "Please try again",
         status: "error",
         placement: "top",
-        duration: 3000,
       });
     },
   });
@@ -135,40 +100,50 @@ export const useLeads = () => {
   // Delete a lead
   const deleteLeadMutation = useMutation({
     mutationFn: async (leadId) => {
-      await leadsAxios.delete(`/leads/${leadId}`);
-      return leadId;
+      const response = await leadsAxios.delete(`/leads/${leadId}`);
+      return response.data;
     },
-    onSuccess: (leadId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
-      queryClient.removeQueries({ queryKey: ['leads', leadId] });
       toast.show({
-        title: "Lead deleted",
+        title: "Lead deleted successfully",
         status: "success",
         placement: "top",
-        duration: 3000,
       });
     },
     onError: (error) => {
-      console.error('Delete lead error:', error);
+      console.error('Error deleting lead:', error);
       toast.show({
         title: "Failed to delete lead",
         description: error.response?.data?.message || "Please try again",
         status: "error",
         placement: "top",
-        duration: 3000,
       });
     },
   });
 
+  // Wrapper functions for mutations
+  const createLead = async (leadData) => {
+    return createLeadMutation.mutateAsync(leadData);
+  };
+
+  const updateLead = async (leadId, leadData) => {
+    return updateLeadMutation.mutateAsync({ leadId, leadData });
+  };
+
+  const deleteLead = async (leadId) => {
+    return deleteLeadMutation.mutateAsync(leadId);
+  };
+
   return {
     leads,
     isLoading,
-    error,
-    refetchLeads,
+    isError,
+    refetch,
     getLead,
-    createLead: createLeadMutation.mutateAsync,
-    updateLead: updateLeadMutation.mutateAsync,
-    deleteLead: deleteLeadMutation.mutateAsync,
+    createLead,
+    updateLead,
+    deleteLead,
     isCreatingLead: createLeadMutation.isPending,
     isUpdatingLead: updateLeadMutation.isPending,
     isDeletingLead: deleteLeadMutation.isPending,

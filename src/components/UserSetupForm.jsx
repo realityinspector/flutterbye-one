@@ -1,20 +1,26 @@
 import React, { useState } from 'react';
 import {
+  Box,
   VStack,
   FormControl,
   Input,
-  HStack,
-  Text,
   Button,
-  Icon,
-  Box,
-  Switch,
-  Divider,
   useToast,
+  Text,
+  Heading,
+  Icon,
+  Progress,
+  HStack,
 } from 'native-base';
 import { Feather } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
 
+/**
+ * UserSetupForm component for new user onboarding
+ * 
+ * @param {Object} props Component props
+ * @param {Function} props.onComplete Callback when setup is complete
+ */
 const UserSetupForm = ({ onComplete }) => {
   const { user, update } = useAuth();
   const toast = useToast();
@@ -23,150 +29,190 @@ const UserSetupForm = ({ onComplete }) => {
     fullName: user?.fullName || '',
     email: user?.email || '',
     companyName: user?.companyName || '',
-    enableNotifications: true,
-    enableCalendarIntegration: true,
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const handleSubmit = async () => {
-    if (!formData.fullName || !formData.email) {
+  const [step, setStep] = useState(1);
+  const totalSteps = 3;
+
+  // Handle form input changes
+  const handleChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Handle next step
+  const handleNextStep = () => {
+    if (step === 1 && !formData.fullName) {
       toast.show({
-        title: "Required fields",
-        description: "Please complete all required fields",
+        title: "Name is required",
         status: "warning",
       });
       return;
     }
     
+    if (step === 2 && !formData.email) {
+      toast.show({
+        title: "Email is required",
+        status: "warning",
+      });
+      return;
+    }
+    
+    if (step < totalSteps) {
+      setStep(step + 1);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  // Handle previous step
+  const handlePrevStep = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    
     try {
-      setIsSubmitting(true);
-      
-      // Update the user profile
       await update({
-        fullName: formData.fullName,
-        email: formData.email,
-        companyName: formData.companyName,
+        ...formData,
         hasCompletedSetup: true,
       });
       
       toast.show({
-        title: "Profile updated",
-        description: "Your preferences have been saved",
+        title: "Setup completed",
+        description: "Your profile has been saved",
         status: "success",
       });
       
       onComplete();
     } catch (error) {
-      console.error("Error updating user profile:", error);
-      
+      console.error('User setup error:', error);
       toast.show({
-        title: "Update failed",
-        description: "Please try again",
+        title: "Setup failed",
+        description: error.message || "Please try again",
         status: "error",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
+  // Render current step content
+  const renderStepContent = () => {
+    switch (step) {
+      case 1:
+        return (
+          <Box>
+            <Heading size="lg" mb={2}>Welcome to Walk N Talk CRM</Heading>
+            <Text fontSize="md" color="gray.600" mb={8}>
+              Let's set up your profile so you can get started
+            </Text>
+            
+            <FormControl mb={6}>
+              <FormControl.Label>Your Full Name</FormControl.Label>
+              <Input
+                size="lg"
+                placeholder="Enter your full name"
+                value={formData.fullName}
+                onChangeText={(value) => handleChange('fullName', value)}
+                leftElement={
+                  <Icon as={Feather} name="user" size={5} color="gray.400" ml={2} />
+                }
+              />
+            </FormControl>
+          </Box>
+        );
+      
+      case 2:
+        return (
+          <Box>
+            <Heading size="lg" mb={2}>Your Contact Details</Heading>
+            <Text fontSize="md" color="gray.600" mb={8}>
+              How can leads and clients reach you?
+            </Text>
+            
+            <FormControl mb={6}>
+              <FormControl.Label>Email Address</FormControl.Label>
+              <Input
+                size="lg"
+                placeholder="Enter your email"
+                value={formData.email}
+                onChangeText={(value) => handleChange('email', value)}
+                keyboardType="email-address"
+                leftElement={
+                  <Icon as={Feather} name="mail" size={5} color="gray.400" ml={2} />
+                }
+              />
+            </FormControl>
+          </Box>
+        );
+      
+      case 3:
+        return (
+          <Box>
+            <Heading size="lg" mb={2}>Your Company</Heading>
+            <Text fontSize="md" color="gray.600" mb={8}>
+              Tell us about your organization
+            </Text>
+            
+            <FormControl mb={6}>
+              <FormControl.Label>Company Name</FormControl.Label>
+              <Input
+                size="lg"
+                placeholder="Enter your company name"
+                value={formData.companyName}
+                onChangeText={(value) => handleChange('companyName', value)}
+                leftElement={
+                  <Icon as={Feather} name="briefcase" size={5} color="gray.400" ml={2} />
+                }
+              />
+            </FormControl>
+          </Box>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
   return (
-    <VStack space={5}>
-      <Box bg="primary.50" p={4} rounded="md">
-        <HStack space={3} alignItems="center">
-          <Icon as={Feather} name="user-check" size="sm" color="primary.600" />
-          <Text color="primary.700" fontWeight="medium">
-            Welcome to WALK&TALK! Let's personalize your experience.
-          </Text>
-        </HStack>
-      </Box>
+    <Box p={6} bg="white" rounded="lg" shadow={2} width="100%">
+      {/* Progress indicator */}
+      <HStack mb={8} alignItems="center">
+        <Progress value={(step / totalSteps) * 100} colorScheme="primary" flex={1} />
+        <Text ml={2} color="gray.500">{step}/{totalSteps}</Text>
+      </HStack>
       
-      <FormControl isRequired>
-        <FormControl.Label>Full Name</FormControl.Label>
-        <Input
-          placeholder="Enter your full name"
-          value={formData.fullName}
-          onChangeText={value => setFormData({ ...formData, fullName: value })}
-        />
-      </FormControl>
+      {/* Step content */}
+      {renderStepContent()}
       
-      <FormControl isRequired>
-        <FormControl.Label>Email</FormControl.Label>
-        <Input
-          placeholder="Enter your email address"
-          value={formData.email}
-          onChangeText={value => setFormData({ ...formData, email: value })}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      </FormControl>
-      
-      <FormControl>
-        <FormControl.Label>Company</FormControl.Label>
-        <Input
-          placeholder="Enter your company name"
-          value={formData.companyName}
-          onChangeText={value => setFormData({ ...formData, companyName: value })}
-        />
-      </FormControl>
-      
-      <Divider />
-      
-      <VStack space={4}>
-        <Text fontWeight="medium" color="gray.700">App Preferences</Text>
+      {/* Navigation buttons */}
+      <HStack mt={8} space={4} justifyContent="space-between">
+        <Button
+          variant="ghost"
+          onPress={handlePrevStep}
+          isDisabled={step === 1 || isSubmitting}
+          leftIcon={<Icon as={Feather} name="chevron-left" size={5} />}
+        >
+          Back
+        </Button>
         
-        <FormControl>
-          <HStack alignItems="center" justifyContent="space-between">
-            <VStack>
-              <Text>Push Notifications</Text>
-              <Text fontSize="xs" color="gray.500">
-                Get reminders for follow-up calls
-              </Text>
-            </VStack>
-            <Switch
-              isChecked={formData.enableNotifications}
-              onToggle={() => 
-                setFormData({ 
-                  ...formData, 
-                  enableNotifications: !formData.enableNotifications 
-                })
-              }
-              colorScheme="primary"
-            />
-          </HStack>
-        </FormControl>
-        
-        <FormControl>
-          <HStack alignItems="center" justifyContent="space-between">
-            <VStack>
-              <Text>Calendar Integration</Text>
-              <Text fontSize="xs" color="gray.500">
-                Add call reminders to your calendar
-              </Text>
-            </VStack>
-            <Switch
-              isChecked={formData.enableCalendarIntegration}
-              onToggle={() => 
-                setFormData({ 
-                  ...formData, 
-                  enableCalendarIntegration: !formData.enableCalendarIntegration 
-                })
-              }
-              colorScheme="primary"
-            />
-          </HStack>
-        </FormControl>
-      </VStack>
-      
-      <Button
-        mt={4}
-        isLoading={isSubmitting}
-        onPress={handleSubmit}
-        leftIcon={<Icon as={Feather} name="check-circle" size="sm" />}
-      >
-        Complete Setup
-      </Button>
-    </VStack>
+        <Button
+          onPress={handleNextStep}
+          isLoading={isSubmitting}
+          rightIcon={step < totalSteps ? <Icon as={Feather} name="chevron-right" size={5} /> : undefined}
+        >
+          {step < totalSteps ? 'Next' : 'Complete Setup'}
+        </Button>
+      </HStack>
+    </Box>
   );
 };
 

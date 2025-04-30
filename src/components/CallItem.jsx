@@ -5,167 +5,130 @@ import {
   VStack,
   Text,
   Icon,
-  Pressable,
   Badge,
+  Pressable,
 } from 'native-base';
 import { Feather } from '@expo/vector-icons';
 
-// Outcome color mapping
-const OUTCOME_COLORS = {
-  no_answer: 'gray',
-  call_back: 'info',
-  do_not_call: 'error',
-  interested: 'success',
-  not_interested: 'warning',
-  meeting_scheduled: 'primary',
-  other: 'gray',
-};
-
-// Outcome user-friendly labels
-const OUTCOME_LABELS = {
-  no_answer: 'No Answer',
-  call_back: 'Call Back',
-  do_not_call: 'Do Not Call',
-  interested: 'Interested',
-  not_interested: 'Not Interested',
-  meeting_scheduled: 'Meeting Scheduled',
-  other: 'Other',
-};
-
-// Outcome icons
-const OUTCOME_ICONS = {
-  no_answer: 'phone-missed',
-  call_back: 'phone-call',
-  do_not_call: 'phone-off',
-  interested: 'thumbs-up',
-  not_interested: 'thumbs-down',
-  meeting_scheduled: 'calendar',
-  other: 'more-horizontal',
-};
-
-const CallItem = ({ 
-  call, 
-  onPress, 
-  compact = false,
-  leadName 
-}) => {
-  // Format the call date
+/**
+ * CallItem component displays a call record with outcome and duration
+ * 
+ * @param {Object} props Component props
+ * @param {Object} props.call Call data object
+ * @param {Function} props.onPress Optional callback when item is pressed
+ * @param {boolean} props.compact Display in compact mode (less details)
+ * @param {boolean} props.leadName Whether to show the lead name (for call history view)
+ */
+const CallItem = ({ call, onPress, compact = false, leadName = false }) => {
+  // Format date for display
   const formatDate = (dateString) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
-    
-    if (compact) {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    }
-    
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return date.toLocaleDateString() + ' · ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Format the call duration
+  // Format duration in minutes and seconds
   const formatDuration = (seconds) => {
-    if (!seconds) return 'N/A';
-    
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    if (!seconds) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
   };
+
+  // Get icon and color for call outcome
+  const getOutcomeDetails = (outcome) => {
+    switch (outcome) {
+      case 'completed':
+        return { icon: 'check', color: 'success' };
+      case 'left_message':
+        return { icon: 'voicemail', color: 'warning' };
+      case 'no_answer':
+        return { icon: 'phone-missed', color: 'error' };
+      case 'interested':
+        return { icon: 'thumbs-up', color: 'success' };
+      case 'not_interested':
+        return { icon: 'thumbs-down', color: 'error' };
+      case 'meeting_scheduled':
+        return { icon: 'calendar', color: 'info' };
+      case 'do_not_call':
+        return { icon: 'slash', color: 'error' };
+      default:
+        return { icon: 'phone', color: 'gray' };
+    }
+  };
+
+  // Format outcome text for display
+  const formatOutcome = (outcome) => {
+    if (!outcome) return 'Call Completed';
+    return outcome.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+
+  const outcomeDetails = getOutcomeDetails(call.outcome);
 
   return (
     <Pressable onPress={onPress}>
       <Box
         bg="white"
-        p={compact ? 2 : 3}
-        rounded={compact ? "md" : "xl"}
-        borderWidth={compact ? 0 : 1}
-        borderColor="gray.200"
+        rounded="md"
+        p={3}
         shadow={compact ? 0 : 1}
+        borderWidth={compact ? 1 : 0}
+        borderColor="gray.100"
       >
-        <VStack space={compact ? 1 : 2}>
-          <HStack justifyContent="space-between" alignItems="center">
-            <HStack space={2} alignItems="center">
-              <Icon 
-                as={Feather} 
-                name="phone" 
-                size={compact ? "xs" : "sm"} 
-                color="primary.500" 
-              />
-              
-              <Text 
-                fontSize={compact ? "xs" : "sm"} 
-                fontWeight="medium"
-                color="gray.700"
-              >
-                {formatDate(call.callDate)}
+        <HStack space={3} alignItems="center">
+          <Box
+            p={2}
+            bg={`${outcomeDetails.color}.100`}
+            rounded="full"
+          >
+            <Icon as={Feather} name={outcomeDetails.icon} color={`${outcomeDetails.color}.500`} size={5} />
+          </Box>
+          
+          <VStack flex={1}>
+            <HStack alignItems="center" justifyContent="space-between">
+              <Text fontWeight="medium">
+                {formatOutcome(call.outcome)}
               </Text>
+              {call.duration && !compact && (
+                <Badge variant="subtle" colorScheme="blue" rounded="md">
+                  {formatDuration(call.duration)}
+                </Badge>
+              )}
             </HStack>
+
+            <Text fontSize="sm" color="gray.500">
+              {formatDate(call.callDate)}
+            </Text>
             
-            {call.duration && (
-              <Text fontSize={compact ? "2xs" : "xs"} color="gray.500">
-                {formatDuration(call.duration)}
+            {!compact && call.notes && (
+              <Text mt={1} fontSize="sm" color="gray.600" numberOfLines={2}>
+                {call.notes}
               </Text>
             )}
-          </HStack>
-          
-          {!compact && leadName && (
-            <Text fontSize="md" fontWeight="semibold">
-              {leadName}
-            </Text>
+
+            {leadName && call.leadName && (
+              <HStack alignItems="center" mt={1}>
+                <Icon as={Feather} name="user" size={3} color="primary.500" mr={1} />
+                <Text fontSize="xs" color="primary.500">
+                  {call.leadName}
+                </Text>
+              </HStack>
+            )}
+
+            {!compact && call.reminderDate && new Date(call.reminderDate) > new Date() && (
+              <HStack alignItems="center" mt={1}>
+                <Icon as={Feather} name="clock" size={3} color="amber.500" mr={1} />
+                <Text fontSize="xs" color="amber.500">
+                  Reminder: {formatDate(call.reminderDate)}
+                </Text>
+              </HStack>
+            )}
+          </VStack>
+
+          {onPress && (
+            <Icon as={Feather} name="chevron-right" size={5} color="gray.400" />
           )}
-          
-          {call.outcome && (
-            <HStack space={2} alignItems="center">
-              <Badge 
-                colorScheme={OUTCOME_COLORS[call.outcome]} 
-                variant="subtle" 
-                rounded="sm"
-              >
-                <HStack space={1} alignItems="center">
-                  <Icon 
-                    as={Feather} 
-                    name={OUTCOME_ICONS[call.outcome]} 
-                    size="2xs" 
-                    color={`${OUTCOME_COLORS[call.outcome]}.700`} 
-                  />
-                  <Text fontSize="2xs">
-                    {OUTCOME_LABELS[call.outcome]}
-                  </Text>
-                </HStack>
-              </Badge>
-            </HStack>
-          )}
-          
-          {!compact && call.notes && (
-            <Text fontSize="sm" color="gray.600" numberOfLines={2}>
-              {call.notes}
-            </Text>
-          )}
-          
-          {call.reminderDate && (
-            <HStack space={1} alignItems="center">
-              <Icon 
-                as={Feather} 
-                name="clock" 
-                size="2xs" 
-                color="warning.500" 
-              />
-              <Text fontSize={compact ? "2xs" : "xs"} color="warning.500">
-                Reminder: {formatDate(call.reminderDate)}
-              </Text>
-            </HStack>
-          )}
-        </VStack>
+        </HStack>
       </Box>
     </Pressable>
   );

@@ -5,115 +5,139 @@ import {
   VStack,
   Text,
   Icon,
-  Pressable,
   Badge,
+  Spacer,
 } from 'native-base';
 import { Feather } from '@expo/vector-icons';
 
-// Status color mapping
-const STATUS_COLORS = {
-  new: 'info',
-  contacted: 'warning',
-  qualified: 'success',
-  unqualified: 'error',
-  converted: 'primary',
-};
-
-// Status user-friendly labels
-const STATUS_LABELS = {
-  new: 'New',
-  contacted: 'Contacted',
-  qualified: 'Qualified',
-  unqualified: 'Unqualified',
-  converted: 'Converted',
-};
-
-const LeadCard = ({ 
-  lead, 
-  onPress, 
+/**
+ * LeadCard component displays a lead with contact info and status
+ * 
+ * @param {Object} props Component props
+ * @param {Object} props.lead Lead data object
+ * @param {Function} props.onPress Optional callback when card is pressed
+ * @param {React.ReactNode} props.rightElement Optional element to render on the right side
+ * @param {boolean} props.showStatus Whether to show the lead status
+ */
+const LeadCard = ({
+  lead,
+  onPress,
   rightElement,
-  showStatus = false 
+  showStatus = false,
 }) => {
-  // Format the reminder date
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  // Get status badge color
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'new': return 'info';
+      case 'contacted': return 'warning';
+      case 'qualified': return 'success';
+      case 'unqualified': return 'error';
+      case 'converted': return 'purple';
+      default: return 'gray';
+    }
+  };
+
+  // Format priority level
+  const getPriorityText = (priority) => {
+    if (priority >= 8) return 'High';
+    if (priority >= 4) return 'Medium';
+    return 'Low';
+  };
+
+  // Format priority color
+  const getPriorityColor = (priority) => {
+    if (priority >= 8) return 'error';
+    if (priority >= 4) return 'warning';
+    return 'success';
+  };
+
+  // Display company name or contact name if company is missing
+  const displayName = lead.globalLead?.companyName || lead.globalLead?.contactName || 'Unknown';
+  
+  // Format phone number for display
+  const formatPhoneNumber = (phoneNumber) => {
+    if (!phoneNumber) return '';
+    // Simple formatting, could be enhanced with library like libphonenumber-js
+    const cleaned = phoneNumber.replace(/\D/g, '');
+    return cleaned;
   };
 
   return (
-    <Pressable onPress={onPress}>
-      <Box
-        bg="white"
-        p={3}
-        rounded="xl"
-        borderWidth={1}
-        borderColor="gray.200"
-        shadow={1}
-      >
-        <HStack space={3} alignItems="center">
-          {/* Initial circle */}
-          <Box
-            w={12}
-            h={12}
-            bg="primary.100"
-            rounded="full"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <Text color="primary.600" fontSize="lg" fontWeight="bold">
-              {lead.globalLead?.contactName?.charAt(0) || '?'}
+    <Box 
+      bg="white" 
+      p={4} 
+      rounded="md"
+      borderWidth={1}
+      borderColor="gray.100"
+      shadow={1}
+    >
+      <HStack space={3} alignItems="flex-start">
+        <Box rounded="full" bg="primary.100" p={2}>
+          <Icon as={Feather} name="briefcase" size={5} color="primary.600" />
+        </Box>
+        
+        <VStack space={1} flex={1}>
+          <HStack alignItems="center" justifyContent="space-between">
+            <Text bold numberOfLines={1} fontSize="md" maxW="70%">
+              {displayName}
             </Text>
-          </Box>
+            
+            {rightElement || (
+              <Badge 
+                colorScheme={getPriorityColor(lead.priority)} 
+                variant="solid" 
+                rounded="md"
+              >
+                {getPriorityText(lead.priority)}
+              </Badge>
+            )}
+          </HStack>
           
-          <VStack flex={1} space={1}>
-            <Text fontSize="md" fontWeight="semibold" numberOfLines={1}>
-              {lead.globalLead?.contactName || 'Unknown'}
+          <HStack alignItems="center" space={1}>
+            <Icon as={Feather} name="user" size={3} color="gray.500" />
+            <Text color="gray.600" fontSize="sm">
+              {lead.globalLead?.contactName || 'No contact name'}
             </Text>
-            
-            <Text fontSize="sm" color="gray.600" numberOfLines={1}>
-              {lead.globalLead?.companyName || 'Company Unknown'}
-            </Text>
-            
-            <HStack space={2} alignItems="center" flexWrap="wrap">
-              {lead.globalLead?.phoneNumber && (
-                <HStack space={1} alignItems="center">
-                  <Icon as={Feather} name="phone" size="xs" color="gray.500" />
-                  <Text fontSize="xs" color="gray.500">
-                    {lead.globalLead.phoneNumber}
+          </HStack>
+          
+          {lead.globalLead?.phoneNumber && (
+            <HStack alignItems="center" space={1}>
+              <Icon as={Feather} name="phone" size={3} color="gray.500" />
+              <Text color="gray.600" fontSize="sm">
+                {formatPhoneNumber(lead.globalLead.phoneNumber)}
+              </Text>
+            </HStack>
+          )}
+          
+          {lead.globalLead?.email && (
+            <HStack alignItems="center" space={1}>
+              <Icon as={Feather} name="mail" size={3} color="gray.500" />
+              <Text color="gray.600" fontSize="sm" numberOfLines={1}>
+                {lead.globalLead.email}
+              </Text>
+            </HStack>
+          )}
+          
+          {/* Optional status badge */}
+          {showStatus && (
+            <HStack space={2} mt={1}>
+              <Badge colorScheme={getStatusColor(lead.status)} variant="subtle">
+                {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+              </Badge>
+              
+              {lead.reminderDate && new Date(lead.reminderDate) > new Date() && (
+                <HStack alignItems="center" space={1}>
+                  <Icon as={Feather} name="clock" size={3} color="amber.500" />
+                  <Text color="amber.500" fontSize="xs">
+                    Reminder: {new Date(lead.reminderDate).toLocaleDateString()}
                   </Text>
                 </HStack>
               )}
-              
-              {showStatus && lead.status && (
-                <Badge colorScheme={STATUS_COLORS[lead.status]} variant="subtle" rounded="sm">
-                  <Text fontSize="2xs">
-                    {STATUS_LABELS[lead.status]}
-                  </Text>
-                </Badge>
-              )}
             </HStack>
-            
-            {lead.reminderDate && (
-              <HStack space={1} alignItems="center" mt={1}>
-                <Icon as={Feather} name="clock" size="xs" color="warning.500" />
-                <Text fontSize="xs" color="warning.500">
-                  Reminder: {formatDate(lead.reminderDate)}
-                </Text>
-              </HStack>
-            )}
-          </VStack>
-          
-          {rightElement}
-        </HStack>
-      </Box>
-    </Pressable>
+          )}
+        </VStack>
+      </HStack>
+    </Box>
   );
 };
 
