@@ -1,5 +1,6 @@
 const { createServer } = require('http');
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const { setupAuth, authenticateJWT } = require('./auth');
 const { db } = require('./db');
 const { storage } = require('./storage');
@@ -7,6 +8,9 @@ const analytics = require('./analytics');
 const { eq, and, desc, asc } = require('drizzle-orm');
 const { globalLeads, userLeads, calls } = require('../shared/db/schema');
 const path = require('path');
+
+// Environment variables
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key';
 
 function registerRoutes(app) {
   // Serve static files from the public directory - changed from earlier position
@@ -19,12 +23,23 @@ function registerRoutes(app) {
   
   // Dashboard authentication check
   app.get('/dashboard-check', (req, res) => {
-    // For now, just check if the token is in the cookies
-    // In a full implementation, you would validate the JWT token here
-    if (req.cookies && req.cookies.auth_token) {
-      return res.json({ authenticated: true });
+    // Get token from cookies
+    const token = req.cookies && req.cookies.auth_token;
+    
+    if (!token) {
+      return res.json({ authenticated: false });
     }
-    return res.json({ authenticated: false });
+    
+    // Verify the token
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+      if (err) {
+        console.log('Token verification failed:', err.message);
+        return res.json({ authenticated: false });
+      }
+      
+      // Token is valid
+      return res.json({ authenticated: true, user: decoded.user });
+    });
   });
   
   // Default route for SPA

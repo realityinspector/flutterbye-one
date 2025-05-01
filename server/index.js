@@ -11,8 +11,8 @@ const app = express();
 
 // Apply middleware
 app.use(cors({
-  origin: '*', // More permissive for development
-  credentials: true,
+  origin: true, // Accept all origins in development, properly set in production
+  credentials: true, // Allow cookies to be sent with requests
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

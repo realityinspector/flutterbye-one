@@ -30,11 +30,15 @@ function generateToken(user) {
 
 // Middleware to verify JWT token
 function authenticateJWT(req, res, next) {
+  // Check for token in Authorization header
   const authHeader = req.headers.authorization;
+  // Check for token in cookies
+  const cookieToken = req.cookies && req.cookies.auth_token;
   
-  if (authHeader) {
-    const token = authHeader.split(' ')[1]; // Bearer TOKEN
-    
+  // Use token from header or cookie
+  const token = authHeader ? authHeader.split(' ')[1] : cookieToken;
+  
+  if (token) {
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
       if (err) {
         return res.status(401).json({ success: false, message: 'Invalid or expired token' });
@@ -93,6 +97,13 @@ function setupAuth(app) {
       
       // Generate JWT token
       const token = generateToken(user);
+      
+      // Set token as a cookie (secure in production)
+      res.cookie('auth_token', token, {
+        httpOnly: true, // Prevents JavaScript access
+        // secure: process.env.NODE_ENV === 'production', // Enable in production for HTTPS
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      });
       
       // Don't return the password
       const { password: _, ...userWithoutPassword } = user;
@@ -155,9 +166,12 @@ function setupAuth(app) {
     }
   });
 
-  // Logout endpoint - client-side only with JWT
+  // Logout endpoint
   app.post('/api/logout', (req, res) => {
-    // With JWT, logout is handled client-side by removing the token
+    // Clear auth cookie
+    res.clearCookie('auth_token');
+    
+    // Respond with success message
     res.status(200).json({ success: true, message: 'Logout successful' });
   });
 
@@ -165,6 +179,14 @@ function setupAuth(app) {
   app.post('/api/refresh', authenticateJWT, (req, res) => {
     // Generate a new token with updated expiration
     const token = generateToken(req.user);
+    
+    // Set updated token as a cookie
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      // secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+    
     res.json({ success: true, token });
   });
 

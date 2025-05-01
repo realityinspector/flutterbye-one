@@ -2124,7 +2124,8 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
-          }
+          },
+          credentials: 'include' // Include cookies in the request
         })
         .then(() => {
           // Redirect to landing page after logout
@@ -2362,7 +2363,9 @@
       }
       
       function loadLeadForEditing(leadId) {
-        fetch(`/api/leads/${leadId}`)
+        fetch(`/api/leads/${leadId}`, {
+          credentials: 'include' // Include cookies in the request
+        })
           .then(response => {
             if (!response.ok) {
               throw new Error('Failed to fetch lead details');
@@ -2412,6 +2415,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
+          credentials: 'include', // Include cookies in the request
           body: JSON.stringify(leadData)
         })
         .then(response => {
@@ -2449,6 +2453,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
+          credentials: 'include', // Include cookies in the request
           body: JSON.stringify(leadData)
         })
         .then(response => {
@@ -2477,7 +2482,8 @@
         }
         
         fetch(`/api/leads/${leadId}`, {
-          method: 'DELETE'
+          method: 'DELETE',
+          credentials: 'include' // Include cookies in the request
         })
         .then(response => {
           if (!response.ok) {

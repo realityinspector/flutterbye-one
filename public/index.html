@@ -521,7 +521,9 @@
       if (!authRequired || !wasRedirected) {
         console.log('Checking authentication status');
         // Make a single auth check request
-        fetch('/dashboard-check')
+        fetch('/dashboard-check', {
+          credentials: 'include' // Send cookies with the request
+        })
           .then(response => response.json())
           .then(data => {
             console.log('Auth check result:', data);
@@ -561,6 +563,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
+          credentials: 'include', // Send cookies with the request
           body: JSON.stringify({ username, password })
         })
         .then(response => {
@@ -647,6 +650,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
+          credentials: 'include', // Send cookies with the request
           body: JSON.stringify({ username, fullName, email, password })
         })
         .then(response => {
