@@ -72,6 +72,26 @@ export const useLeads = () => {
     },
   });
 
+  // Fetch calls for a lead
+  const getCallsForLead = async (leadId) => {
+    try {
+      setIsLoading(true);
+      const response = await leadsAxios.get(`/leads/${leadId}/calls`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching calls for lead:', error);
+      toast.show({
+        title: "Failed to fetch calls",
+        description: error.response?.data?.message || "Please try again",
+        status: "error",
+        placement: "top",
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Update a lead
   const updateLeadMutation = useMutation({
     mutationFn: async ({ leadId, leadData }) => {
@@ -144,6 +164,7 @@ export const useLeads = () => {
     createLead,
     updateLead,
     deleteLead,
+    getCallsForLead,
     isCreatingLead: createLeadMutation.isPending,
     isUpdatingLead: updateLeadMutation.isPending,
     isDeletingLead: deleteLeadMutation.isPending,

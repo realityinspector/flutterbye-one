@@ -41,6 +41,35 @@ export const useCalls = () => {
       return response.data;
     } catch (error) {
       console.error('Error fetching lead calls:', error);
+      toast.show({
+        title: "Failed to fetch calls",
+        description: error.response?.data?.message || "Please try again",
+        status: "error",
+        placement: "top",
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Fetch individual call by ID
+  const getCall = async (callId) => {
+    try {
+      setIsLoading(true);
+      // In a full implementation, this would get an individual call
+      // For now, we'll get all calls and filter
+      const allCalls = await getCalls();
+      const call = allCalls.data.find(c => c.id === parseInt(callId));
+      return call ? { success: true, data: call } : { success: false, message: 'Call not found' };
+    } catch (error) {
+      console.error('Error fetching call:', error);
+      toast.show({
+        title: "Failed to fetch call details",
+        description: error.response?.data?.message || "Please try again",
+        status: "error",
+        placement: "top",
+      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -94,6 +123,7 @@ export const useCalls = () => {
     isError,
     refetch,
     getCallsByLead,
+    getCall,
     createCall,
     getCalls,
     isCreatingCall: createCallMutation.isPending,

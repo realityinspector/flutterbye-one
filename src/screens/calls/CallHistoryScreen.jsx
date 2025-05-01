@@ -1,159 +1,207 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  FlatList,
-  Heading,
-  HStack,
-  Icon,
-  IconButton,
-  Spinner,
-  Center,
-  Text,
-  useToast,
-  Select,
+import React, { useState, useEffect } from 'react';
+import { 
+  Box, VStack, HStack, Text, Heading, Divider, Badge, Icon, 
+  Spinner, useToast, Center, IconButton 
 } from 'native-base';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCalls } from '../../hooks/useCalls';
 import { useLeads } from '../../hooks/useLeads';
-import CallItem from '../../components/CallItem';
 
 const CallHistoryScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const toast = useToast();
-  const { leadId } = route.params || {};
+  const { callId } = route.params || {};
+  const { getCall, isLoading: isLoadingCall } = useCalls();
+  const { getLead, isLoading: isLoadingLead } = useLeads();
   
-  const { getCalls, getCallsByLead, isLoading } = useCalls();
-  const { getLead } = useLeads();
-  
-  const [calls, setCalls] = useState([]);
+  const [call, setCall] = useState(null);
   const [lead, setLead] = useState(null);
-  const [filterOutcome, setFilterOutcome] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load calls - either all calls or calls for a specific lead
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCallAndLead = async () => {
       try {
-        let callData;
+        setIsLoading(true);
         
-        if (leadId) {
-          // Get calls for specific lead
-          callData = await getCallsByLead(leadId);
-          // Also get lead details for the header
-          const leadData = await getLead(leadId);
-          setLead(leadData);
-        } else {
-          // Get all calls
-          callData = await getCalls();
+        if (!callId) {
+          toast.show({
+            title: "Missing call ID",
+            status: "error",
+            placement: "top"
+          });
+          navigation.goBack();
+          return;
         }
         
-        setCalls(callData);
+        // Fetch call details
+        const callResponse = await getCall(callId);
+        if (!callResponse.success || !callResponse.data) {
+          toast.show({
+            title: "Call not found",
+            status: "error",
+            placement: "top"
+          });
+          navigation.goBack();
+          return;
+        }
+        
+        setCall(callResponse.data);
+        
+        // Fetch associated lead
+        const leadResponse = await getLead(callResponse.data.userLeadId);
+        if (leadResponse.success && leadResponse.data) {
+          setLead(leadResponse.data);
+        }
       } catch (error) {
-        console.error('Error fetching calls:', error);
+        console.error('Error fetching call details:', error);
         toast.show({
-          title: "Failed to load calls",
+          title: "Error loading call details",
           status: "error",
-          placement: "top",
+          placement: "top"
         });
+      } finally {
+        setIsLoading(false);
       }
     };
     
-    fetchData();
-  }, [leadId]);
+    fetchCallAndLead();
+  }, [callId, getCall, getLead]);
 
-  // Filter calls by outcome
-  const filteredCalls = React.useMemo(() => {
-    if (!calls) return [];
-    
-    if (filterOutcome) {
-      return calls.filter(call => call.outcome === filterOutcome);
-    }
-    
-    return calls;
-  }, [calls, filterOutcome]);
-
-  // Format date for display
   const formatDate = (dateString) => {
-    if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString();
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  if (isLoading) {
+  const formatDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
+
+  const getOutcomeColor = (outcome) => {
+    switch (outcome) {
+      case 'completed':
+        return 'success';
+      case 'no_answer':
+        return 'warning';
+      case 'left_message':
+        return 'info';
+      case 'interested':
+        return 'primary';
+      case 'not_interested':
+        return 'danger';
+      default:
+        return 'gray';
+    }
+  };
+
+  const getOutcomeText = (outcome) => {
+    return outcome.replace('_', ' ').split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  if (isLoading || isLoadingCall || isLoadingLead) {
     return (
-      <Center flex={1}>
+      <Center flex={1} bg="white">
         <Spinner size="lg" color="primary.500" />
-        <Text mt={4} color="gray.500">Loading calls...</Text>
+        <Text mt={4} color="gray.500">Loading call details...</Text>
       </Center>
     );
   }
 
   return (
-    <Box flex={1} safeArea bg="white">
-      {/* Header */}
-      <Box px={4} pt={4} pb={2}>
-        <HStack alignItems="center" space={2}>
+    <Box flex={1} bg="white" safeArea>
+      <VStack px={4} pt={5} space={4}>
+        <HStack alignItems="center" space={3}>
           <IconButton
-            icon={<Icon as={Feather} name="arrow-left" size={6} />}
-            onPress={() => navigation.goBack()}
+            icon={<Icon as={Feather} name="arrow-left" size="md" />}
             variant="ghost"
-            borderRadius="full"
+            onPress={() => navigation.goBack()}
           />
-          <Heading flex={1}>
-            {leadId && lead 
-              ? `Calls with ${lead.globalLead.contactName}` 
-              : 'Call History'}
-          </Heading>
+          <Heading size="lg">Call Details</Heading>
         </HStack>
-      </Box>
-      
-      {/* Filter */}
-      <Box px={4} py={2}>
-        <Select
-          selectedValue={filterOutcome}
-          onValueChange={value => setFilterOutcome(value)}
-          placeholder="Filter by outcome"
-          accessibilityLabel="Filter calls by outcome"
-        >
-          <Select.Item label="All Outcomes" value="" />
-          <Select.Item label="Completed" value="completed" />
-          <Select.Item label="Left Message" value="left_message" />
-          <Select.Item label="No Answer" value="no_answer" />
-          <Select.Item label="Interested" value="interested" />
-          <Select.Item label="Not Interested" value="not_interested" />
-          <Select.Item label="Meeting Scheduled" value="meeting_scheduled" />
-          <Select.Item label="Do Not Call" value="do_not_call" />
-        </Select>
-      </Box>
-
-      {/* Calls list */}
-      {filteredCalls.length === 0 ? (
-        <Center flex={1}>
-          <Icon as={Feather} name="phone-off" size={16} color="gray.300" />
-          <Text fontSize="lg" fontWeight="medium" mt={4} color="gray.500">
-            No calls found
-          </Text>
-          <Text fontSize="sm" textAlign="center" mt={2} color="gray.400">
-            {filterOutcome ? "Try changing your filter" : "No call history available"}
-          </Text>
-        </Center>
-      ) : (
-        <FlatList
-          data={filteredCalls}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <Box px={4} py={2}>
-              <CallItem 
-                call={item} 
-                leadName={!leadId} // Show lead name only when viewing all calls
-              />
-            </Box>
+        
+        <Divider />
+        
+        {lead && (
+          <VStack space={2} bg="gray.50" p={4} rounded="md">
+            <Heading size="md">{lead.globalLead.companyName}</Heading>
+            <HStack alignItems="center" space={1}>
+              <Icon as={Feather} name="user" size="sm" color="gray.500" />
+              <Text>{lead.globalLead.contactName}</Text>
+            </HStack>
+            <HStack alignItems="center" space={1}>
+              <Icon as={Feather} name="phone" size="sm" color="gray.500" />
+              <Text>{lead.globalLead.phoneNumber}</Text>
+            </HStack>
+            {lead.globalLead.email && (
+              <HStack alignItems="center" space={1}>
+                <Icon as={Feather} name="mail" size="sm" color="gray.500" />
+                <Text>{lead.globalLead.email}</Text>
+              </HStack>
+            )}
+            <HStack alignItems="center" mt={2}>
+              <Badge colorScheme={lead.status === 'new' ? 'info' : 'success'} mr={2}>
+                {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+              </Badge>
+              <Text fontSize="sm">Priority: {lead.priority}</Text>
+            </HStack>
+          </VStack>
+        )}
+        
+        <Divider />
+        
+        <VStack space={3}>
+          <Heading size="md">Call Information</Heading>
+          
+          <HStack justifyContent="space-between" alignItems="center">
+            <Text fontWeight="bold">Date & Time:</Text>
+            <Text>{formatDate(call.callDate)}</Text>
+          </HStack>
+          
+          <HStack justifyContent="space-between" alignItems="center">
+            <Text fontWeight="bold">Duration:</Text>
+            <Text>{formatDuration(call.duration)}</Text>
+          </HStack>
+          
+          <HStack justifyContent="space-between" alignItems="center">
+            <Text fontWeight="bold">Outcome:</Text>
+            <Badge colorScheme={getOutcomeColor(call.outcome)}>
+              {getOutcomeText(call.outcome)}
+            </Badge>
+          </HStack>
+          
+          {call.reminderDate && (
+            <HStack justifyContent="space-between" alignItems="center">
+              <Text fontWeight="bold">Follow-up Reminder:</Text>
+              <Text>{formatDate(call.reminderDate)}</Text>
+            </HStack>
           )}
-          ItemSeparatorComponent={() => <Box h="1px" bg="gray.100" />}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+          
+          <Divider my={2} />
+          
+          <Heading size="sm">Notes</Heading>
+          <Box p={3} bg="gray.50" rounded="md">
+            <Text>
+              {call.notes || 'No notes recorded for this call.'}
+            </Text>
+          </Box>
+        </VStack>
+        
+        <HStack mt={4} space={2} justifyContent="center">
+          <IconButton
+            icon={<Icon as={Feather} name="phone" size="lg" color="white" />}
+            bg="primary.500"
+            rounded="full"
+            p={4}
+            onPress={() => navigation.navigate('Call', { leadId: lead?.id })}
+            _pressed={{ bg: 'primary.600' }}
+          />
+        </HStack>
+      </VStack>
     </Box>
   );
 };

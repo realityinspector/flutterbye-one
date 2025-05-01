@@ -1,263 +1,246 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Center,
-  Heading,
-  Text,
-  Icon,
-  HStack,
-  VStack,
-  IconButton,
-  Pressable,
-  useToast,
-  ScrollView,
-  TextArea,
-  Button,
-  useDisclose,
+  Box, VStack, HStack, Text, Heading, Divider, Badge, Icon,
+  Spinner, useToast, Center, IconButton, Button, FormControl,
+  TextArea, Select, CheckIcon, Radio
 } from 'native-base';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useCalls } from '../../hooks/useCalls';
 import { useLeads } from '../../hooks/useLeads';
-import CallActions from '../../components/CallActions';
+import { useCalls } from '../../hooks/useCalls';
 
 const CallScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const toast = useToast();
-  const { isOpen, onOpen, onClose } = useDisclose();
+  const { leadId } = route.params || {};
+  const { getLead, isLoading: isLoadingLead } = useLeads();
+  const { createCall, isCreatingCall } = useCalls();
   
-  const { leadId, phoneNumber, contactName } = route.params || {};
-  const { createCall } = useCalls();
-  const { getLead } = useLeads();
-  
-  const [callStartTime, setCallStartTime] = useState(null);
-  const [callEndTime, setCallEndTime] = useState(null);
-  const [callDuration, setCallDuration] = useState(0);
-  const [isCallActive, setIsCallActive] = useState(true);
-  const [leadData, setLeadData] = useState(null);
-  const [notes, setNotes] = useState('');
-  const [callOutcome, setCallOutcome] = useState(null);
-  const [reminderDate, setReminderDate] = useState(null);
-  const [durationInterval, setDurationInterval] = useState(null);
+  const [lead, setLead] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    userLeadId: null,
+    duration: 60,
+    outcome: 'completed',
+    notes: ''
+  });
 
-  // Load lead data
+  const outcomeOptions = [
+    { label: 'Completed', value: 'completed' },
+    { label: 'No Answer', value: 'no_answer' },
+    { label: 'Left Message', value: 'left_message' },
+    { label: 'Interested', value: 'interested' },
+    { label: 'Not Interested', value: 'not_interested' }
+  ];
+
+  const durationOptions = [
+    { value: 30, label: '30 seconds' },
+    { value: 60, label: '1 minute' },
+    { value: 120, label: '2 minutes' },
+    { value: 180, label: '3 minutes' },
+    { value: 300, label: '5 minutes' },
+    { value: 600, label: '10 minutes' },
+    { value: 900, label: '15 minutes' },
+    { value: 1800, label: '30 minutes' },
+  ];
+
   useEffect(() => {
     const fetchLead = async () => {
-      if (leadId) {
-        try {
-          const lead = await getLead(leadId);
-          setLeadData(lead);
-          // Pre-populate notes with previous notes if they exist
-          if (lead.notes) {
-            setNotes(lead.notes);
-          }
-        } catch (error) {
-          console.error('Error fetching lead:', error);
+      try {
+        setIsLoading(true);
+        
+        if (!leadId) {
+          toast.show({
+            title: "Missing lead ID",
+            status: "error",
+            placement: "top"
+          });
+          navigation.goBack();
+          return;
         }
+        
+        const leadResponse = await getLead(leadId);
+        if (leadResponse.success && leadResponse.data) {
+          setLead(leadResponse.data);
+          setFormData(prev => ({
+            ...prev,
+            userLeadId: leadId
+          }));
+        } else {
+          toast.show({
+            title: "Lead not found",
+            status: "error",
+            placement: "top"
+          });
+          navigation.goBack();
+        }
+      } catch (error) {
+        console.error('Error fetching lead details:', error);
+        toast.show({
+          title: "Error loading lead details",
+          status: "error",
+          placement: "top"
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
     
     fetchLead();
-  }, [leadId]);
+  }, [leadId, getLead]);
 
-  // Start call timer on component mount
-  useEffect(() => {
-    const now = new Date();
-    setCallStartTime(now);
-    
-    // Set up interval for call duration
-    const interval = setInterval(() => {
-      const currentTime = new Date();
-      const durationInSeconds = Math.floor((currentTime - now) / 1000);
-      setCallDuration(durationInSeconds);
-    }, 1000);
-    
-    setDurationInterval(interval);
-    
-    // Clean up interval on unmount
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
-  // Format duration as MM:SS
-  const formatDuration = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  const handleInputChange = (field, value) => {
+    setFormData({
+      ...formData,
+      [field]: value
+    });
   };
 
-  // Handle ending the call
-  const handleEndCall = () => {
-    // Stop the timer
-    clearInterval(durationInterval);
-    setCallEndTime(new Date());
-    setIsCallActive(false);
-    onOpen(); // Show call actions
-  };
-
-  // Handle saving the call record
-  const handleSaveCall = async () => {
-    if (!leadId) {
-      navigation.goBack();
-      return;
-    }
-
+  const handleSubmit = async () => {
     try {
       const callData = {
-        userLeadId: leadId,
-        callDate: callStartTime.toISOString(),
-        duration: callDuration,
-        outcome: callOutcome,
-        notes: notes,
-        reminderDate: reminderDate?.toISOString(),
+        ...formData,
+        callDate: new Date().toISOString(),
       };
+
+      const response = await createCall(callData);
       
-      await createCall(callData);
-      
-      toast.show({
-        title: "Call saved successfully",
-        status: "success",
-        placement: "top",
-      });
-      
-      navigation.goBack();
+      if (response.success) {
+        toast.show({
+          title: "Call recorded successfully",
+          status: "success",
+          placement: "top"
+        });
+        navigation.navigate('Calls');
+      }
     } catch (error) {
-      console.error('Error saving call:', error);
+      console.error('Error recording call:', error);
       toast.show({
-        title: "Failed to save call",
+        title: "Error recording call",
+        description: error.message,
         status: "error",
-        placement: "top",
+        placement: "top"
       });
     }
   };
+
+  if (isLoading || isLoadingLead) {
+    return (
+      <Center flex={1} bg="white">
+        <Spinner size="lg" color="primary.500" />
+        <Text mt={4} color="gray.500">Loading lead details...</Text>
+      </Center>
+    );
+  }
 
   return (
     <Box flex={1} bg="white" safeArea>
-      {/* Call header */}
-      <Box p={4}>
-        <IconButton
-          position="absolute"
-          top={4}
-          left={4}
-          zIndex={1}
-          icon={<Icon as={Feather} name="chevron-down" size={6} />}
-          onPress={() => {
-            if (isCallActive) {
-              // Show confirmation before navigating away from active call
-              toast.show({
-                title: "End call before leaving",
-                status: "warning",
-                placement: "top",
-              });
-            } else {
-              navigation.goBack();
-            }
-          }}
-          variant="ghost"
-          borderRadius="full"
-        />
-      </Box>
-
-      {/* Call content */}
-      <ScrollView flex={1} px={4}>
-        <Center mt={isCallActive ? 10 : 4}>
-          <Box 
-            w={32} 
-            h={32} 
-            bg="primary.100"
-            rounded="full"
-            justifyContent="center"
-            alignItems="center"
-          >
-            <Icon as={Feather} name="user" size={16} color="primary.500" />
-          </Box>
-          
-          <Heading mt={4} size="xl">{contactName || 'Unknown Contact'}</Heading>
-          
-          <Text mt={2} fontSize="md" color="gray.500">
-            {phoneNumber || ''}
-          </Text>
-          
-          {leadData && (
-            <Text mt={1} fontSize="md" color="gray.500">
-              {leadData.globalLead.companyName || ''}
-            </Text>
-          )}
-          
-          {isCallActive ? (
-            <HStack mt={6} alignItems="center" space={3}>
-              <Text fontSize="xl" fontWeight="bold" color="gray.700">
-                {formatDuration(callDuration)}
-              </Text>
-              <Box w={3} h={3} bg="success.500" rounded="full" />
+      <VStack px={4} pt={5} space={4}>
+        <HStack alignItems="center" space={3}>
+          <IconButton
+            icon={<Icon as={Feather} name="arrow-left" size="md" />}
+            variant="ghost"
+            onPress={() => navigation.goBack()}
+          />
+          <Heading size="lg">Record Call</Heading>
+        </HStack>
+        
+        <Divider />
+        
+        {lead && (
+          <VStack space={2} bg="gray.50" p={4} rounded="md">
+            <Heading size="md">{lead.globalLead.companyName}</Heading>
+            <HStack alignItems="center" space={1}>
+              <Icon as={Feather} name="user" size="sm" color="gray.500" />
+              <Text>{lead.globalLead.contactName}</Text>
             </HStack>
-          ) : (
-            <Text mt={4} fontSize="md" color="gray.500">
-              Call ended · {formatDuration(callDuration)}
-            </Text>
-          )}
-        </Center>
-
-        {!isCallActive && (
-          <VStack mt={8} space={5}>
-            <Box>
-              <Text fontSize="lg" fontWeight="bold" mb={2}>Call Notes</Text>
-              <TextArea
-                h={40}
-                placeholder="Enter notes about the call"
-                value={notes}
-                onChangeText={setNotes}
-                autoCompleteType="off"
-              />
-            </Box>
-
-            <CallActions
-              selectedOutcome={callOutcome}
-              onSelectOutcome={setCallOutcome}
-              reminderDate={reminderDate}
-              onSetReminderDate={setReminderDate}
-            />
+            <HStack alignItems="center" space={1}>
+              <Icon as={Feather} name="phone" size="sm" color="gray.500" />
+              <Text>{lead.globalLead.phoneNumber}</Text>
+            </HStack>
+            {lead.globalLead.email && (
+              <HStack alignItems="center" space={1}>
+                <Icon as={Feather} name="mail" size="sm" color="gray.500" />
+                <Text>{lead.globalLead.email}</Text>
+              </HStack>
+            )}
+            <HStack alignItems="center" mt={2}>
+              <Badge colorScheme={lead.status === 'new' ? 'info' : 'success'} mr={2}>
+                {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+              </Badge>
+              <Text fontSize="sm">Priority: {lead.priority}</Text>
+            </HStack>
           </VStack>
         )}
-
-        <Box h={32} /> {/* Space at bottom for the floating buttons */}
-      </ScrollView>
-
-      {/* Call action buttons */}
-      <HStack 
-        position="absolute" 
-        bottom={8} 
-        width="100%" 
-        justifyContent="center"
-        space={4}
-        px={4}
-      >
-        {isCallActive ? (
-          <Pressable 
-            onPress={handleEndCall}
-            w={16} 
-            h={16} 
-            bg="error.500" 
-            rounded="full"
-            justifyContent="center"
-            alignItems="center"
+        
+        <Divider />
+        
+        <FormControl>
+          <FormControl.Label>Call Duration</FormControl.Label>
+          <Radio.Group
+            name="duration"
+            accessibilityLabel="call duration"
+            value={formData.duration.toString()}
+            onChange={(value) => handleInputChange('duration', parseInt(value))}
           >
-            <Icon as={Feather} name="phone-off" size={8} color="white" />
-          </Pressable>
-        ) : (
-          <Button
-            size="lg"
-            rounded="full"
-            colorScheme="primary"
-            width="90%"
-            onPress={handleSaveCall}
+            <HStack flexWrap="wrap">
+              {durationOptions.map((option) => (
+                <Radio 
+                  key={option.value} 
+                  value={option.value.toString()} 
+                  size="sm"
+                  m={1}
+                  colorScheme="primary"
+                >
+                  {option.label}
+                </Radio>
+              ))}
+            </HStack>
+          </Radio.Group>
+        </FormControl>
+        
+        <FormControl>
+          <FormControl.Label>Call Outcome</FormControl.Label>
+          <Select
+            selectedValue={formData.outcome}
+            onValueChange={(value) => handleInputChange('outcome', value)}
+            _selectedItem={{
+              bg: "primary.100",
+              endIcon: <CheckIcon size={5} />
+            }}
           >
-            Save Call Details
-          </Button>
-        )}
-      </HStack>
+            {outcomeOptions.map((option) => (
+              <Select.Item 
+                key={option.value} 
+                label={option.label} 
+                value={option.value} 
+              />
+            ))}
+          </Select>
+        </FormControl>
+        
+        <FormControl>
+          <FormControl.Label>Notes</FormControl.Label>
+          <TextArea
+            h={20}
+            placeholder="Enter call notes here"
+            value={formData.notes}
+            onChangeText={(value) => handleInputChange('notes', value)}
+            autoCompleteType={undefined}
+          />
+        </FormControl>
+        
+        <Button
+          mt={4}
+          colorScheme="primary"
+          onPress={handleSubmit}
+          isLoading={isCreatingCall}
+          isLoadingText="Saving Call"
+        >
+          Save Call Record
+        </Button>
+      </VStack>
     </Box>
   );
 };

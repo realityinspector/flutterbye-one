@@ -11,15 +11,16 @@ import AdminSetupScreen from '../screens/AdminSetupScreen';
 import UserSetupScreen from '../screens/UserSetupScreen';
 import HomeScreen from '../screens/HomeScreen';
 import CallQueueScreen from '../screens/CallQueueScreen';
-import LeadFormScreen from '../screens/LeadFormScreen';
 
 // Import lead screens
 import LeadsListScreen from '../screens/leads/LeadsListScreen';
 import LeadDetailScreen from '../screens/leads/LeadDetailScreen';
+import AddLeadScreen from '../screens/leads/AddLeadScreen';
 
 // Import call screens
 import CallScreen from '../screens/calls/CallScreen';
 import CallHistoryScreen from '../screens/calls/CallHistoryScreen';
+import CallsScreen from '../screens/calls/CallsScreen';
 
 // Import settings screens
 import ProfileScreen from '../screens/settings/ProfileScreen';
@@ -39,6 +40,8 @@ const TabNavigator = () => {
           if (route.name === 'Home') {
             iconName = 'home';
           } else if (route.name === 'CallQueue') {
+            iconName = 'list';
+          } else if (route.name === 'Calls') {
             iconName = 'phone';
           } else if (route.name === 'Leads') {
             iconName = 'users';
@@ -66,6 +69,11 @@ const TabNavigator = () => {
         options={{ title: 'Call Queue' }}
       />
       <Tab.Screen 
+        name="Calls" 
+        component={CallStackNavigator} 
+        options={{ title: 'Calls' }}
+      />
+      <Tab.Screen 
         name="Leads" 
         component={LeadStackNavigator} 
         options={{ title: 'Leads' }}
@@ -91,7 +99,7 @@ const LeadStackNavigator = () => {
     <LeadStack.Navigator screenOptions={{ headerShown: false }}>
       <LeadStack.Screen name="LeadsList" component={LeadsListScreen} />
       <LeadStack.Screen name="LeadDetail" component={LeadDetailScreen} />
-      <LeadStack.Screen name="LeadForm" component={LeadFormScreen} />
+      <LeadStack.Screen name="LeadForm" component={AddLeadScreen} />
     </LeadStack.Navigator>
   );
 };
@@ -103,6 +111,18 @@ const ReportsStackNavigator = () => {
     <ReportsStack.Navigator screenOptions={{ headerShown: false }}>
       <ReportsStack.Screen name="ReportsDashboard" component={AnalyticsScreen} />
     </ReportsStack.Navigator>
+  );
+};
+
+// Call stack navigator
+const CallStack = createStackNavigator();
+const CallStackNavigator = () => {
+  return (
+    <CallStack.Navigator screenOptions={{ headerShown: false }}>
+      <CallStack.Screen name="CallsList" component={CallsScreen} />
+      <CallStack.Screen name="CallHistory" component={CallHistoryScreen} />
+      <CallStack.Screen name="Call" component={CallScreen} />
+    </CallStack.Navigator>
   );
 };
 
@@ -162,7 +182,7 @@ const AppNavigator = () => {
               <Stack.Screen name="Main" component={TabNavigator} />
               <Stack.Screen name="Call" component={CallScreen} />
               <Stack.Screen name="CallHistory" component={CallHistoryScreen} />
-              <Stack.Screen name="LeadForm" component={LeadFormScreen} />
+              <Stack.Screen name="LeadForm" component={AddLeadScreen} />
               <Stack.Screen name="LeadDetail" component={LeadDetailScreen} />
               <Stack.Screen name="Reminders" component={RemindersScreen} />
               <Stack.Screen name="GenerateLeads" component={GenerateLeadsScreen} />
