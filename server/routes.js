@@ -1,18 +1,32 @@
 const { createServer } = require('http');
+const express = require('express');
 const { setupAuth } = require('./auth');
 const { db } = require('./db');
 const { storage } = require('./storage');
 const { eq, and, desc, asc } = require('drizzle-orm');
 const { globalLeads, userLeads, calls } = require('../shared/schema');
+const path = require('path');
 
 function registerRoutes(app) {
-  // Root route
-  app.get('/', (req, res) => {
+  // Serve static files from the public directory
+  app.use(express.static('public'));
+  
+  // Health check route
+  app.get('/health', (req, res) => {
+    res.json({
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      message: "Walk N Talk CRM API is running"
+    });
+  });
+  
+  // API documentation route
+  app.get('/api-docs', (req, res) => {
     res.send(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Walk N Talk CRM</title>
+          <title>Walk N Talk CRM API Documentation</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }
             h1 { color: #4a5568; }
@@ -44,6 +58,27 @@ function registerRoutes(app) {
         </body>
       </html>
     `);
+  });
+  
+  // Serve the web app on all routes that aren't covered by API or specific routes
+  app.use((req, res, next) => {
+    // Skip if it's an API request
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
+    // Skip if it's a health check or API docs
+    if (req.path === '/health' || req.path === '/api-docs') {
+      return next();
+    }
+    
+    // If this is a static file, let the static middleware handle it
+    if (req.path.includes('.')) {
+      return next();
+    }
+    
+    // For all other routes, serve the index.html
+    res.sendFile('index.html', { root: './public' });
   });
   
   // Auth routes

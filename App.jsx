@@ -1,39 +1,24 @@
 import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { NativeBaseProvider } from 'native-base';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AuthProvider } from './src/hooks/useAuth';
-import AppNavigator from './src/navigation';
+import { NativeBaseProvider, Box, Text, Center, Heading, VStack } from 'native-base';
 import { theme } from './src/utils/theme';
 
-// Create React Query client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-export default function App() {
+const App = () => {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryClientProvider client={queryClient}>
-        <NativeBaseProvider theme={theme}>
-          <SafeAreaProvider>
-            <NavigationContainer>
-              <AuthProvider>
-                <AppNavigator />
-              </AuthProvider>
-              <StatusBar style="auto" />
-            </NavigationContainer>
-          </SafeAreaProvider>
-        </NativeBaseProvider>
-      </QueryClientProvider>
-    </GestureHandlerRootView>
+    <NativeBaseProvider theme={theme}>
+      <Center flex={1} bg="white" p={4}>
+        <VStack space={5} alignItems="center">
+          <Heading size="xl" color="primary.600">Walk N Talk CRM</Heading>
+          <Box bg="primary.100" p={5} rounded="lg" width="100%" maxWidth="400px">
+            <VStack space={3}>
+              <Heading size="md" color="primary.600">Welcome to your CRM</Heading>
+              <Text>Your sales acceleration platform is ready to use.</Text>
+              <Text>Manage leads, track calls, and boost your sales performance!</Text>
+            </VStack>
+          </Box>
+        </VStack>
+      </Center>
+    </NativeBaseProvider>
   );
-}
+};
+
+export default App;
