@@ -1,6 +1,6 @@
 const { db } = require('./db');
 const { eq } = require('drizzle-orm');
-const { users } = require('../shared/schema');
+const { users } = require('../shared/db/schema');
 
 class DatabaseStorage {
   constructor() {

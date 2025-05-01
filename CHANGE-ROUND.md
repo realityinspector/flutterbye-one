@@ -12,7 +12,7 @@ Drop React Query until you really cache.
 Seven extra deps and 160 KB of JS for optimistic caching you aren’t using. Use axios + a single useAsync hook; re-introduce React Query when reports ship.
 Auto-log every outbound call.
 Integrate react-native-callkeep (iOS) and react-native-incall-manager (Android) → fire POST /api/calls on callConnected event. That single feature makes the CRM “magical.”
-✅ Replace Passport sessions with JWT.
+Replace Passport sessions with JWT.
 Mobile + fetch ⇒ cookies are fragile. Issue 24 h JWT, refresh with /api/refresh. Saves 10 KB of server middleware, kills connect-pg-simple.
 Move Drizzle models to /shared/db/*.ts and generate Zod types.
 Frontend imports the Zod types directly: zero manual DTOs, compile-time safety, and no dual-schema drift.

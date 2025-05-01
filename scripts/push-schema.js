@@ -1,7 +1,7 @@
 // Script to push the database schema
 require('dotenv').config();
 const { pool } = require('../server/db');
-const { users, globalLeads, userLeads, calls } = require('../shared/schema');
+const { users, globalLeads, userLeads, calls } = require('../shared/db/schema');
 
 async function pushSchema() {
   console.log('Pushing schema to database...');

@@ -4,7 +4,7 @@ const { setupAuth, authenticateJWT } = require('./auth');
 const { db } = require('./db');
 const { storage } = require('./storage');
 const { eq, and, desc, asc } = require('drizzle-orm');
-const { globalLeads, userLeads, calls } = require('../shared/schema');
+const { globalLeads, userLeads, calls } = require('../shared/db/schema');
 const path = require('path');
 
 function registerRoutes(app) {
