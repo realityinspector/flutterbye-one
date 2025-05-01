@@ -2,10 +2,10 @@ const { scrypt, randomBytes, timingSafeEqual } = require('crypto');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const { storage } = require('./storage');
+const config = require('./config');
 
 const scryptAsync = promisify(scrypt);
-const JWT_SECRET = process.env.JWT_SECRET || 'walktalk-development-jwt-secret';
-const JWT_EXPIRES_IN = '24h'; // 24 hours
+const { JWT_SECRET, JWT_EXPIRES_IN } = config;
 
 // Hash password
 async function hashPassword(password) {

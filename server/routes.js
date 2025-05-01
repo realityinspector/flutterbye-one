@@ -8,9 +8,10 @@ const analytics = require('./analytics');
 const { eq, and, desc, asc } = require('drizzle-orm');
 const { globalLeads, userLeads, calls } = require('../shared/db/schema');
 const path = require('path');
+const config = require('./config');
 
-// Environment variables
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key';
+// Use centralized configuration
+const { JWT_SECRET } = config;
 
 function registerRoutes(app) {
   // Serve static files from the public directory - changed from earlier position
@@ -271,12 +272,13 @@ function registerRoutes(app) {
   // Call routes
   app.get('/api/calls', authenticateJWT, async (req, res) => {
     try {
-      const calls = await db.query.calls.findMany({
+      // Using the imported calls schema properly
+      const callsData = await db.query.calls.findMany({
         where: eq(calls.userId, req.user.id),
         orderBy: [desc(calls.callDate)],
       });
       
-      res.json({ success: true, data: calls });
+      res.json({ success: true, data: callsData });
     } catch (error) {
       console.error('Error fetching calls:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch calls' });

@@ -44,7 +44,14 @@ class DatabaseStorage {
   async isFirstUser() {
     try {
       const result = await db.select({ count: db.fn.count() }).from(users);
-      return result[0]?.count === '0' || result[0]?.count === 0 || !result.length;
+      // Ensure we have a valid result
+      if (!result || !result.length || !result[0]) {
+        console.log('No result from user count query, assuming first user');
+        return true;
+      }
+      // Convert to number to safely compare
+      const count = parseInt(result[0].count, 10);
+      return count === 0;
     } catch (error) {
       console.error('Error checking if first user:', error);
       // If there's an error, assume it's the first user

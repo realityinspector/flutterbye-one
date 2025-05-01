@@ -5,6 +5,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const registerRoutes = require('./routes');
 const { checkAndSeedForNewUsers } = require('../scripts/seed-demo-data');
+const config = require('./config');
 
 // Create Express app
 const app = express();
@@ -22,7 +23,7 @@ app.use(cookieParser());
 const server = registerRoutes(app);
 
 // Start server
-const PORT = 5000;
+const { PORT } = config;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Enhanced server running on port ${PORT}`);
   console.log('Server address:', server.address());

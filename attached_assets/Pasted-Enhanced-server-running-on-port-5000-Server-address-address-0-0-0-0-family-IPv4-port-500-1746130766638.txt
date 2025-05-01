@@ -1,0 +1,55 @@
+Enhanced server running on port 5000
+Server address: { address: '0.0.0.0', family: 'IPv4', port: 5000 }
+Server is ready at http://localhost:5000
+No new users without demo data found.
+Completed check for new users to seed with demo data
+Registration attempt {
+  username: 'realityinspector',
+  fullName: 'Sean McDonald',
+  email: 'sm@allonething.xyz',
+  password: 'FF!!ll22uu33tt44'
+}
+Error checking if first user: TypeError: Cannot read properties of undefined (reading 'count')
+    at DatabaseStorage.isFirstUser (/home/runner/workspace/server/storage.js:46:53)
+    at /home/runner/workspace/server/auth.js:85:41
+Error fetching calls: ReferenceError: Cannot access 'calls' before initialization
+    at /home/runner/workspace/server/routes.js:275:19
+    at Layer.handleRequest (/home/runner/workspace/node_modules/router/lib/layer.js:152:17)
+    at next (/home/runner/workspace/node_modules/router/lib/route.js:157:13)
+    at /home/runner/workspace/server/auth.js:48:7
+    at /home/runner/workspace/node_modules/jsonwebtoken/verify.js:261:12
+    at getSecret (/home/runner/workspace/node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (/home/runner/workspace/node_modules/jsonwebtoken/verify.js:101:10)
+    at authenticateJWT (/home/runner/workspace/server/auth.js:42:9)
+    at Layer.handleRequest (/home/runner/workspace/node_modules/router/lib/layer.js:152:17)
+    at next (/home/runner/workspace/node_modules/router/lib/route.js:157:13)
+Token verification failed: invalid signature
+Token verification failed: invalid signature
+Login attempt { username: 'realityinspector' }
+Token verification failed: invalid signature
+Error fetching calls: ReferenceError: Cannot access 'calls' before initialization
+    at /home/runner/workspace/server/routes.js:275:19
+    at Layer.handleRequest (/home/runner/workspace/node_modules/router/lib/layer.js:152:17)
+    at next (/home/runner/workspace/node_modules/router/lib/route.js:157:13)
+    at /home/runner/workspace/server/auth.js:48:7
+    at /home/runner/workspace/node_modules/jsonwebtoken/verify.js:261:12
+    at getSecret (/home/runner/workspace/node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (/home/runner/workspace/node_modules/jsonwebtoken/verify.js:101:10)
+    at authenticateJWT (/home/runner/workspace/server/auth.js:42:9)
+    at Layer.handleRequest (/home/runner/workspace/node_modules/router/lib/layer.js:152:17)
+    at next (/home/runner/workspace/node_modules/router/lib/route.js:157:13)
+Token verification failed: invalid signature
+Login attempt { username: 'realityinspector' }
+Token verification failed: invalid signature
+Error fetching calls: ReferenceError: Cannot access 'calls' before initialization
+    at /home/runner/workspace/server/routes.js:275:19
+    at Layer.handleRequest (/home/runner/workspace/node_modules/router/lib/layer.js:152:17)
+    at next (/home/runner/workspace/node_modules/router/lib/route.js:157:13)
+    at /home/runner/workspace/server/auth.js:48:7
+    at /home/runner/workspace/node_modules/jsonwebtoken/verify.js:261:12
+    at getSecret (/home/runner/workspace/node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (/home/runner/workspace/node_modules/jsonwebtoken/verify.js:101:10)
+    at authenticateJWT (/home/runner/workspace/server/auth.js:42:9)
+    at Layer.handleRequest (/home/runner/workspace/node_modules/router/lib/layer.js:152:17)
+    at next (/home/runner/workspace/node_modules/router/lib/route.js:157:13)
+Token verification failed: invalid signature
