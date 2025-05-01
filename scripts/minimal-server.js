@@ -83,6 +83,12 @@ spaRoutes.forEach(route => {
   });
 });
 
+// Special case for new lead form - needs to be before the dynamic route
+app.get('/leads/new', checkDashboardAccess, (req, res) => {
+  console.log('New lead form page request');
+  res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+});
+
 // Fallback for dynamic routes with parameters
 app.get('/leads/:id', checkDashboardAccess, (req, res) => {
   console.log(`Lead detail page request for ID: ${req.params.id}`);
