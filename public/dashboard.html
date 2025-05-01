@@ -17,6 +17,10 @@
       --warning: #ffc107;
       --info: #17a2b8;
       --sidebar-width: 250px;
+      --success-light: rgba(40, 167, 69, 0.1);
+      --danger-light: rgba(220, 53, 69, 0.1);
+      --warning-light: rgba(255, 193, 7, 0.1);
+      --info-light: rgba(23, 162, 184, 0.1);
     }
     
     * {
@@ -481,6 +485,305 @@
       gap: 1rem;
     }
     
+    /* Call In Progress Screen Styles */
+    .call-screen-container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .call-header {
+      background-color: var(--primary);
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    
+    .call-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+    
+    .call-icon {
+      margin-right: 0.5rem;
+      font-size: 1.5rem;
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    
+    .caller-info {
+      margin-bottom: 0.5rem;
+    }
+    
+    .caller-name {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    
+    .caller-company {
+      font-size: 1rem;
+      opacity: 0.9;
+      margin-bottom: 0.5rem;
+    }
+    
+    .caller-number {
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+    
+    .call-body {
+      padding: 1.5rem;
+    }
+    
+    .call-timer {
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-family: monospace;
+    }
+    
+    .call-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .call-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      border-radius: 8px;
+      background-color: var(--light);
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: var(--dark);
+      min-width: 100px;
+    }
+    
+    .call-action-btn i {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+    }
+    
+    .call-action-btn:hover {
+      background-color: var(--secondary);
+    }
+    
+    .call-end-btn i {
+      color: var(--danger);
+    }
+    
+    .call-end-btn:hover {
+      background-color: var(--danger-light);
+    }
+    
+    .call-info {
+      background-color: var(--light);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    
+    .call-info-item {
+      margin-bottom: 0.75rem;
+    }
+    
+    .call-info-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .call-info-label {
+      font-weight: 600;
+      margin-right: 0.5rem;
+      color: #666;
+    }
+    
+    .call-info-text {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      background-color: white;
+      border-radius: 4px;
+      border: 1px solid #eee;
+    }
+    
+    /* Call Log Form Styles */
+    .call-log-form {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    .call-log-header {
+      background-color: var(--success);
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .call-completed {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.75rem;
+      font-size: 1.2rem;
+    }
+    
+    .call-completed i {
+      margin-right: 0.5rem;
+      font-size: 1.5rem;
+    }
+    
+    .call-duration {
+      margin-top: 0.5rem;
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+    
+    .call-log-form form {
+      padding: 0 1.5rem 1.5rem;
+    }
+    
+    .form-section {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-section h3 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: #666;
+    }
+    
+    .outcome-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    
+    .outcome-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.75rem;
+      border-radius: 8px;
+      background-color: var(--light);
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+    
+    .outcome-btn i {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: #666;
+    }
+    
+    .outcome-btn.active {
+      background-color: var(--secondary);
+      border: 2px solid var(--primary);
+    }
+    
+    .outcome-btn.active i {
+      color: var(--primary);
+    }
+    
+    .status-selector {
+      margin-bottom: 1rem;
+    }
+    
+    .mobile-select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 12px;
+    }
+    
+    .date-time-picker {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    
+    .mobile-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    
+    .quick-notes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    
+    .quick-note-btn {
+      padding: 0.5rem;
+      border-radius: 4px;
+      background-color: var(--light);
+      border: 1px solid #ddd;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+    
+    .quick-note-btn.active {
+      background-color: var(--secondary);
+      border-color: var(--primary);
+    }
+    
+    .mobile-actions {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    
+    .call-error {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    
+    .call-error i {
+      font-size: 3rem;
+      color: var(--danger);
+      margin-bottom: 1rem;
+    }
+    
+    .call-error p {
+      margin-bottom: 1.5rem;
+      color: #666;
+    }
+    
     /* Responsive */
     @media (max-width: 992px) {
       .sidebar {
@@ -507,6 +810,23 @@
         transform: translateY(-50%);
         font-size: 1.5rem;
         cursor: pointer;
+      }
+      
+      /* Mobile optimizations for call forms */
+      .call-screen-container,
+      .call-log-form {
+        border-radius: 0;
+        box-shadow: none;
+        max-width: none;
+      }
+      
+      .outcome-buttons {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .call-action-btn {
+        flex: 1;
+        min-width: 0;
       }
     }
   </style>
@@ -1049,6 +1369,408 @@
     }
 
     // Function to update UI based on current path
+    // Functions for call handling
+    function createCallInProgressScreen(leadId) {
+      const mainContent = document.querySelector('.main-content');
+      
+      // Create screen container
+      const screenContainer = document.createElement('div');
+      screenContainer.id = 'callInProgressScreen';
+      screenContainer.className = 'call-screen-container';
+      
+      // Find the lead information
+      fetch(`/api/leads/${leadId}`)
+        .then(response => response.json())
+        .then(response => {
+          if (!response.success || !response.data) {
+            throw new Error('Failed to load lead information');
+          }
+          
+          const lead = response.data;
+          const globalLead = lead.globalLead;
+          const phoneNumber = globalLead.phoneNumber;
+          
+          // Create screen content
+          screenContainer.innerHTML = `
+            <div class="call-header">
+              <div class="call-status">
+                <i class="fas fa-phone-alt call-icon"></i>
+                <span>Call in Progress</span>
+              </div>
+              <div class="caller-info">
+                <div class="caller-name">${globalLead.contactName}</div>
+                <div class="caller-company">${globalLead.companyName}</div>
+                <div class="caller-number">${phoneNumber}</div>
+              </div>
+            </div>
+            <div class="call-body">
+              <div class="call-timer" id="callTimer">00:00</div>
+              <div class="call-actions">
+                <a href="tel:${phoneNumber}" target="_blank" class="call-action-btn">
+                  <i class="fas fa-phone-alt"></i>
+                  <span>Start Call</span>
+                </a>
+                <button id="callEndedBtn" class="call-action-btn call-end-btn">
+                  <i class="fas fa-phone-slash"></i>
+                  <span>Call Ended</span>
+                </button>
+              </div>
+              <div class="call-info">
+                <div class="call-info-item">
+                  <span class="call-info-label">Lead Status:</span>
+                  <span class="call-info-value">${lead.status}</span>
+                </div>
+                <div class="call-info-item">
+                  <span class="call-info-label">Last Contact:</span>
+                  <span class="call-info-value">New Lead</span>
+                </div>
+                <div class="call-info-item">
+                  <span class="call-info-label">Notes:</span>
+                  <div class="call-info-text">${lead.notes || 'No notes available'}</div>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          mainContent.appendChild(screenContainer);
+          
+          // Set up call timer
+          let callTime = 0;
+          let timerInterval;
+          const callTimerEl = document.getElementById('callTimer');
+          
+          document.getElementById('callEndedBtn').addEventListener('click', () => {
+            // Stop the timer
+            if (timerInterval) {
+              clearInterval(timerInterval);
+            }
+            
+            // Navigate to call log form
+            window.location.href = `/call-log/${leadId}?duration=${callTime}`;
+          });
+          
+          // Start timer when call is initiated (clicking the call button)
+          document.querySelector('.call-action-btn').addEventListener('click', () => {
+            // Start the timer
+            timerInterval = setInterval(() => {
+              callTime++;
+              const minutes = Math.floor(callTime / 60);
+              const seconds = callTime % 60;
+              callTimerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+          });
+        })
+        .catch(error => {
+          console.error('Error loading lead for call:', error);
+          screenContainer.innerHTML = `
+            <div class="call-error">
+              <i class="fas fa-exclamation-triangle"></i>
+              <p>Error loading lead information. Please try again.</p>
+              <button class="btn btn-primary" onclick="window.location.href='/leads'">Back to Leads</button>
+            </div>
+          `;
+          mainContent.appendChild(screenContainer);
+        });
+    }
+    
+    function createCallLogForm(leadId, duration) {
+      const mainContent = document.querySelector('.main-content');
+      
+      // Create form container
+      const formContainer = document.createElement('div');
+      formContainer.id = 'callLogForm';
+      formContainer.className = 'form-container call-log-form';
+      
+      // Find the lead information
+      fetch(`/api/leads/${leadId}`)
+        .then(response => response.json())
+        .then(response => {
+          if (!response.success || !response.data) {
+            throw new Error('Failed to load lead information');
+          }
+          
+          const lead = response.data;
+          const globalLead = lead.globalLead;
+          
+          // Format the duration
+          const durationMinutes = Math.floor(duration / 60);
+          const durationSeconds = duration % 60;
+          const formattedDuration = `${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`;
+          
+          // Form header
+          formContainer.innerHTML = `
+            <div class="call-log-header">
+              <div class="call-completed">
+                <i class="fas fa-check-circle"></i>
+                <span>Call Completed</span>
+              </div>
+              <div class="caller-info">
+                <div class="caller-name">${globalLead.contactName}</div>
+                <div class="caller-company">${globalLead.companyName}</div>
+                <div class="call-duration">Duration: ${formattedDuration}</div>
+              </div>
+            </div>
+            <form id="callLogFormElement">
+              <input type="hidden" id="leadId" value="${leadId}">
+              <input type="hidden" id="callDuration" value="${duration}">
+              
+              <div class="form-section">
+                <h3>Call Outcome</h3>
+                <div class="outcome-buttons">
+                  <button type="button" class="outcome-btn" data-outcome="interested">
+                    <i class="fas fa-thumbs-up"></i>
+                    <span>Interested</span>
+                  </button>
+                  <button type="button" class="outcome-btn" data-outcome="not_interested">
+                    <i class="fas fa-thumbs-down"></i>
+                    <span>Not Interested</span>
+                  </button>
+                  <button type="button" class="outcome-btn" data-outcome="call_back">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>Call Back</span>
+                  </button>
+                  <button type="button" class="outcome-btn" data-outcome="left_message">
+                    <i class="fas fa-voicemail"></i>
+                    <span>Left VM</span>
+                  </button>
+                  <button type="button" class="outcome-btn" data-outcome="no_answer">
+                    <i class="fas fa-times-circle"></i>
+                    <span>No Answer</span>
+                  </button>
+                  <button type="button" class="outcome-btn" data-outcome="wrong_number">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Wrong #</span>
+                  </button>
+                </div>
+                <input type="hidden" id="callOutcome" name="outcome" value="">
+              </div>
+              
+              <div class="form-section">
+                <h3>Lead Status Update</h3>
+                <div class="status-selector">
+                  <select id="leadStatus" name="leadStatus" class="mobile-select">
+                    <option value="new" ${lead.status === 'new' ? 'selected' : ''}>New</option>
+                    <option value="contacted" ${lead.status === 'contacted' ? 'selected' : ''}>Contacted</option>
+                    <option value="qualified" ${lead.status === 'qualified' ? 'selected' : ''}>Qualified</option>
+                    <option value="proposal" ${lead.status === 'proposal' ? 'selected' : ''}>Proposal</option>
+                    <option value="negotiation" ${lead.status === 'negotiation' ? 'selected' : ''}>Negotiation</option>
+                    <option value="closed_won">Closed Won</option>
+                    <option value="closed_lost">Closed Lost</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="form-section" id="callbackSection" style="display: none;">
+                <h3>Schedule Follow-up</h3>
+                <div class="date-time-picker">
+                  <div class="form-group">
+                    <label for="reminderDate">Date</label>
+                    <input type="date" id="reminderDate" name="reminderDate" class="mobile-input">
+                  </div>
+                  <div class="form-group">
+                    <label for="reminderTime">Time</label>
+                    <input type="time" id="reminderTime" name="reminderTime" class="mobile-input">
+                  </div>
+                </div>
+              </div>
+              
+              <div class="form-section">
+                <h3>Notes</h3>
+                <div class="quick-notes">
+                  <button type="button" class="quick-note-btn" data-note="Left voicemail introducing our services">Left VM</button>
+                  <button type="button" class="quick-note-btn" data-note="Customer requested more information via email">Info via email</button>
+                  <button type="button" class="quick-note-btn" data-note="Discussed pricing and features">Pricing</button>
+                  <button type="button" class="quick-note-btn" data-note="Call back next week">Call next week</button>
+                </div>
+                <div class="form-group full-width">
+                  <textarea id="callNotes" name="notes" rows="4" class="mobile-input" placeholder="Enter call notes here..."></textarea>
+                </div>
+              </div>
+              
+              <div class="form-actions mobile-actions">
+                <button type="button" id="cancelCallLogForm" class="btn btn-outline">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Call Log</button>
+              </div>
+            </form>
+          `;
+          
+          mainContent.appendChild(formContainer);
+          
+          // Set up event listeners
+          // Outcome buttons
+          document.querySelectorAll('.outcome-btn').forEach(button => {
+            button.addEventListener('click', () => {
+              // Remove active class from all buttons
+              document.querySelectorAll('.outcome-btn').forEach(btn => {
+                btn.classList.remove('active');
+              });
+              
+              // Add active class to clicked button
+              button.classList.add('active');
+              
+              // Set hidden input value
+              document.getElementById('callOutcome').value = button.dataset.outcome;
+              
+              // Show/hide callback section based on outcome
+              if (button.dataset.outcome === 'call_back') {
+                document.getElementById('callbackSection').style.display = 'block';
+              } else {
+                document.getElementById('callbackSection').style.display = 'none';
+              }
+            });
+          });
+          
+          // Quick note buttons
+          document.querySelectorAll('.quick-note-btn').forEach(button => {
+            button.addEventListener('click', () => {
+              const notesField = document.getElementById('callNotes');
+              const currentNotes = notesField.value;
+              const newNote = button.dataset.note;
+              
+              // Add the new note, with a line break if there are already notes
+              notesField.value = currentNotes ? `${currentNotes}\n${newNote}` : newNote;
+              
+              // Highlight the button to show it was clicked
+              button.classList.add('active');
+              setTimeout(() => {
+                button.classList.remove('active');
+              }, 500);
+            });
+          });
+          
+          // Cancel button
+          document.getElementById('cancelCallLogForm').addEventListener('click', () => {
+            window.location.href = '/calls';
+          });
+          
+          // Form submission
+          document.getElementById('callLogFormElement').addEventListener('submit', function(event) {
+            event.preventDefault();
+            submitCallLog(this, leadId);
+          });
+          
+          // Set today's date as default for reminder
+          const today = new Date();
+          const dateStr = today.toISOString().substr(0, 10);
+          document.getElementById('reminderDate').value = dateStr;
+          
+          // Set a default time a few hours from now
+          let hours = today.getHours() + 2; // Default to 2 hours from now
+          if (hours >= 24) hours = 10; // If it goes past midnight, default to 10 AM
+          const timeStr = `${hours.toString().padStart(2, '0')}:00`;
+          document.getElementById('reminderTime').value = timeStr;
+        })
+        .catch(error => {
+          console.error('Error loading lead for call log:', error);
+          formContainer.innerHTML = `
+            <div class="call-error">
+              <i class="fas fa-exclamation-triangle"></i>
+              <p>Error loading lead information. Please try again.</p>
+              <button class="btn btn-primary" onclick="window.location.href='/calls'">Back to Calls</button>
+            </div>
+          `;
+          mainContent.appendChild(formContainer);
+        });
+    }
+    
+    function submitCallLog(form, leadId) {
+      // Get form data
+      const formData = new FormData(form);
+      const callData = {
+        userLeadId: parseInt(leadId),
+        callDate: new Date().toISOString(),
+        duration: parseInt(document.getElementById('callDuration').value || 0),
+        outcome: document.getElementById('callOutcome').value || 'completed',
+        notes: document.getElementById('callNotes').value || ''
+      };
+      
+      // Add reminder date if specified
+      const reminderDate = document.getElementById('reminderDate').value;
+      const reminderTime = document.getElementById('reminderTime').value;
+      if (reminderDate && reminderTime && document.getElementById('callbackSection').style.display !== 'none') {
+        const reminderDateTime = new Date(`${reminderDate}T${reminderTime}`).toISOString();
+        callData.reminderDate = reminderDateTime;
+      }
+      
+      // Submit call log
+      fetch('/api/calls', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(callData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to create call record');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          // Update lead status if needed
+          const newStatus = document.getElementById('leadStatus').value;
+          return updateLeadStatus(leadId, newStatus);
+        } else {
+          throw new Error(data.message || 'Failed to create call record');
+        }
+      })
+      .then(() => {
+        alert('Call log saved successfully!');
+        window.location.href = '/calls';
+      })
+      .catch(error => {
+        console.error('Error saving call log:', error);
+        alert(`Failed to save call log: ${error.message}`);
+      });
+    }
+    
+    function updateLeadStatus(leadId, newStatus) {
+      // First get the current lead data
+      return fetch(`/api/leads/${leadId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch lead data');
+          }
+          return response.json();
+        })
+        .then(response => {
+          if (!response.success || !response.data) {
+            throw new Error('Invalid lead data format');
+          }
+          
+          const lead = response.data;
+          
+          // If status hasn't changed, no need to update
+          if (lead.status === newStatus) {
+            return Promise.resolve();
+          }
+          
+          // Update just the status
+          return fetch(`/api/leads/${leadId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              status: newStatus
+            })
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to update lead status');
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (!data.success) {
+              throw new Error(data.message || 'Failed to update lead status');
+            }
+          });
+        });
+    }
+
+    // Function to update UI based on current path
     function updateUIForCurrentPath() {
       // Reset all menu items to inactive
       document.querySelectorAll('.menu-item').forEach(item => {
@@ -1058,11 +1780,16 @@
       // Set page title and active menu item based on path
       const pageTitle = document.querySelector('.page-title');
       
-      // Default: hide new lead form
+      // Default: hide all special forms
       const newLeadForm = document.getElementById('newLeadForm');
       const editLeadForm = document.getElementById('editLeadForm');
+      const callInProgressScreen = document.getElementById('callInProgressScreen');
+      const callLogForm = document.getElementById('callLogForm');
+      
       if (newLeadForm) newLeadForm.style.display = 'none';
       if (editLeadForm) editLeadForm.style.display = 'none';
+      if (callInProgressScreen) callInProgressScreen.style.display = 'none';
+      if (callLogForm) callLogForm.style.display = 'none';
       
       if (currentPath === '/dashboard') {
         pageTitle.textContent = 'Dashboard';
@@ -1109,6 +1836,38 @@
         } else {
           loadLeadForEditing(leadId);
           editLeadForm.style.display = 'block';
+        }
+      }
+      else if (currentPath.startsWith('/call-in-progress/')) {
+        // Extract lead ID from URL
+        const leadId = currentPath.split('/').pop();
+        pageTitle.textContent = 'Call In Progress';
+        document.querySelector('.menu-item a[href="/calls"]').parentElement.classList.add('active');
+        // Hide all dashboard content
+        hideDashboardContent(['card-grid', 'leadsTableBody', 'callsTableBody']);
+        
+        // Create and show the call in progress screen
+        if (!callInProgressScreen) {
+          createCallInProgressScreen(leadId);
+        } else {
+          callInProgressScreen.style.display = 'block';
+        }
+      }
+      else if (currentPath.startsWith('/call-log/')) {
+        // Extract lead ID and duration from URL
+        const leadId = currentPath.split('/').pop();
+        const duration = new URLSearchParams(window.location.search).get('duration') || 0;
+        
+        pageTitle.textContent = 'Call Log';
+        document.querySelector('.menu-item a[href="/calls"]').parentElement.classList.add('active');
+        // Hide all dashboard content
+        hideDashboardContent(['card-grid', 'leadsTableBody', 'callsTableBody']);
+        
+        // Create and show the call log form
+        if (!callLogForm) {
+          createCallLogForm(leadId, duration);
+        } else {
+          callLogForm.style.display = 'block';
         }
       }
     }
@@ -1768,8 +2527,11 @@
           const row = e.target.closest('tr');
           const leadId = row ? row.dataset.leadId : null;
           if (leadId) {
-            // Redirect to new call page with the lead pre-selected
-            window.location.href = `/calls/new?leadId=${leadId}`;
+            // Confirm before starting call
+            if (confirm('Are you ready to start a call with this lead?')) {
+              // Redirect to call in progress page first, which will then open the native dialer
+              window.location.href = `/call-in-progress/${leadId}`;
+            }
           }
         }
       });

@@ -100,6 +100,16 @@ app.get('/calls/:id', checkDashboardAccess, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/dashboard.html'));
 });
 
+app.get('/call-in-progress/:leadId', checkDashboardAccess, (req, res) => {
+  console.log(`Call in progress for lead ID: ${req.params.leadId}`);
+  res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+});
+
+app.get('/call-log/:leadId', checkDashboardAccess, (req, res) => {
+  console.log(`Call log form for lead ID: ${req.params.leadId}`);
+  res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+});
+
 // API login route
 app.post('/api/login', (req, res) => {
   console.log('Login attempt', req.body);
