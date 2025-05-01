@@ -9,7 +9,7 @@ Walk N Talk CRM is a comprehensive mobile customer relationship management syste
 ## Features Implemented
 
 - **Database Schema**: PostgreSQL database with tables for users, leads, and call tracking
-- **Authentication System**: Complete user authentication with registration, login, and session management
+- **Authentication System**: Complete user authentication with registration, login, and JWT-based token management
 - **API Endpoints**: RESTful API endpoints for all CRM functionalities
 - **User Roles**: Admin and regular user roles with different permissions
 - **First-User Detection**: Special admin privileges for the first registered user
@@ -21,7 +21,7 @@ Walk N Talk CRM is a comprehensive mobile customer relationship management syste
 - **Web Framework**: Express.js
 - **Database**: PostgreSQL
 - **ORM**: Drizzle ORM
-- **Authentication**: Passport.js with session-based auth
+- **Authentication**: JWT-based token authentication with refresh capability
 
 ### Frontend
 - **Framework**: React Native with Expo
@@ -55,10 +55,11 @@ Walk N Talk CRM is a comprehensive mobile customer relationship management syste
 ## API Endpoints
 
 ### Authentication
-- `POST /api/register` - Register a new user
-- `POST /api/login` - Login a user
+- `POST /api/register` - Register a new user (returns JWT token)
+- `POST /api/login` - Login a user (returns JWT token)
 - `POST /api/logout` - Logout a user
-- `GET /api/user` - Get the current user's data
+- `GET /api/user` - Get the current user's data (requires authentication)
+- `POST /api/refresh` - Refresh an existing JWT token
 
 ### Leads
 - `GET /api/leads` - Get all leads for the current user
@@ -107,7 +108,13 @@ npm start
 
 ## Development Status
 
-The project has implemented the basic infrastructure and API endpoints. Further work is needed to complete the React Native frontend components and screens.
+The project has implemented the basic infrastructure and API endpoints. Recent updates include:
+
+- JWT-based authentication system has been completed, replacing the previous session-based authentication
+- Token refresh mechanism for extending sessions without requiring re-login
+- Updated authorization middleware for API routes
+
+Further work is needed to complete the React Native frontend components and screens.
 
 ## License
 

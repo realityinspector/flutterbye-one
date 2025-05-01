@@ -5,12 +5,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 // Base URL for API
-const API_URL = 'http://localhost:8000/api';
+const API_URL = 'http://localhost:5000/api';
 
 // Create auth axios instance
 const authAxios = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
+  // No withCredentials needed with JWT
 });
 
 // Create auth context
@@ -58,7 +58,12 @@ export const AuthProvider = ({ children }) => {
       const response = await authAxios.get('/user', {
         headers: { Authorization: `Bearer ${currentToken}` }
       });
-      setUser(response.data);
+      if (response.data?.success && response.data?.user) {
+        setUser(response.data.user);
+      } else {
+        // If no user data in the response, token might be invalid
+        throw new Error('Invalid token or user data');
+      }
     } catch (error) {
       console.error('Error fetching user:', error);
       await AsyncStorage.removeItem('auth_token');
@@ -75,16 +80,20 @@ export const AuthProvider = ({ children }) => {
       return response.data;
     },
     onSuccess: async (data) => {
-      await AsyncStorage.setItem('auth_token', data.token);
-      setToken(data.token);
-      setUser(data.user);
-      
-      toast.show({
-        title: "Login successful",
-        status: "success",
-        placement: "top",
-        duration: 3000,
-      });
+      if (data.success && data.token && data.user) {
+        await AsyncStorage.setItem('auth_token', data.token);
+        setToken(data.token);
+        setUser(data.user);
+        
+        toast.show({
+          title: "Login successful",
+          status: "success",
+          placement: "top",
+          duration: 3000,
+        });
+      } else {
+        throw new Error('Invalid response format');
+      }
     },
     onError: (error) => {
       console.error('Login error:', error);
@@ -105,16 +114,20 @@ export const AuthProvider = ({ children }) => {
       return response.data;
     },
     onSuccess: async (data) => {
-      await AsyncStorage.setItem('auth_token', data.token);
-      setToken(data.token);
-      setUser(data.user);
-      
-      toast.show({
-        title: "Registration successful",
-        status: "success",
-        placement: "top",
-        duration: 3000,
-      });
+      if (data.success && data.token && data.user) {
+        await AsyncStorage.setItem('auth_token', data.token);
+        setToken(data.token);
+        setUser(data.user);
+        
+        toast.show({
+          title: "Registration successful",
+          status: "success",
+          placement: "top",
+          duration: 3000,
+        });
+      } else {
+        throw new Error('Invalid response format');
+      }
     },
     onError: (error) => {
       console.error('Registration error:', error);
@@ -131,13 +144,18 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = useCallback(async () => {
     try {
+      // For JWT, we only need to notify the server and do client-side cleanup
+      // The server doesn't track sessions, so this is just a courtesy call
       await authAxios.post('/logout');
     } catch (error) {
       console.error('Logout error:', error);
+      // Continue with client-side logout even if server call fails
     } finally {
+      // The important part is removing the token from local storage
       await AsyncStorage.removeItem('auth_token');
       setToken(null);
       setUser(null);
+      delete authAxios.defaults.headers.common['Authorization'];
       
       toast.show({
         title: "Logged out",
@@ -152,11 +170,36 @@ export const AuthProvider = ({ children }) => {
   const update = useCallback(async (userData) => {
     try {
       const response = await authAxios.put('/user', userData);
-      setUser(response.data);
-      return response.data;
+      if (response.data?.success && response.data?.data) {
+        setUser(response.data.data);
+        return response.data.data;
+      }
+      throw new Error('Invalid response format');
     } catch (error) {
       console.error('Update user error:', error);
       throw error;
+    }
+  }, []);
+  
+  // Refresh token
+  const refreshToken = useCallback(async () => {
+    try {
+      const currentToken = await AsyncStorage.getItem('auth_token');
+      if (!currentToken) return false;
+      
+      const response = await authAxios.post('/refresh', null, {
+        headers: { Authorization: `Bearer ${currentToken}` }
+      });
+      
+      if (response.data?.success && response.data?.token) {
+        await AsyncStorage.setItem('auth_token', response.data.token);
+        setToken(response.data.token);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      return false;
     }
   }, []);
 
@@ -179,8 +222,10 @@ export const AuthProvider = ({ children }) => {
     logout,
     register,
     update,
+    refreshToken,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
+    token, // Export token for custom usage if needed
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

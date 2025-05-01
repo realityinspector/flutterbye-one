@@ -1,11 +1,11 @@
-const passport = require('passport');
-const { Strategy: LocalStrategy } = require('passport-local');
-const session = require('express-session');
 const { scrypt, randomBytes, timingSafeEqual } = require('crypto');
 const { promisify } = require('util');
+const jwt = require('jsonwebtoken');
 const { storage } = require('./storage');
 
 const scryptAsync = promisify(scrypt);
+const JWT_SECRET = process.env.JWT_SECRET || 'walktalk-development-jwt-secret';
+const JWT_EXPIRES_IN = '24h'; // 24 hours
 
 // Hash password
 async function hashPassword(password) {
@@ -22,52 +22,38 @@ async function comparePasswords(supplied, stored) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+// Generate JWT token
+function generateToken(user) {
+  const { password, ...userWithoutPassword } = user;
+  return jwt.sign({ user: userWithoutPassword }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
+
+// Middleware to verify JWT token
+function authenticateJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  
+  if (authHeader) {
+    const token = authHeader.split(' ')[1]; // Bearer TOKEN
+    
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+      }
+      
+      req.user = decoded.user;
+      next();
+    });
+  } else {
+    res.status(401).json({ success: false, message: 'Authentication token is required' });
+  }
+}
+
 // Set up authentication
 function setupAuth(app) {
-  const sessionSettings = {
-    secret: process.env.SESSION_SECRET || 'walktalk-development-secret',
-    resave: false,
-    saveUninitialized: false,
-    store: storage.sessionStore,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
-    },
-  };
-
-  app.set('trust proxy', 1);
-  app.use(session(sessionSettings));
-  app.use(passport.initialize());
-  app.use(passport.session());
-
-  // Local strategy for username/password auth
-  passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false, { message: 'Incorrect username or password' });
-        }
-        return done(null, user);
-      } catch (error) {
-        return done(error);
-      }
-    }),
-  );
-
-  // Serialize and deserialize user
-  passport.serializeUser((user, done) => done(null, user.id));
-  passport.deserializeUser(async (id, done) => {
-    try {
-      const user = await storage.getUser(id);
-      done(null, user);
-    } catch (error) {
-      done(error);
-    }
-  });
+  // No session middleware needed with JWT
 
   // Register endpoint
-  app.post('/api/register', async (req, res, next) => {
+  app.post('/api/register', async (req, res) => {
     try {
       const { username, password, email, fullName, companyName, role = 'user' } = req.body;
       
@@ -104,18 +90,16 @@ function setupAuth(app) {
         hasCompletedSetup: false,
       });
       
-      // Log in the user
-      req.login(user, (err) => {
-        if (err) return next(err);
-        
-        // Don't return the password
-        const { password, ...userWithoutPassword } = user;
-        
-        res.status(201).json({
-          success: true,
-          user: userWithoutPassword,
-          token: 'jwt-token-placeholder' // In a real app, generate JWT here
-        });
+      // Generate JWT token
+      const token = generateToken(user);
+      
+      // Don't return the password
+      const { password: _, ...userWithoutPassword } = user;
+      
+      res.status(201).json({
+        success: true,
+        user: userWithoutPassword,
+        token
       });
     } catch (error) {
       console.error('Registration error:', error);
@@ -124,48 +108,63 @@ function setupAuth(app) {
   });
 
   // Login endpoint
-  app.post('/api/login', (req, res, next) => {
-    passport.authenticate('local', (err, user, info) => {
-      if (err) return next(err);
-      if (!user) {
-        return res.status(401).json({ success: false, message: info?.message || 'Invalid credentials' });
+  app.post('/api/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      console.log('Login attempt', { username });
+      
+      if (!username || !password) {
+        return res.status(400).json({ success: false, message: 'Username and password are required' });
       }
       
-      req.login(user, (loginErr) => {
-        if (loginErr) return next(loginErr);
-        
-        // Don't return the password
-        const { password, ...userWithoutPassword } = user;
-        
-        res.status(200).json({
-          success: true,
-          user: userWithoutPassword,
-          token: 'jwt-token-placeholder' // In a real app, generate JWT here
-        });
+      // Find user by username
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
+      
+      // Verify password
+      const isPasswordValid = await comparePasswords(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
+      
+      // Generate JWT token
+      const token = generateToken(user);
+      
+      // Don't return the password
+      const { password: _, ...userWithoutPassword } = user;
+      
+      res.status(200).json({
+        success: true,
+        user: userWithoutPassword,
+        token
       });
-    })(req, res, next);
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ success: false, message: 'Login failed' });
+    }
   });
 
-  // Logout endpoint
-  app.post('/api/logout', (req, res, next) => {
-    req.logout((err) => {
-      if (err) return next(err);
-      res.sendStatus(200);
-    });
+  // Logout endpoint - client-side only with JWT
+  app.post('/api/logout', (req, res) => {
+    // With JWT, logout is handled client-side by removing the token
+    res.status(200).json({ success: true, message: 'Logout successful' });
+  });
+
+  // Refresh token endpoint
+  app.post('/api/refresh', authenticateJWT, (req, res) => {
+    // Generate a new token with updated expiration
+    const token = generateToken(req.user);
+    res.json({ success: true, token });
   });
 
   // Current user endpoint
-  app.get('/api/user', (req, res) => {
+  app.get('/api/user', authenticateJWT, (req, res) => {
     console.log('User profile request');
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ success: false, message: 'Not authenticated' });
-    }
-    
-    // Don't return the password
-    const { password, ...userWithoutPassword } = req.user;
-    
-    res.json({ success: true, user: userWithoutPassword });
+    res.json({ success: true, user: req.user });
   });
 }
 
-module.exports = { setupAuth };
+module.exports = { setupAuth, authenticateJWT, generateToken };

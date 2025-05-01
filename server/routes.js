@@ -1,6 +1,6 @@
 const { createServer } = require('http');
 const express = require('express');
-const { setupAuth } = require('./auth');
+const { setupAuth, authenticateJWT } = require('./auth');
 const { db } = require('./db');
 const { storage } = require('./storage');
 const { eq, and, desc, asc } = require('drizzle-orm');
@@ -85,9 +85,7 @@ function registerRoutes(app) {
   setupAuth(app);
 
   // Lead routes
-  app.get('/api/leads', async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+  app.get('/api/leads', authenticateJWT, async (req, res) => {
     try {
       const leads = await db.query.userLeads.findMany({
         where: eq(userLeads.userId, req.user.id),
@@ -104,9 +102,7 @@ function registerRoutes(app) {
     }
   });
 
-  app.get('/api/leads/:id', async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+  app.get('/api/leads/:id', authenticateJWT, async (req, res) => {
     try {
       const [lead] = await db.query.userLeads.findMany({
         where: and(
@@ -129,9 +125,7 @@ function registerRoutes(app) {
     }
   });
 
-  app.post('/api/leads', async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+  app.post('/api/leads', authenticateJWT, async (req, res) => {
     try {
       // Create a global lead record
       const [globalLead] = await db.insert(globalLeads).values({
@@ -169,9 +163,7 @@ function registerRoutes(app) {
     }
   });
 
-  app.put('/api/leads/:id', async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+  app.put('/api/leads/:id', authenticateJWT, async (req, res) => {
     try {
       // Check if lead belongs to user
       const [userLead] = await db.select().from(userLeads).where(
@@ -229,9 +221,7 @@ function registerRoutes(app) {
     }
   });
 
-  app.delete('/api/leads/:id', async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+  app.delete('/api/leads/:id', authenticateJWT, async (req, res) => {
     try {
       // Only delete the user lead, keep the global lead
       const result = await db.delete(userLeads)
@@ -255,9 +245,7 @@ function registerRoutes(app) {
   });
 
   // Call routes
-  app.get('/api/calls', async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+  app.get('/api/calls', authenticateJWT, async (req, res) => {
     try {
       const calls = await db.query.calls.findMany({
         where: eq(calls.userId, req.user.id),
@@ -271,9 +259,7 @@ function registerRoutes(app) {
     }
   });
 
-  app.get('/api/leads/:leadId/calls', async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+  app.get('/api/leads/:leadId/calls', authenticateJWT, async (req, res) => {
     try {
       const leadCalls = await db.query.calls.findMany({
         where: and(
@@ -290,9 +276,7 @@ function registerRoutes(app) {
     }
   });
 
-  app.post('/api/calls', async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+  app.post('/api/calls', authenticateJWT, async (req, res) => {
     try {
       // Check if lead belongs to user
       const [userLead] = await db.select().from(userLeads).where(
@@ -350,9 +334,7 @@ function registerRoutes(app) {
   });
 
   // User routes (in addition to auth routes)
-  app.put('/api/user', async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+  app.put('/api/user', authenticateJWT, async (req, res) => {
     try {
       // Update user in database
       const updatedUser = await storage.updateUser(req.user.id, req.body);

@@ -1,7 +1,11 @@
 // Enhanced server implementation
 const express = require('express');
 const path = require('path');
-const session = require('express-session');
+const jwt = require('jsonwebtoken');
+
+// JWT Configuration
+const JWT_SECRET = process.env.JWT_SECRET || 'walktalk-development-jwt-secret';
+const JWT_EXPIRES_IN = '24h'; // 24 hours
 
 // Create Express app
 const app = express();
@@ -16,28 +20,49 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configure session middleware
-app.use(session({
-  secret: 'walkntalk-session-secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { 
-    maxAge: 3600000, // 1 hour
-    secure: false // set to true in production with HTTPS
-  }
-}));
-
 // Serve static content
 app.use(express.static(path.join(__dirname, '../public')));
 
+// JWT token verification function
+const verifyToken = (token) => {
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch (error) {
+    console.error('Token verification error:', error.message);
+    return null;
+  }
+};
+
+// Generate JWT token
+const generateToken = (user) => {
+  // Don't include sensitive data in the token
+  const { password, ...userWithoutPassword } = user;
+  return jwt.sign({ user: userWithoutPassword }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+};
+
 // Authentication middleware
 const requireAuth = (req, res, next) => {
-  if (!req.session.user) {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader) {
     return res.status(401).json({
       success: false,
-      message: 'Authentication required'
+      message: 'Authentication token is required'
     });
   }
+  
+  const token = authHeader.split(' ')[1]; // Bearer TOKEN
+  const decoded = verifyToken(token);
+  
+  if (!decoded || !decoded.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid or expired token'
+    });
+  }
+  
+  // Set user data in request object
+  req.user = decoded.user;
   next();
 };
 
@@ -53,14 +78,39 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
+// Cookie parsing function to extract JWT from cookie if present
+const extractTokenFromCookie = (req) => {
+  // If client sends cookie with token
+  if (req.headers.cookie) {
+    const cookies = req.headers.cookie.split(';').map(c => c.trim());
+    const authCookie = cookies.find(c => c.startsWith('auth_token='));
+    if (authCookie) {
+      return authCookie.split('=')[1];
+    }
+  }
+  return null;
+};
+
 // Middleware to check if user is authenticated for dashboard
 const checkDashboardAccess = (req, res, next) => {
-  // Check if there's an active user session
-  if (!req.session.user) {
-    console.log('No session found, redirecting to login');
+  // Try to get token from Authorization header or cookie
+  const authHeader = req.headers.authorization;
+  const token = authHeader ? authHeader.split(' ')[1] : extractTokenFromCookie(req);
+  
+  if (!token) {
+    console.log('No token found, redirecting to login');
     // Add a flag to prevent redirect loops
     return res.redirect('/?auth=required&redirected=true');
   }
+  
+  const decoded = verifyToken(token);
+  if (!decoded || !decoded.user) {
+    console.log('Invalid or expired token, redirecting to login');
+    return res.redirect('/?auth=required&redirected=true');
+  }
+  
+  // Set user in request
+  req.user = decoded.user;
   console.log('User authenticated, proceeding to dashboard');
   next();
 };
@@ -133,12 +183,13 @@ app.post('/api/login', (req, res) => {
     role: 'user'
   };
   
-  // Store user in session
-  req.session.user = user;
+  // Generate JWT token
+  const token = generateToken(user);
   
   res.json({
     success: true,
-    user: user
+    user: user,
+    token: token
   });
 });
 
@@ -146,19 +197,11 @@ app.post('/api/login', (req, res) => {
 app.post('/api/logout', (req, res) => {
   console.log('Logout attempt');
   
-  // Clear session
-  req.session.destroy(err => {
-    if (err) {
-      return res.status(500).json({
-        success: false,
-        message: 'Logout failed'
-      });
-    }
-    
-    res.json({
-      success: true,
-      message: 'Logged out successfully'
-    });
+  // With JWT, the actual logout happens client-side by removing the token
+  // This is just an endpoint for notifications or token blacklisting if implemented
+  res.json({
+    success: true,
+    message: 'Logged out successfully'
   });
 });
 
@@ -185,39 +228,75 @@ app.post('/api/register', (req, res) => {
     role: 'user'
   };
   
-  // Store user in session
-  req.session.user = user;
+  // Generate JWT token
+  const token = generateToken(user);
   
   res.json({
     success: true,
-    user: user
+    user: user,
+    token: token
   });
 });
 
 // API user route
-app.get('/api/user', (req, res) => {
+app.get('/api/user', requireAuth, (req, res) => {
   console.log('User profile request');
   
-  if (!req.session.user) {
+  // User is already verified via requireAuth middleware
+  res.json({
+    success: true,
+    user: req.user
+  });
+});
+
+// Token refresh endpoint
+app.post('/api/refresh', (req, res) => {
+  console.log('Token refresh request');
+  
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader) {
     return res.status(401).json({
       success: false,
-      message: 'Not authenticated'
+      message: 'No token provided'
     });
   }
   
+  const token = authHeader.split(' ')[1];
+  const decoded = verifyToken(token);
+  
+  if (!decoded || !decoded.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid or expired token'
+    });
+  }
+  
+  // Generate a new token with the same user data
+  const newToken = generateToken(decoded.user);
+  
   res.json({
     success: true,
-    user: req.session.user
+    token: newToken
   });
 });
 
 // Break the redirect loop for dashboard
 app.get('/dashboard-check', (req, res) => {
-  if (req.session.user) {
-    return res.json({ authenticated: true });
-  } else {
+  // Try to get token from Authorization header or cookie
+  const authHeader = req.headers.authorization;
+  const token = authHeader ? authHeader.split(' ')[1] : extractTokenFromCookie(req);
+  
+  if (!token) {
     return res.json({ authenticated: false });
   }
+  
+  const decoded = verifyToken(token);
+  if (!decoded || !decoded.user) {
+    return res.json({ authenticated: false });
+  }
+  
+  return res.json({ authenticated: true });
 });
 
 // API leads route
@@ -281,7 +360,7 @@ app.post('/api/leads', requireAuth, (req, res) => {
   // Create a mock user lead
   const userLead = {
     id: 3, // In real app, this would be assigned by the database
-    userId: req.session.user.id,
+    userId: req.user.id,
     globalLeadId: globalLead.id,
     status: req.body.status || 'new',
     priority: req.body.priority || 5,
@@ -474,7 +553,7 @@ app.post('/api/calls', requireAuth, (req, res) => {
   // In a real app, validate input and save to database
   const newCall = {
     id: 4, // In real app, this would be assigned by the database
-    userId: req.session.user.id,
+    userId: req.user.id,
     userLeadId: req.body.userLeadId,
     callDate: req.body.callDate || new Date().toISOString(),
     duration: req.body.duration || 0,

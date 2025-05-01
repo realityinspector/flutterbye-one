@@ -1,24 +1,10 @@
 const { db } = require('./db');
 const { eq } = require('drizzle-orm');
 const { users } = require('../shared/schema');
-const connectPg = require('connect-pg-simple');
-const session = require('express-session');
-const { Pool } = require('pg');
-
-// Create PostgreSQL session store
-const PgSessionStore = connectPg(session);
-const sessionPool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
 
 class DatabaseStorage {
   constructor() {
-    // Initialize session store
-    this.sessionStore = new PgSessionStore({
-      pool: sessionPool,
-      createTableIfMissing: true,
-    });
+    // No session store in JWT implementation
   }
 
   // User methods
