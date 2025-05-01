@@ -3,8 +3,9 @@ import axios from 'axios';
 import { useToast } from 'native-base';
 // Import our custom useAsync hook
 import { useAsync } from './useAsync';
-// Import Zod types directly from the shared schema
-import { UserLead, NewUserLead, Call } from '../../shared/db/zod-schema';
+// Import Zod types directly from the shared schema and our extended types
+import { NewUserLead, Call } from '../../shared/db/zod-schema';
+import { UserLeadWithRelations, CallWithRelations } from '../types';
 
 // Base URL for API
 const API_URL = 'http://localhost:5000/api';
@@ -17,21 +18,21 @@ const leadsAxios = axios.create({
 
 export const useLeads = () => {
   const toast = useToast();
-  const [leads, setLeads] = useState<UserLead[]>([]);
+  const [leads, setLeads] = useState<UserLeadWithRelations[]>([]);
   
   // Create async hooks for each operation
-  const fetchLeadsAsync = useAsync<UserLead[]>();
-  const fetchLeadAsync = useAsync<UserLead, Error, [number]>();
-  const createLeadAsync = useAsync<UserLead, Error, [NewUserLead]>();
-  const updateLeadAsync = useAsync<UserLead, Error, [number, Partial<UserLead>]>();
+  const fetchLeadsAsync = useAsync<UserLeadWithRelations[]>();
+  const fetchLeadAsync = useAsync<UserLeadWithRelations, Error, [number]>();
+  const createLeadAsync = useAsync<UserLeadWithRelations, Error, [NewUserLead]>();
+  const updateLeadAsync = useAsync<UserLeadWithRelations, Error, [number, Partial<UserLeadWithRelations>]>();
   const deleteLeadAsync = useAsync<{success: boolean}, Error, [number]>();
-  const fetchCallsForLeadAsync = useAsync<Call[], Error, [number]>();
+  const fetchCallsForLeadAsync = useAsync<CallWithRelations[], Error, [number]>();
   
   // Fetch all leads with type safety
   const fetchLeads = useCallback(async () => {
     try {
       return await fetchLeadsAsync.execute(async () => {
-        const response = await leadsAxios.get<{success: boolean, data: UserLead[]}>('/leads');
+        const response = await leadsAxios.get<{success: boolean, data: UserLeadWithRelations[]}>('/leads');
         return response.data.data;
       });
     } catch (error) {
@@ -53,10 +54,10 @@ export const useLeads = () => {
   }, [fetchLeads]);
 
   // Get a single lead by id with proper typing
-  const getLead = async (leadId: number): Promise<UserLead> => {
+  const getLead = async (leadId: number): Promise<UserLeadWithRelations> => {
     try {
       return await fetchLeadAsync.execute(async (id) => {
-        const response = await leadsAxios.get<{success: boolean, data: UserLead}>(`/leads/${id}`);
+        const response = await leadsAxios.get<{success: boolean, data: UserLeadWithRelations}>(`/leads/${id}`);
         return response.data.data;
       }, leadId);
     } catch (error) {
@@ -66,10 +67,10 @@ export const useLeads = () => {
   };
 
   // Create a new lead with type safety
-  const createLead = async (leadData: NewUserLead): Promise<UserLead> => {
+  const createLead = async (leadData: NewUserLead): Promise<UserLeadWithRelations> => {
     try {
       const result = await createLeadAsync.execute(async (data) => {
-        const response = await leadsAxios.post<{success: boolean, data: UserLead}>('/leads', data);
+        const response = await leadsAxios.post<{success: boolean, data: UserLeadWithRelations}>('/leads', data);
         return response.data.data;
       }, leadData);
       
@@ -97,10 +98,10 @@ export const useLeads = () => {
   };
 
   // Fetch calls for a lead with proper typing
-  const getCallsForLead = async (leadId: number): Promise<Call[]> => {
+  const getCallsForLead = async (leadId: number): Promise<CallWithRelations[]> => {
     try {
       return await fetchCallsForLeadAsync.execute(async (id) => {
-        const response = await leadsAxios.get<{success: boolean, data: Call[]}>(`/leads/${id}/calls`);
+        const response = await leadsAxios.get<{success: boolean, data: CallWithRelations[]}>(`/leads/${id}/calls`);
         return response.data.data;
       }, leadId);
     } catch (error) {
@@ -116,10 +117,10 @@ export const useLeads = () => {
   };
 
   // Update a lead with proper typing
-  const updateLead = async (leadId: number, leadData: Partial<UserLead>): Promise<UserLead> => {
+  const updateLead = async (leadId: number, leadData: Partial<UserLeadWithRelations>): Promise<UserLeadWithRelations> => {
     try {
       const result = await updateLeadAsync.execute(async (id, data) => {
-        const response = await leadsAxios.put<{success: boolean, data: UserLead}>(`/leads/${id}`, data);
+        const response = await leadsAxios.put<{success: boolean, data: UserLeadWithRelations}>(`/leads/${id}`, data);
         return response.data.data;
       }, leadId, leadData);
       

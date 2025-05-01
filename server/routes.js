@@ -3,6 +3,7 @@ const express = require('express');
 const { setupAuth, authenticateJWT } = require('./auth');
 const { db } = require('./db');
 const { storage } = require('./storage');
+const analytics = require('./analytics');
 const { eq, and, desc, asc } = require('drizzle-orm');
 const { globalLeads, userLeads, calls } = require('../shared/db/schema');
 const path = require('path');
@@ -52,6 +53,9 @@ function registerRoutes(app) {
                 <li><code>POST /api/logout</code> - Logout</li>
                 <li><code>GET /api/leads</code> - Get all leads</li>
                 <li><code>GET /api/calls</code> - Get all calls</li>
+                <li><code>GET /api/analytics/dashboard</code> - Get dashboard metrics</li>
+                <li><code>GET /api/analytics/user-performance</code> - Get user performance (admin only)</li>
+                <li><code>GET /api/analytics/call-outcomes</code> - Get call outcome distribution</li>
               </ul>
             </div>
           </div>
@@ -339,6 +343,46 @@ function registerRoutes(app) {
     } catch (error) {
       console.error('Error updating user:', error);
       res.status(500).json({ success: false, message: 'Failed to update user' });
+    }
+  });
+
+  // Analytics routes
+  app.get('/api/analytics/dashboard', authenticateJWT, async (req, res) => {
+    try {
+      // For regular users, only show their own analytics
+      const userId = req.user.isAdmin || req.user.role === 'admin' ? null : req.user.id;
+      const metrics = await analytics.getDashboardMetrics(userId);
+      res.json({ success: true, data: metrics });
+    } catch (error) {
+      console.error('Error fetching dashboard metrics:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch dashboard metrics' });
+    }
+  });
+
+  app.get('/api/analytics/user-performance', authenticateJWT, async (req, res) => {
+    try {
+      // Only admins can see user performance metrics
+      if (!req.user.isAdmin && req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Access denied' });
+      }
+
+      const userMetrics = await analytics.getUserPerformanceMetrics();
+      res.json({ success: true, data: userMetrics });
+    } catch (error) {
+      console.error('Error fetching user performance metrics:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch user performance metrics' });
+    }
+  });
+
+  app.get('/api/analytics/call-outcomes', authenticateJWT, async (req, res) => {
+    try {
+      // For regular users, only show their own call outcomes
+      const userId = req.user.isAdmin || req.user.role === 'admin' ? null : req.user.id;
+      const outcomes = await analytics.getCallOutcomesDistribution(userId);
+      res.json({ success: true, data: outcomes });
+    } catch (error) {
+      console.error('Error fetching call outcomes:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch call outcomes' });
     }
   });
 

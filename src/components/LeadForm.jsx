@@ -13,7 +13,7 @@ import {
   useToast,
   HStack,
 } from 'native-base';
-import { Feather } from '@expo/vector-icons';
+import Feather from 'react-native-vector-icons/Feather';
 import { useLeads } from '../hooks/useLeads';
 import { Platform } from 'react-native';
 

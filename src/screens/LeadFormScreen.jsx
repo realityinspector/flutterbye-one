@@ -18,7 +18,7 @@ import {
   Spinner,
   Center,
 } from 'native-base';
-import { Feather } from '@expo/vector-icons';
+import Feather from 'react-native-vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useLeads } from '../hooks/useLeads';
 

@@ -5,12 +5,12 @@ import {
   VStack,
   Text,
 } from 'native-base';
-import { Feather } from '@expo/vector-icons';
-// Import the UserLead and GlobalLead types directly from Zod schema
-import { UserLead, GlobalLead } from '../../shared/db/zod-schema';
+import Feather from 'react-native-vector-icons/Feather';
+// Import the extended UserLead type
+import { UserLeadWithRelations } from '../types';
 
 interface LeadCardProps {
-  lead: UserLead;
+  lead: UserLeadWithRelations;
   onPress?: () => void;
   rightElement?: React.ReactNode;
   showStatus?: boolean;

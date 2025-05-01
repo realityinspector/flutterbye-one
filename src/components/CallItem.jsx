@@ -1,6 +1,6 @@
 import React from 'react';
 import { HStack, VStack, Box, Text, Badge, Icon, Pressable } from 'native-base';
-import { Feather } from '@expo/vector-icons';
+import Feather from 'react-native-vector-icons/Feather';
 
 const CallItem = ({ call, onPress }) => {
   const formatDate = (dateString) => {
