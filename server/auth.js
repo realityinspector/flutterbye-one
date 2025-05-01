@@ -71,21 +71,23 @@ function setupAuth(app) {
     try {
       const { username, password, email, fullName, companyName, role = 'user' } = req.body;
       
+      console.log('Registration attempt', req.body);
+      
       // Validate required fields
       if (!username || !password || !email || !fullName) {
-        return res.status(400).json({ message: 'Missing required fields' });
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
       }
       
       // Check if username already exists
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
-        return res.status(400).json({ message: 'Username already exists' });
+        return res.status(400).json({ success: false, message: 'Username already exists' });
       }
       
       // Check if email already exists
       const existingEmail = await storage.getUserByEmail(email);
       if (existingEmail) {
-        return res.status(400).json({ message: 'Email already exists' });
+        return res.status(400).json({ success: false, message: 'Email already exists' });
       }
       
       // Create user with hashed password
@@ -110,13 +112,14 @@ function setupAuth(app) {
         const { password, ...userWithoutPassword } = user;
         
         res.status(201).json({
-          ...userWithoutPassword,
-          token: 'jwt-token-placeholder', // In a real app, generate JWT here
+          success: true,
+          user: userWithoutPassword,
+          token: 'jwt-token-placeholder' // In a real app, generate JWT here
         });
       });
     } catch (error) {
       console.error('Registration error:', error);
-      res.status(500).json({ message: 'Failed to register user' });
+      res.status(500).json({ success: false, message: 'Failed to register user' });
     }
   });
 
@@ -125,7 +128,7 @@ function setupAuth(app) {
     passport.authenticate('local', (err, user, info) => {
       if (err) return next(err);
       if (!user) {
-        return res.status(401).json({ message: info?.message || 'Invalid credentials' });
+        return res.status(401).json({ success: false, message: info?.message || 'Invalid credentials' });
       }
       
       req.login(user, (loginErr) => {
@@ -135,8 +138,9 @@ function setupAuth(app) {
         const { password, ...userWithoutPassword } = user;
         
         res.status(200).json({
-          ...userWithoutPassword,
-          token: 'jwt-token-placeholder', // In a real app, generate JWT here
+          success: true,
+          user: userWithoutPassword,
+          token: 'jwt-token-placeholder' // In a real app, generate JWT here
         });
       });
     })(req, res, next);
@@ -152,14 +156,15 @@ function setupAuth(app) {
 
   // Current user endpoint
   app.get('/api/user', (req, res) => {
+    console.log('User profile request');
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: 'Not authenticated' });
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
     }
     
     // Don't return the password
     const { password, ...userWithoutPassword } = req.user;
     
-    res.json(userWithoutPassword);
+    res.json({ success: true, user: userWithoutPassword });
   });
 }
 

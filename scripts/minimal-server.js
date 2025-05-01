@@ -69,22 +69,23 @@ app.get('/dashboard', checkDashboardAccess, (req, res) => {
 // API login route
 app.post('/api/login', (req, res) => {
   console.log('Login attempt', req.body);
-  const { email, password } = req.body;
+  const { username, password } = req.body;
   
   // Simple validation
-  if (!email || !password) {
+  if (!username || !password) {
     return res.status(400).json({
       success: false,
-      message: 'Email and password are required'
+      message: 'Username and password are required'
     });
   }
   
   // In a real app, validate credentials against database
-  // For demo purposes, any email/password combination is accepted
+  // For demo purposes, we accept the user we just registered
   const user = {
     id: 1,
-    name: email.split('@')[0], // Extract name from email for demo
-    email: email,
+    username: username,
+    fullName: 'Admin User',
+    email: 'admin@example.com',
     role: 'user'
   };
   
@@ -120,13 +121,13 @@ app.post('/api/logout', (req, res) => {
 // API register route
 app.post('/api/register', (req, res) => {
   console.log('Registration attempt', req.body);
-  const { name, email, password } = req.body;
+  const { username, fullName, email, password } = req.body;
   
   // Simple validation
-  if (!name || !email || !password) {
+  if (!username || !email || !password || !fullName) {
     return res.status(400).json({
       success: false,
-      message: 'Name, email and password are required'
+      message: 'Missing required fields'
     });
   }
   
@@ -134,7 +135,8 @@ app.post('/api/register', (req, res) => {
   // For demo purposes, we'll create a user object
   const user = {
     id: 1,
-    name: name,
+    username: username,
+    fullName: fullName,
     email: email,
     role: 'user'
   };
@@ -169,7 +171,7 @@ app.get('/api/user', (req, res) => {
 app.get('/api/leads', requireAuth, (req, res) => {
   console.log('Leads request');
   
-  res.json([
+  res.json({success: true, data: [
     {
       id: 1,
       userId: 1,
@@ -200,14 +202,14 @@ app.get('/api/leads', requireAuth, (req, res) => {
       priority: 3,
       notes: 'Follow up next week'
     }
-  ]);
+  ]});
 });
 
 // API calls route
 app.get('/api/calls', requireAuth, (req, res) => {
   console.log('Calls request');
   
-  res.json([
+  res.json({success: true, data: [
     {
       id: 1,
       userId: 1,
@@ -226,7 +228,7 @@ app.get('/api/calls', requireAuth, (req, res) => {
       outcome: 'callback',
       notes: 'Need to call back next week to discuss pricing'
     }
-  ]);
+  ]});
 });
 
 // Start server

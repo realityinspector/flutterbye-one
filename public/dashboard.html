@@ -522,12 +522,12 @@
             </div>
             <div>
               <div class="card-title">Total Leads</div>
-              <div class="card-value">247</div>
+              <div class="card-value" id="totalLeadsValue">0</div>
             </div>
           </div>
-          <div class="card-trend up">
-            <i class="fas fa-arrow-up"></i>
-            <span>12% from last month</span>
+          <div class="card-trend" id="leadsChangeContainer">
+            <i class="fas fa-minus"></i>
+            <span>Calculating...</span>
           </div>
         </div>
         <div class="card">
@@ -537,12 +537,12 @@
             </div>
             <div>
               <div class="card-title">Calls Made</div>
-              <div class="card-value">87</div>
+              <div class="card-value" id="callsMadeValue">0</div>
             </div>
           </div>
-          <div class="card-trend up">
-            <i class="fas fa-arrow-up"></i>
-            <span>8% from last week</span>
+          <div class="card-trend" id="callsChangeContainer">
+            <i class="fas fa-minus"></i>
+            <span>Calculating...</span>
           </div>
         </div>
         <div class="card">
@@ -552,12 +552,12 @@
             </div>
             <div>
               <div class="card-title">Conversion Rate</div>
-              <div class="card-value">24%</div>
+              <div class="card-value" id="conversionRateValue">0%</div>
             </div>
           </div>
-          <div class="card-trend up">
-            <i class="fas fa-arrow-up"></i>
-            <span>3% improvement</span>
+          <div class="card-trend" id="conversionChangeContainer">
+            <i class="fas fa-minus"></i>
+            <span>Calculating...</span>
           </div>
         </div>
       </div>
@@ -566,7 +566,7 @@
       <div class="table-container">
         <div class="table-header">
           <div class="table-title">Recent Leads</div>
-          <button class="btn btn-primary">Add New Lead</button>
+          <button id="addLeadBtn" class="btn btn-primary">Add New Lead</button>
         </div>
         <table>
           <thead>
@@ -580,30 +580,7 @@
           </thead>
           <tbody id="leadsTableBody">
             <tr>
-              <td>Acme Corp</td>
-              <td>John Doe</td>
-              <td>555-1234</td>
-              <td><span class="status new">New</span></td>
-              <td>
-                <div class="actions">
-                  <button class="btn-icon"><i class="fas fa-phone"></i></button>
-                  <button class="btn-icon"><i class="fas fa-edit"></i></button>
-                  <button class="btn-icon"><i class="fas fa-trash"></i></button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Widget Inc</td>
-              <td>Jane Smith</td>
-              <td>555-5678</td>
-              <td><span class="status contacted">Contacted</span></td>
-              <td>
-                <div class="actions">
-                  <button class="btn-icon"><i class="fas fa-phone"></i></button>
-                  <button class="btn-icon"><i class="fas fa-edit"></i></button>
-                  <button class="btn-icon"><i class="fas fa-trash"></i></button>
-                </div>
-              </td>
+              <td colspan="5" class="text-center">Loading leads...</td>
             </tr>
           </tbody>
         </table>
@@ -613,7 +590,7 @@
       <div class="table-container">
         <div class="table-header">
           <div class="table-title">Recent Calls</div>
-          <button class="btn btn-primary">View All Calls</button>
+          <button id="viewAllCallsBtn" class="btn btn-primary">View All Calls</button>
         </div>
         <table>
           <thead>
@@ -627,18 +604,7 @@
           </thead>
           <tbody id="callsTableBody">
             <tr>
-              <td>Acme Corp</td>
-              <td>John Doe</td>
-              <td>Today, 10:25 AM</td>
-              <td>5m 00s</td>
-              <td><span class="status contacted">Interested</span></td>
-            </tr>
-            <tr>
-              <td>Widget Inc</td>
-              <td>Jane Smith</td>
-              <td>Yesterday, 2:30 PM</td>
-              <td>3m 00s</td>
-              <td><span class="status new">Call Back</span></td>
+              <td colspan="5" class="text-center">Loading calls...</td>
             </tr>
           </tbody>
         </table>
@@ -659,17 +625,23 @@
           return response.json();
         })
         .then(data => {
-          if (data && data.user) {
+          if (data && data.success && data.user) {
             // Update user info
-            document.getElementById('userName').textContent = data.user.name;
+            document.getElementById('userName').textContent = data.user.fullName;
             
-            const initials = data.user.name
+            const initials = data.user.fullName
               .split(' ')
               .map(name => name[0])
               .join('')
               .toUpperCase();
             
             document.getElementById('userAvatar').textContent = initials;
+            
+            // Update user role in dropdown
+            const userRoleElement = document.querySelector('.user-role');
+            if (userRoleElement) {
+              userRoleElement.textContent = data.user.role.charAt(0).toUpperCase() + data.user.role.slice(1);
+            }
           }
         })
         .catch(error => {
@@ -686,10 +658,18 @@
           }
           return response.json();
         })
-        .then(leads => {
+        .then(response => {
+          if (!response.success || !response.data) {
+            throw new Error('Invalid leads response format');
+          }
+          const leads = response.data;
+          
           // Clear existing table rows
           const leadsTableBody = document.getElementById('leadsTableBody');
           leadsTableBody.innerHTML = '';
+          
+          // Update stats for total leads
+          document.getElementById('totalLeadsValue').textContent = leads.length;
           
           // Populate leads table
           leads.forEach(lead => {
@@ -722,10 +702,34 @@
           }
           return response.json();
         })
-        .then(calls => {
+        .then(response => {
+          if (!response.success || !response.data) {
+            throw new Error('Invalid calls response format');
+          }
+          const calls = response.data;
+          
           // Clear existing table rows
           const callsTableBody = document.getElementById('callsTableBody');
           callsTableBody.innerHTML = '';
+          
+          // Update stats for calls made
+          document.getElementById('callsMadeValue').textContent = calls.length;
+          
+          // Calculate conversion rate (simplified: calls with outcome 'interested' or 'meeting_scheduled' / total calls)
+          if (calls.length > 0) {
+            const conversions = calls.filter(call => 
+              call.outcome === 'interested' || call.outcome === 'meeting_scheduled'
+            ).length;
+            const rate = Math.round((conversions / calls.length) * 100);
+            document.getElementById('conversionRateValue').textContent = `${rate}%`;
+            
+            // Update trend container based on rate
+            const conversionContainer = document.getElementById('conversionChangeContainer');
+            if (rate > 0) {
+              conversionContainer.classList.add('up');
+              conversionContainer.innerHTML = '<i class="fas fa-arrow-up"></i><span>Active conversions</span>';
+            }
+          }
           
           // Format date and time
           function formatDateTime(dateString) {
@@ -756,19 +760,36 @@
             return `${minutes}m ${remainingSeconds.toString().padStart(2, '0')}s`;
           }
           
-          // Populate calls table
-          calls.forEach(call => {
-            const tr = document.createElement('tr');
-            // In a real app, we would fetch lead details or already have them included in the call data
-            // For now, we'll use placeholder text
-            tr.innerHTML = `
-              <td>Client ${call.leadId}</td>
-              <td>Contact</td>
-              <td>${formatDateTime(call.callDate)}</td>
-              <td>${formatDuration(call.duration)}</td>
-              <td><span class="status ${call.outcome === 'interested' ? 'qualified' : 'new'}">${call.outcome.charAt(0).toUpperCase() + call.outcome.slice(1)}</span></td>
-            `;
-            callsTableBody.appendChild(tr);
+          // Fetch lead info for each call to display company and contact names
+          const promises = calls.map(call => {
+            return fetch(`/api/leads/${call.userLeadId}`)
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error(`Failed to fetch lead for call ${call.id}`);
+                }
+                return response.json();
+              })
+              .then(lead => {
+                return { call, lead };
+              })
+              .catch(error => {
+                console.error(error);
+                return { call, lead: null };
+              });
+          });
+
+          Promise.all(promises).then(results => {
+            results.forEach(({ call, lead }) => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td>${lead ? lead.globalLead.companyName : 'Unknown Company'}</td>
+                <td>${lead ? lead.globalLead.contactName : 'Unknown Contact'}</td>
+                <td>${formatDateTime(call.callDate)}</td>
+                <td>${call.duration ? formatDuration(call.duration) : 'N/A'}</td>
+                <td><span class="status ${call.outcome === 'interested' ? 'qualified' : 'new'}">${call.outcome ? call.outcome.charAt(0).toUpperCase() + call.outcome.slice(1) : 'Unknown'}</span></td>
+              `;
+              callsTableBody.appendChild(tr);
+            });
           });
         })
         .catch(error => {
@@ -788,6 +809,19 @@
         if (!userDropdownToggle.contains(event.target) && !userDropdownMenu.contains(event.target)) {
           userDropdownMenu.classList.remove('show');
         }
+      });
+      
+      // Button event listeners
+      const addLeadBtn = document.getElementById('addLeadBtn');
+      addLeadBtn.addEventListener('click', function() {
+        // Navigate to lead form
+        window.location.href = '/leads/new';
+      });
+      
+      const viewAllCallsBtn = document.getElementById('viewAllCallsBtn');
+      viewAllCallsBtn.addEventListener('click', function() {
+        // Navigate to calls list
+        window.location.href = '/calls';
       });
       
       // Logout functionality
