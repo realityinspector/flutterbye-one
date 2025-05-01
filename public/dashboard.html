@@ -830,6 +830,76 @@
       }
     }
     
+    /* Footer Styles */
+    .dashboard-footer {
+      background-color: var(--dark);
+      color: white;
+      padding: 1.5rem;
+      margin-top: 2rem;
+      margin-left: var(--sidebar-width);
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-col {
+      flex: 1;
+      min-width: 200px;
+      margin-bottom: 1rem;
+      padding: 0 1rem;
+    }
+
+    .footer-col h3 {
+      margin-bottom: 1rem;
+      color: white;
+      font-size: 1.1rem;
+    }
+
+    .footer-col p {
+      color: #ddd;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    
+    .footer-col ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .footer-col ul li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .footer-col a {
+      color: #bbb;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .footer-col a:hover {
+      color: white;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      padding-top: 1rem;
+      margin-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-footer {
+        margin-left: 0;
+      }
+    }
+    
     /* Modal Styles */
     .modal {
       display: none;
@@ -930,7 +1000,7 @@
     <aside class="sidebar">
       <div class="sidebar-header">
         <a href="#" class="logo">
-          <i class="fas fa-walking"></i>
+          <i class="fas fa-wind"></i>
           FLUTTERBYE
         </a>
       </div>
@@ -1606,6 +1676,7 @@
             <form id="callLogFormElement">
               <input type="hidden" id="leadId" value="${leadId}">
               <input type="hidden" id="callDuration" value="${duration}">
+              <input type="hidden" id="callOutcome" value="completed"><!-- Added missing callOutcome field -->
               
               <div class="form-section">
                 <h3>Call Outcome</h3>
@@ -1635,7 +1706,6 @@
                     <span>Wrong #</span>
                   </button>
                 </div>
-                <input type="hidden" id="callOutcome" name="outcome" value="">
               </div>
               
               <div class="form-section">
@@ -1777,14 +1847,28 @@
         notes: document.getElementById('callNotes').value || ''
       };
       
-      // Add reminder date if specified
+      // Add reminder date if specified - with enhanced validation
       const reminderDate = document.getElementById('reminderDate').value;
       const reminderTime = document.getElementById('reminderTime').value;
       if (reminderDate && reminderTime && document.getElementById('callbackSection').style.display !== 'none') {
         try {
-          const reminderDateTime = new Date(`${reminderDate}T${reminderTime}`);
-          if (!isNaN(reminderDateTime.getTime())) { // Check if valid date
-            callData.reminderDate = reminderDateTime.toISOString();
+          // Ensure the date format is strictly valid by forcing ISO format
+          const [year, month, day] = reminderDate.split('-').map(num => parseInt(num));
+          const [hours, minutes] = reminderTime.split(':').map(num => parseInt(num));
+          
+          // Validate all components are actual numbers
+          if (!isNaN(year) && !isNaN(month) && !isNaN(day) && !isNaN(hours) && !isNaN(minutes)) {
+            // JavaScript months are 0-based
+            const reminderDateTime = new Date(year, month - 1, day, hours, minutes, 0);
+            
+            if (!isNaN(reminderDateTime.getTime())) { // Double-check if valid date
+              callData.reminderDate = reminderDateTime.toISOString();
+              console.log('Valid reminder date created:', callData.reminderDate);
+            } else {
+              console.error('Invalid date time components:', year, month, day, hours, minutes);
+            }
+          } else {
+            console.error('Non-numeric date components:', reminderDate, reminderTime);
           }
         } catch (e) {
           console.error('Error parsing reminder date:', e);
@@ -1805,7 +1889,16 @@
       })
       .then(response => {
         if (!response.ok) {
-          throw new Error('Failed to create call record');
+          return response.text().then(text => {
+            // Try to parse as JSON if possible
+            try {
+              const json = JSON.parse(text);
+              throw new Error(json.message || 'Failed to create call record');
+            } catch (e) {
+              // If parsing fails, use the raw text
+              throw new Error(`Failed to create call record: ${text || response.statusText}`);
+            }
+          });
         }
         return response.json();
       })
@@ -1819,12 +1912,13 @@
         }
       })
       .then(() => {
-        alert('Call log saved successfully!');
-        window.location.href = '/calls';
+        // Show success modal with redirect
+        showSuccessModal('Call log saved successfully!', '/calls');
       })
       .catch(error => {
         console.error('Error saving call log:', error);
-        alert(`Failed to save call log: ${error.message}`);
+        // Show error as a modal
+        showErrorModal(`Failed to save call log: ${error.message}`);
       });
     }
     
@@ -2723,5 +2817,114 @@
       </div>
     </div>
   </div><!-- End Call Modal -->
+  
+  <!-- Success Modal -->
+  <div id="successModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Success</h2>
+        <span class="close-modal" onclick="closeSuccessModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="success-message">
+          <i class="fas fa-check-circle" style="color: var(--success); font-size: 48px; margin-bottom: 15px;"></i>
+          <p id="successModalMessage" style="font-size: 18px; text-align: center;">Operation completed successfully!</p>
+        </div>
+        <div class="modal-actions" style="text-align: center; margin-top: 20px;">
+          <button onclick="closeSuccessModal()" class="btn btn-primary">Continue</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- End Success Modal -->
+  
+  <!-- Error Modal -->
+  <div id="errorModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: rgba(220, 53, 69, 0.1);">
+        <h2>Error</h2>
+        <span class="close-modal" onclick="closeErrorModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="error-message">
+          <i class="fas fa-exclamation-circle" style="color: var(--danger); font-size: 48px; margin-bottom: 15px;"></i>
+          <p id="errorModalMessage" style="font-size: 18px; text-align: center;">An error occurred!</p>
+        </div>
+        <div class="modal-actions" style="text-align: center; margin-top: 20px;">
+          <button onclick="closeErrorModal()" class="btn btn-danger">Close</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- End Error Modal -->
+  
+  <script>
+    // Function to show success modal
+    function showSuccessModal(message, redirectUrl) {
+      const modal = document.getElementById('successModal');
+      const messageEl = document.getElementById('successModalMessage');
+      messageEl.textContent = message || 'Operation completed successfully!';
+      
+      // Store redirect URL if provided
+      modal.dataset.redirectUrl = redirectUrl || '';
+      
+      modal.style.display = 'block';
+    }
+    
+    // Function to close success modal
+    function closeSuccessModal() {
+      const modal = document.getElementById('successModal');
+      modal.style.display = 'none';
+      
+      // Check if we need to redirect
+      const redirectUrl = modal.dataset.redirectUrl;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      }
+    }
+    
+    // Function to show error modal
+    function showErrorModal(message) {
+      const modal = document.getElementById('errorModal');
+      const messageEl = document.getElementById('errorModalMessage');
+      messageEl.textContent = message || 'An error occurred!';
+      
+      modal.style.display = 'block';
+    }
+    
+    // Function to close error modal
+    function closeErrorModal() {
+      const modal = document.getElementById('errorModal');
+      modal.style.display = 'none';
+    }
+  </script>
+  
+  <!-- Footer -->
+  <footer class="dashboard-footer">
+    <div class="footer-content">
+      <div class="footer-col">
+        <h3>FLUTTERBYE CRM</h3>
+        <p>Making sales calls more effective and meetings healthier through our innovative walking meetings platform.</p>
+      </div>
+      <div class="footer-col">
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="/dashboard">Dashboard</a></li>
+          <li><a href="/leads">Leads</a></li>
+          <li><a href="/calls">Calls</a></li>
+          <li><a href="#">Analytics</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Support</h3>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Documentation</a></li>
+          <li><a href="#">Contact Support</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 FLUTTERBYE CRM. All rights reserved.</p>
+    </div>
+  </footer>
 </body>
 </html>

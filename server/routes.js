@@ -358,36 +358,73 @@ function registerRoutes(app) {
         return res.status(404).json({ message: 'Lead not found' });
       }
       
-      // Process reminderDate if provided
-      let reminderDate = null;
-      if (req.body.reminderDate) {
+      // Get current date in ISO format for defaults
+      const currentDateISO = new Date().toISOString();
+
+      // Simple handler for dates that ensures we always have valid dates or null
+      const processDate = (dateValue) => {
+        if (!dateValue) return null;
+        
         try {
-          // Verify it's a valid ISO string by parsing and reformatting
-          const dateObj = new Date(req.body.reminderDate);
+          // Create a Date object from the value
+          const dateObj = new Date(dateValue);
+          
+          // Check if it's a valid date
           if (!isNaN(dateObj.getTime())) {
-            reminderDate = dateObj.toISOString();
+            return dateObj.toISOString(); // Return the standardized ISO string
           }
         } catch (e) {
-          console.error('Error parsing reminder date:', e, req.body.reminderDate);
-          // Invalid date, leave as null
+          console.error('Date processing error:', e);
+        }
+        
+        return null; // Return null for any invalid dates
+      };
+
+      // Process the dates
+      const callDate = processDate(req.body.callDate) || currentDateISO;
+      const reminderDate = processDate(req.body.reminderDate); // null if not valid
+
+      console.log('Call Data:', {
+        userLeadId: req.body.userLeadId,
+        callDate,
+        reminderDate,
+        duration: req.body.duration,
+        outcome: req.body.outcome,
+        notes: req.body.notes
+      });
+      
+      // Prepare the values for insertion with explicit type handling
+      const insertValues = {
+        userId: req.user.id,
+        userLeadId: req.body.userLeadId,
+        callDate: new Date(), // Always use current date to avoid any date format issues
+        duration: req.body.duration ? parseInt(req.body.duration) : 0,
+        outcome: req.body.outcome || 'completed',
+        notes: req.body.notes || ''
+      };
+
+      // Only add reminderDate if it's a valid date
+      if (reminderDate) {
+        // Here we explicitly make sure we only insert a valid JS Date object, not a string
+        try {
+          const reminderDateObj = new Date(reminderDate);
+          if (!isNaN(reminderDateObj.getTime())) {
+            insertValues.reminderDate = reminderDateObj;
+          }
+        } catch (e) {
+          console.log('Skipping invalid reminderDate');
         }
       }
       
-      // Create call record
-      const [call] = await db.insert(calls).values({
-        userId: req.user.id,
-        userLeadId: req.body.userLeadId,
-        callDate: req.body.callDate || new Date().toISOString(),
-        duration: req.body.duration,
-        outcome: req.body.outcome,
-        notes: req.body.notes,
-        reminderDate: reminderDate,
-      }).returning();
+      console.log('Final insert values:', insertValues);
+
+      // Create call record - this ensures we have valid data types for the DB
+      const [call] = await db.insert(calls).values(insertValues).returning();
       
       // Update lead's last contacted timestamp and status if outcome is provided
       if (req.body.outcome) {
         const updates = {
-          lastContactedAt: new Date().toISOString(),
+          lastContactedAt: new Date(), // Use actual Date object for timestamp
         };
         
         // Set status based on outcome
@@ -399,9 +436,16 @@ function registerRoutes(app) {
           updates.status = 'contacted';
         }
         
-        // Update reminder date if provided and valid
+        // Only add reminderDate if we have a valid date object
         if (reminderDate) {
-          updates.reminderDate = reminderDate;
+          try {
+            const reminderDateObj = new Date(reminderDate);
+            if (!isNaN(reminderDateObj.getTime())) {
+              updates.reminderDate = reminderDateObj;
+            }
+          } catch (e) {
+            console.log('Skipping invalid reminderDate for lead update');
+          }
         }
         
         await db.update(userLeads)
