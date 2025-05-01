@@ -205,6 +205,61 @@ app.get('/api/leads', requireAuth, (req, res) => {
   ]});
 });
 
+// API leads by ID route
+app.get('/api/leads/:id', requireAuth, (req, res) => {
+  console.log(`Lead details request for ID: ${req.params.id}`);
+  
+  // Return a mock lead based on ID
+  const leads = {
+    '1': {
+      success: true,
+      data: {
+        id: 1,
+        userId: 1,
+        globalLead: {
+          id: 101,
+          companyName: 'Acme Corp',
+          contactName: 'John Doe',
+          phoneNumber: '555-1234',
+          email: 'john@acme.com',
+          industry: 'Technology'
+        },
+        status: 'new',
+        priority: 5,
+        notes: 'Interested in premium plan'
+      }
+    },
+    '2': {
+      success: true,
+      data: {
+        id: 2,
+        userId: 1,
+        globalLead: {
+          id: 102,
+          companyName: 'Widget Inc',
+          contactName: 'Jane Smith',
+          phoneNumber: '555-5678',
+          email: 'jane@widget.com',
+          industry: 'Manufacturing'
+        },
+        status: 'contacted',
+        priority: 3,
+        notes: 'Follow up next week'
+      }
+    }
+  };
+  
+  const lead = leads[req.params.id];
+  if (!lead) {
+    return res.status(404).json({
+      success: false,
+      message: 'Lead not found'
+    });
+  }
+  
+  res.json(lead);
+});
+
 // API calls route
 app.get('/api/calls', requireAuth, (req, res) => {
   console.log('Calls request');
@@ -213,7 +268,7 @@ app.get('/api/calls', requireAuth, (req, res) => {
     {
       id: 1,
       userId: 1,
-      leadId: 1,
+      userLeadId: 1,  // Changed from leadId to userLeadId to match route expectations
       callDate: new Date().toISOString(),
       duration: 300,
       outcome: 'interested',
@@ -222,7 +277,7 @@ app.get('/api/calls', requireAuth, (req, res) => {
     {
       id: 2,
       userId: 1,
-      leadId: 2,
+      userLeadId: 2,  // Changed from leadId to userLeadId to match route expectations
       callDate: new Date(Date.now() - 86400000).toISOString(),
       duration: 180,
       outcome: 'callback',
@@ -236,6 +291,7 @@ const PORT = 5000;
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Enhanced server running on port ${PORT}`);
   console.log(`Server address: ${JSON.stringify(server.address())}`);
+  console.log(`Server is ready at http://localhost:${PORT}`);
 });
 
 // Handle errors

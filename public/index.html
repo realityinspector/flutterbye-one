@@ -424,8 +424,8 @@
       <div class="message error hidden" id="loginError"></div>
       <form id="loginForm">
         <div class="form-group">
-          <label for="email">Email Address</label>
-          <input type="email" id="email" name="email" required>
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required>
         </div>
         <div class="form-group">
           <label for="password">Password</label>
@@ -480,8 +480,12 @@
       <div class="message error hidden" id="registerError"></div>
       <form id="registerForm">
         <div class="form-group">
-          <label for="regName">Full Name</label>
-          <input type="text" id="regName" name="name" required>
+          <label for="regUsername">Username</label>
+          <input type="text" id="regUsername" name="username" required>
+        </div>
+        <div class="form-group">
+          <label for="regFullName">Full Name</label>
+          <input type="text" id="regFullName" name="fullName" required>
         </div>
         <div class="form-group">
           <label for="regEmail">Email Address</label>
@@ -526,7 +530,7 @@
       loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const email = document.getElementById('email').value;
+        const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         
         fetch('/api/login', {
@@ -534,12 +538,11 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ username, password })
         })
-        .then(response => response.json())
         .then(response => {
           if (!response.ok) {
-            throw new Error(response.statusText);
+            throw new Error('Login failed. Please try again.');
           }
           return response.json();
         })
@@ -604,7 +607,8 @@
       registerForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const name = document.getElementById('regName').value;
+        const username = document.getElementById('regUsername').value;
+        const fullName = document.getElementById('regFullName').value;
         const email = document.getElementById('regEmail').value;
         const password = document.getElementById('regPassword').value;
         const confirmPassword = document.getElementById('regConfirmPassword').value;
@@ -620,11 +624,11 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ name, email, password })
+          body: JSON.stringify({ username, fullName, email, password })
         })
         .then(response => {
           if (!response.ok) {
-            throw new Error(response.statusText);
+            throw new Error('Registration failed. Please try again.');
           }
           return response.json();
         })

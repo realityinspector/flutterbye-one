@@ -97,10 +97,10 @@ function registerRoutes(app) {
         orderBy: [desc(userLeads.priority)],
       });
       
-      res.json(leads);
+      res.json({ success: true, data: leads });
     } catch (error) {
       console.error('Error fetching leads:', error);
-      res.status(500).json({ message: 'Failed to fetch leads' });
+      res.status(500).json({ success: false, message: 'Failed to fetch leads' });
     }
   });
 
@@ -122,7 +122,7 @@ function registerRoutes(app) {
         return res.status(404).json({ message: 'Lead not found' });
       }
       
-      res.json(lead);
+      res.json({ success: true, data: lead });
     } catch (error) {
       console.error('Error fetching lead:', error);
       res.status(500).json({ message: 'Failed to fetch lead' });
@@ -162,10 +162,10 @@ function registerRoutes(app) {
         globalLead,
       };
       
-      res.status(201).json(createdLead);
+      res.status(201).json({ success: true, data: createdLead });
     } catch (error) {
       console.error('Error creating lead:', error);
-      res.status(500).json({ message: 'Failed to create lead' });
+      res.status(500).json({ success: false, message: 'Failed to create lead' });
     }
   });
 
@@ -222,10 +222,10 @@ function registerRoutes(app) {
         },
       });
       
-      res.json(completeLead);
+      res.json({ success: true, data: completeLead });
     } catch (error) {
       console.error('Error updating lead:', error);
-      res.status(500).json({ message: 'Failed to update lead' });
+      res.status(500).json({ success: false, message: 'Failed to update lead' });
     }
   });
 
@@ -247,10 +247,10 @@ function registerRoutes(app) {
         return res.status(404).json({ message: 'Lead not found' });
       }
       
-      res.json({ id: result[0].id, message: 'Lead deleted successfully' });
+      res.json({ success: true, data: { id: result[0].id, message: 'Lead deleted successfully' } });
     } catch (error) {
       console.error('Error deleting lead:', error);
-      res.status(500).json({ message: 'Failed to delete lead' });
+      res.status(500).json({ success: false, message: 'Failed to delete lead' });
     }
   });
 
@@ -264,10 +264,10 @@ function registerRoutes(app) {
         orderBy: [desc(calls.callDate)],
       });
       
-      res.json(calls);
+      res.json({ success: true, data: calls });
     } catch (error) {
       console.error('Error fetching calls:', error);
-      res.status(500).json({ message: 'Failed to fetch calls' });
+      res.status(500).json({ success: false, message: 'Failed to fetch calls' });
     }
   });
 
@@ -283,10 +283,10 @@ function registerRoutes(app) {
         orderBy: [desc(calls.callDate)],
       });
       
-      res.json(leadCalls);
+      res.json({ success: true, data: leadCalls });
     } catch (error) {
       console.error('Error fetching lead calls:', error);
-      res.status(500).json({ message: 'Failed to fetch calls for lead' });
+      res.status(500).json({ success: false, message: 'Failed to fetch calls for lead' });
     }
   });
 
@@ -342,10 +342,10 @@ function registerRoutes(app) {
           .where(eq(userLeads.id, req.body.userLeadId));
       }
       
-      res.status(201).json(call);
+      res.status(201).json({ success: true, data: call });
     } catch (error) {
       console.error('Error creating call record:', error);
-      res.status(500).json({ message: 'Failed to create call record' });
+      res.status(500).json({ success: false, message: 'Failed to create call record' });
     }
   });
 
@@ -360,10 +360,10 @@ function registerRoutes(app) {
       // Update session user
       req.user = updatedUser;
       
-      res.json(updatedUser);
+      res.json({ success: true, data: updatedUser });
     } catch (error) {
       console.error('Error updating user:', error);
-      res.status(500).json({ message: 'Failed to update user' });
+      res.status(500).json({ success: false, message: 'Failed to update user' });
     }
   });
 
