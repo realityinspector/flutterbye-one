@@ -4,89 +4,647 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Walk N Talk CRM</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    :root {
+      --primary: #0066ff;
+      --primary-dark: #0052cc;
+      --secondary: #e6f0ff;
+      --dark: #333;
+      --light: #f7f7f7;
+      --success: #28a745;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --info: #17a2b8;
+    }
+    
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      height: 100vh;
-      width: 100vw;
-      background-color: #f7f7f7;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--dark);
+      background-color: var(--light);
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
+    }
+    
+    a {
+      text-decoration: none;
+      color: var(--primary);
+    }
+    
+    button, .btn {
+      cursor: pointer;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+    
+    .btn-outline:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    /* Header & Navigation */
+    header {
+      background-color: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      z-index: 100;
+    }
+    
+    .navbar {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo i {
+      margin-right: 10px;
+    }
+    
+    .nav-links {
+      display: flex;
+      list-style: none;
+    }
+    
+    .nav-links li {
+      margin-left: 2rem;
+    }
+    
+    .nav-links a {
+      color: var(--dark);
+      font-weight: 500;
+    }
+    
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+    
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, #66a3ff 100%);
+      color: white;
+      padding: 4rem 1rem;
+      text-align: center;
+    }
+    
+    .hero-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .hero p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+    
+    /* Features Section */
+    .features {
+      padding: 4rem 1rem;
+      background-color: white;
+    }
+    
+    .section-title {
+      text-align: center;
+      margin-bottom: 3rem;
+      color: var(--dark);
+      font-size: 2rem;
+    }
+    
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .feature-card {
+      background-color: var(--light);
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .feature-icon {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    
+    .feature-card h3 {
+      margin-bottom: 1rem;
+      color: var(--dark);
+    }
+    
+    /* Login Form */
+    .login-section {
+      padding: 4rem 1rem;
+      background-color: var(--secondary);
+    }
+    
+    .login-container {
+      max-width: 400px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    .login-buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    /* Footer */
+    footer {
+      background-color: var(--dark);
+      color: white;
+      padding: 2rem 1rem;
+      margin-top: auto;
+    }
+    
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+    }
+    
+    .footer-col h3 {
+      margin-bottom: 1rem;
+      color: white;
+    }
+    
+    .footer-col ul {
+      list-style: none;
+    }
+    
+    .footer-col ul li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .footer-col a {
+      color: #ddd;
+    }
+    
+    .footer-col a:hover {
+      color: white;
+    }
+    
+    .footer-bottom {
+      text-align: center;
+      padding-top: 2rem;
+      margin-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
       align-items: center;
       justify-content: center;
     }
-    .container {
-      max-width: 600px;
-      text-align: center;
+    
+    .modal.show {
+      display: flex;
+    }
+    
+    .modal-content {
+      background-color: white;
       padding: 2rem;
-    }
-    .app-title {
-      font-size: 28px;
-      font-weight: 600;
-      color: #0066ff;
-      margin-bottom: 20px;
-    }
-    .content-box {
-      background-color: #e6f0ff;
-      padding: 24px;
       border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      margin-top: 20px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      animation: modalOpen 0.3s ease;
     }
-    .subtitle {
-      font-size: 20px;
-      color: #0066ff;
-      margin-bottom: 16px;
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
     }
-    .description {
-      color: #333;
-      line-height: 1.5;
-      margin-bottom: 12px;
+    
+    .modal-header h2 {
+      color: var(--dark);
     }
-    .api-section {
-      margin-top: 30px;
-      text-align: left;
-      background-color: #f0f5ff;
-      padding: 15px;
-      border-radius: 6px;
+    
+    .close-modal {
+      font-size: 1.5rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: #888;
     }
-    .api-title {
-      font-size: 18px;
-      color: #333;
-      margin-bottom: 10px;
+    
+    .close-modal:hover {
+      color: var(--danger);
     }
-    .api-item {
-      margin-bottom: 5px;
-      font-family: monospace;
-      background-color: #e2e8f0;
-      padding: 4px 8px;
+    
+    .message {
+      padding: 1rem;
+      margin-bottom: 1rem;
       border-radius: 4px;
-      display: inline-block;
-      margin-right: 10px;
+    }
+    
+    .message.error {
+      background-color: rgba(220, 53, 69, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    @keyframes modalOpen {
+      from {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1 class="app-title">Walk N Talk CRM</h1>
-    
-    <div class="content-box">
-      <h2 class="subtitle">Welcome to your CRM</h2>
-      <p class="description">Your sales acceleration platform is ready to use.</p>
-      <p class="description">Manage leads, track calls, and boost your sales performance!</p>
+  <!-- Header & Navigation -->
+  <header>
+    <nav class="navbar">
+      <a href="#" class="logo">
+        <i class="fas fa-comment-dots"></i>
+        Walk N Talk CRM
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="#" id="loginBtn" class="btn btn-outline">Login</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Accelerate Your Sales with Walk N Talk CRM</h1>
+      <p>The ultimate sales acceleration platform designed for sales professionals who want to convert more leads, faster.</p>
+      <button class="btn btn-primary" id="getStartedBtn">Get Started</button>
     </div>
-    
-    <div class="api-section">
-      <h3 class="api-title">Available API Endpoints:</h3>
-      <div>
-        <span class="api-item">GET /api/user</span>
-        <span class="api-item">POST /api/login</span>
-        <span class="api-item">GET /api/leads</span>
-        <span class="api-item">GET /api/calls</span>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <h2 class="section-title">Key Features</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <h3>Lead Management</h3>
+        <p>Efficiently organize, prioritize and manage your sales leads in one centralized system.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-phone-alt"></i>
+        </div>
+        <h3>Call Tracking</h3>
+        <p>Record, track and analyze all customer calls to improve your sales performance.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>Performance Analytics</h3>
+        <p>Gain valuable insights with detailed reports and analytics on your sales activities.</p>
       </div>
     </div>
+  </section>
+
+  <!-- Login Section -->
+  <section class="login-section" id="login">
+    <div class="login-container">
+      <h2 class="section-title">Login to Your Account</h2>
+      <div class="message error hidden" id="loginError"></div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <div class="login-buttons">
+          <button type="submit" class="btn btn-primary">Login</button>
+          <a href="#" id="createAccountBtn">Create Account</a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-col">
+        <h3>Walk N Talk CRM</h3>
+        <p>Your sales acceleration platform for managing leads and tracking calls effectively.</p>
+      </div>
+      <div class="footer-col">
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Support</h3>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Documentation</a></li>
+          <li><a href="#">API</a></li>
+          <li><a href="#">Status</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 Walk N Talk CRM. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Register Modal -->
+  <div class="modal" id="registerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Create an Account</h2>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div class="message error hidden" id="registerError"></div>
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="regName">Full Name</label>
+          <input type="text" id="regName" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Email Address</label>
+          <input type="email" id="regEmail" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Password</label>
+          <input type="password" id="regPassword" name="password" required>
+        </div>
+        <div class="form-group">
+          <label for="regConfirmPassword">Confirm Password</label>
+          <input type="password" id="regConfirmPassword" name="confirmPassword" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+      </form>
+    </div>
   </div>
+
+  <script>
+    // Check if user is already logged in
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check auth status
+      fetch('/api/user')
+        .then(response => {
+          if (response.ok) {
+            return response.json().then(data => {
+              if (data.success && data.user) {
+                // User is authenticated, redirect to dashboard
+                window.location.href = '/dashboard';
+              }
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Auth check failed:', error);
+        });
+      
+      // Login form submission
+      const loginForm = document.getElementById('loginForm');
+      const loginError = document.getElementById('loginError');
+      
+      loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        })
+        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(response.statusText);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            // Login successful, redirect to dashboard
+            window.location.href = '/dashboard';
+          } else {
+            // Display error message
+            loginError.textContent = data.message || 'Login failed. Please try again.';
+            loginError.classList.remove('hidden');
+          }
+        })
+        .catch(error => {
+          console.error('Login error:', error);
+          loginError.textContent = 'An error occurred. Please try again later.';
+          loginError.classList.remove('hidden');
+        });
+      });
+      
+      // Modal functionality
+      const registerModal = document.getElementById('registerModal');
+      const createAccountBtn = document.getElementById('createAccountBtn');
+      const closeModalBtn = document.querySelector('.close-modal');
+      const loginBtn = document.getElementById('loginBtn');
+      const getStartedBtn = document.getElementById('getStartedBtn');
+      
+      function openRegisterModal() {
+        registerModal.classList.add('show');
+      }
+      
+      function closeRegisterModal() {
+        registerModal.classList.remove('show');
+      }
+      
+      createAccountBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        openRegisterModal();
+      });
+      
+      getStartedBtn.addEventListener('click', function() {
+        document.querySelector('#login').scrollIntoView({ behavior: 'smooth' });
+      });
+      
+      loginBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelector('#login').scrollIntoView({ behavior: 'smooth' });
+      });
+      
+      closeModalBtn.addEventListener('click', closeRegisterModal);
+      
+      window.addEventListener('click', function(e) {
+        if (e.target === registerModal) {
+          closeRegisterModal();
+        }
+      });
+      
+      // Registration form submission
+      const registerForm = document.getElementById('registerForm');
+      const registerError = document.getElementById('registerError');
+      
+      registerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+        const confirmPassword = document.getElementById('regConfirmPassword').value;
+        
+        if (password !== confirmPassword) {
+          registerError.textContent = 'Passwords do not match.';
+          registerError.classList.remove('hidden');
+          return;
+        }
+        
+        fetch('/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name, email, password })
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(response.statusText);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            // Registration successful, redirect to dashboard
+            window.location.href = '/dashboard';
+          } else {
+            // Display error message
+            registerError.textContent = data.message || 'Registration failed. Please try again.';
+            registerError.classList.remove('hidden');
+          }
+        })
+        .catch(error => {
+          console.error('Registration error:', error);
+          registerError.textContent = 'An error occurred. Please try again later.';
+          registerError.classList.remove('hidden');
+        });
+      });
+    });
+  </script>
 </body>
 </html>
