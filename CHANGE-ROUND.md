@@ -40,13 +40,15 @@
 - Updated HomeScreen, LeadsListScreen, LeadDetailScreen, and CallHistoryScreen
 - Removed redundant call buttons and simplified navigation flow
 
-5. Strip NativeBase to its core tokens.
-   - Use native-base only for primitives (Box, Heading, VStack).
-   - Replace the 25 KB theme object with a 4-color palette.
+✅ Strip NativeBase to its core tokens.
+   - Used native-base only for primitives (Box, Heading, VStack).
+   - Replaced Badge and Icon components with simpler Box and Text primitives.
+   - Simplified the theme object to a 4-color palette with minimal shades.
 
-6. Drop React Query until you really cache.
+✅ Drop React Query until you really cache.
    - Seven extra deps and 160 KB of JS for optimistic caching you aren't using.
-   - Use axios + a single useAsync hook; re-introduce React Query when reports ship.
+   - Created useAsync hook to replace React Query functionality.
+   - Replaced all React Query hooks with useAsync in useLeads, useCalls, and useAuth.
 
 7. Auto-log every outbound call.
    - Integrate react-native-callkeep (iOS) and react-native-incall-manager (Android).

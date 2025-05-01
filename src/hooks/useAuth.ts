@@ -1,8 +1,9 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useToast } from 'native-base';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+// Import our custom useAsync hook
+import { useAsync } from './useAsync';
 // Import Zod types directly
 import { User, UserLogin, UserUpdate } from '../../shared/db/zod-schema';
 
@@ -43,6 +44,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
   const toast = useToast();
+  
+  // Create async hooks for auth operations
+  const loginAsync = useAsync<{success: boolean, token: string, user: User}, Error, [UserLogin]>();
+  const registerAsync = useAsync<{success: boolean, token: string, user: User}, Error, [Partial<User>]>();
+  const updateUserAsync = useAsync<User, Error, [UserUpdate]>();
+  const refreshTokenAsync = useAsync<boolean, Error, []>();
+  const fetchUserAsync = useAsync<User, Error, [string]>();
 
   // Set auth token for axios requests
   useEffect(() => {
@@ -76,15 +84,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Fetch current user with token
   const fetchCurrentUser = async (currentToken: string) => {
     try {
-      const response = await authAxios.get<{success: boolean, user: User}>('/user', {
-        headers: { Authorization: `Bearer ${currentToken}` }
-      });
-      if (response.data?.success && response.data?.user) {
-        setUser(response.data.user);
-      } else {
-        // If no user data in the response, token might be invalid
-        throw new Error('Invalid token or user data');
-      }
+      const user = await fetchUserAsync.execute(async (token) => {
+        const response = await authAxios.get<{success: boolean, user: User}>('/user', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.data?.success && response.data?.user) {
+          return response.data.user;
+        } else {
+          throw new Error('Invalid token or user data');
+        }
+      }, currentToken);
+      
+      setUser(user);
     } catch (error) {
       console.error('Error fetching user:', error);
       await AsyncStorage.removeItem('auth_token');
@@ -94,81 +105,79 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Login mutation with proper types
-  const loginMutation = useMutation<
-    {success: boolean, token: string, user: User},
-    Error,
-    UserLogin
-  >({
-    mutationFn: async (credentials: UserLogin) => {
-      const response = await authAxios.post<{success: boolean, token: string, user: User}>('/login', credentials);
-      return response.data;
-    },
-    onSuccess: async (data) => {
-      if (data.success && data.token && data.user) {
-        await AsyncStorage.setItem('auth_token', data.token);
-        setToken(data.token);
-        setUser(data.user);
+  // Login function with proper types
+  const login = useCallback(async (credentials: UserLogin) => {
+    try {
+      const result = await loginAsync.execute(async (creds) => {
+        const response = await authAxios.post<{success: boolean, token: string, user: User}>('/login', creds);
+        return response.data;
+      }, credentials);
+      
+      if (result.success && result.token && result.user) {
+        await AsyncStorage.setItem('auth_token', result.token);
+        setToken(result.token);
+        setUser(result.user);
         
         toast.show({
           title: "Login successful",
-          status: "success",
           placement: "top",
           duration: 3000,
+          variant: "solid",
         });
+        
+        return result;
       } else {
         throw new Error('Invalid response format');
       }
-    },
-    onError: (error) => {
+    } catch (error) {
       console.error('Login error:', error);
       toast.show({
         title: "Login failed",
-        description: error.message || "Please check your credentials",
-        status: "error",
+        description: error instanceof Error ? error.message : "Please check your credentials",
         placement: "top",
         duration: 3000,
+        variant: "solid",
       });
-    },
-  });
+      throw error;
+    }
+  }, [loginAsync, toast]);
 
-  // Register mutation with proper type safety
-  const registerMutation = useMutation<
-    {success: boolean, token: string, user: User},
-    Error,
-    Partial<User>
-  >({
-    mutationFn: async (userData: Partial<User>) => {
-      const response = await authAxios.post<{success: boolean, token: string, user: User}>('/register', userData);
-      return response.data;
-    },
-    onSuccess: async (data) => {
-      if (data.success && data.token && data.user) {
-        await AsyncStorage.setItem('auth_token', data.token);
-        setToken(data.token);
-        setUser(data.user);
+  // Register function with proper type safety
+  const register = useCallback(async (userData: Partial<User>) => {
+    try {
+      const result = await registerAsync.execute(async (data) => {
+        const response = await authAxios.post<{success: boolean, token: string, user: User}>('/register', data);
+        return response.data;
+      }, userData);
+      
+      if (result.success && result.token && result.user) {
+        await AsyncStorage.setItem('auth_token', result.token);
+        setToken(result.token);
+        setUser(result.user);
         
         toast.show({
           title: "Registration successful",
-          status: "success",
           placement: "top",
           duration: 3000,
+          variant: "solid",
         });
+        
+        return result;
       } else {
         throw new Error('Invalid response format');
       }
-    },
-    onError: (error) => {
+    } catch (error) {
       console.error('Registration error:', error);
       toast.show({
         title: "Registration failed",
-        description: error.message || "Please try again",
-        status: "error",
+        description: error instanceof Error ? error.message : "Please try again",
         placement: "top",
         duration: 3000,
+        variant: "solid",
       });
-    },
-  });
+      throw error;
+    }
+  }, [registerAsync, toast]);
 
   // Logout function
   const logout = useCallback(async () => {
@@ -188,9 +197,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       toast.show({
         title: "Logged out",
-        status: "info",
         placement: "top",
         duration: 2000,
+        variant: "solid",
       });
     }
   }, [toast]);
@@ -198,51 +207,53 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Update user profile with type safety
   const update = useCallback(async (userData: UserUpdate): Promise<User> => {
     try {
-      const response = await authAxios.put<{success: boolean, data: User}>('/user', userData);
-      if (response.data?.success && response.data?.data) {
-        setUser(response.data.data);
-        return response.data.data;
-      }
-      throw new Error('Invalid response format');
+      const result = await updateUserAsync.execute(async (data) => {
+        const response = await authAxios.put<{success: boolean, data: User}>('/user', data);
+        if (response.data?.success && response.data?.data) {
+          return response.data.data;
+        }
+        throw new Error('Invalid response format');
+      }, userData);
+      
+      setUser(result);
+      return result;
     } catch (error) {
       console.error('Update user error:', error);
       throw error;
     }
-  }, []);
+  }, [updateUserAsync]);
   
   // Refresh token
   const refreshToken = useCallback(async (): Promise<boolean> => {
     try {
-      const currentToken = await AsyncStorage.getItem('auth_token');
-      if (!currentToken) return false;
-      
-      const response = await authAxios.post<{success: boolean, token: string}>('/refresh', null, {
-        headers: { Authorization: `Bearer ${currentToken}` }
+      return await refreshTokenAsync.execute(async () => {
+        const currentToken = await AsyncStorage.getItem('auth_token');
+        if (!currentToken) return false;
+        
+        const response = await authAxios.post<{success: boolean, token: string}>('/refresh', null, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        
+        if (response.data?.success && response.data?.token) {
+          await AsyncStorage.setItem('auth_token', response.data.token);
+          setToken(response.data.token);
+          return true;
+        }
+        return false;
       });
-      
-      if (response.data?.success && response.data?.token) {
-        await AsyncStorage.setItem('auth_token', response.data.token);
-        setToken(response.data.token);
-        return true;
-      }
-      return false;
     } catch (error) {
       console.error('Token refresh error:', error);
       return false;
     }
-  }, []);
+  }, [refreshTokenAsync]);
 
-  // Login function
-  const login = useCallback(async (credentials: UserLogin) => {
-    return loginMutation.mutateAsync(credentials);
-  }, [loginMutation]);
-
-  // Register function
-  const register = useCallback(async (userData: Partial<User>) => {
-    return registerMutation.mutateAsync(userData);
-  }, [registerMutation]);
-
-  const isLoading = loading || loginMutation.isPending || registerMutation.isPending;
+  // Combined loading state
+  const isLoading = loading || 
+                    loginAsync.isPending || 
+                    registerAsync.isPending || 
+                    updateUserAsync.isPending || 
+                    refreshTokenAsync.isPending ||
+                    fetchUserAsync.isPending;
 
   const value: AuthContextType = {
     user,

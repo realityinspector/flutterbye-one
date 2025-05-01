@@ -187,7 +187,9 @@ const HomeScreen: React.FC = () => {
             >
               <HStack alignItems="flex-start">
                 <Center size={10} bg="blue.100" rounded="lg">
-                  <Icon as={Feather} name="user-plus" size={5} color="blue.500" />
+                  <Text color="blue.500" fontSize="xl">
+                    <Feather name="user-plus" />
+                  </Text>
                 </Center>
                 <VStack ml={2}>
                   <Text color="gray.500" fontSize="sm">New Leads</Text>
@@ -206,7 +208,9 @@ const HomeScreen: React.FC = () => {
             >
               <HStack alignItems="flex-start">
                 <Center size={10} bg="amber.100" rounded="lg">
-                  <Icon as={Feather} name="clock" size={5} color="amber.500" />
+                  <Text color="amber.500" fontSize="xl">
+                    <Feather name="clock" />
+                  </Text>
                 </Center>
                 <VStack ml={2}>
                   <Text color="gray.500" fontSize="sm">Due Reminders</Text>
@@ -228,7 +232,7 @@ const HomeScreen: React.FC = () => {
 
           {highPriorityLeads.length === 0 ? (
             <Center py={6}>
-              <Icon as={Feather} name="thumbs-up" size={12} color="gray.300" />
+              <Text fontSize="4xl" color="gray.300"><Feather name="thumbs-up" /></Text>
               <Text mt={2} color="gray.500">No high priority leads</Text>
             </Center>
           ) : (
@@ -256,7 +260,7 @@ const HomeScreen: React.FC = () => {
 
           {recentCalls.length === 0 ? (
             <Center py={6}>
-              <Icon as={Feather} name="phone-missed" size={12} color="gray.300" />
+              <Text fontSize="4xl" color="gray.300"><Feather name="phone-missed" /></Text>
               <Text mt={2} color="gray.500">No recent calls</Text>
             </Center>
           ) : (
@@ -284,7 +288,7 @@ const HomeScreen: React.FC = () => {
               rounded="md"
               alignItems="center"
             >
-              <Icon as={Feather} name="user-plus" size={6} color="primary.500" mb={2} />
+              <Text fontSize="2xl" color="primary.500" mb={2}><Feather name="user-plus" /></Text>
               <Text fontWeight="medium">Add Lead</Text>
             </Pressable>
 
@@ -296,7 +300,7 @@ const HomeScreen: React.FC = () => {
               rounded="md"
               alignItems="center"
             >
-              <Icon as={Feather} name="phone-outgoing" size={6} color="green.500" mb={2} />
+              <Text fontSize="2xl" color="green.500" mb={2}><Feather name="phone-outgoing" /></Text>
               <Text fontWeight="medium">Call Queue</Text>
             </Pressable>
 
@@ -311,11 +315,11 @@ const HomeScreen: React.FC = () => {
               rounded="md"
               alignItems="center"
             >
-              <Icon as={Feather} name="search" size={6} color="gray.500" mb={2} />
+              <Text fontSize="2xl" color="gray.500" mb={2}><Feather name="search" /></Text>
               <Text fontWeight="medium" color="gray.500">Find Leads</Text>
-              <Badge mt={1} colorScheme="info" variant="subtle" rounded="full">
-                <Text fontSize="2xs">SOON</Text>
-              </Badge>
+              <Box mt={1} bg="info.100" px={2} py={0.5} rounded="full">
+                <Text fontSize="2xs" color="info.800">SOON</Text>
+              </Box>
             </Pressable>
           </HStack>
         </Box>
