@@ -9,8 +9,28 @@ const { globalLeads, userLeads, calls } = require('../shared/db/schema');
 const path = require('path');
 
 function registerRoutes(app) {
-  // Serve static files from the public directory
-  app.use(express.static('public'));
+  // Serve static files from the public directory - changed from earlier position
+  // app.use(express.static('public')); // Will be moved to proper position
+  
+  // SPA route for dashboard (protected)
+  app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+  });
+  
+  // Dashboard authentication check
+  app.get('/dashboard-check', (req, res) => {
+    // For now, just check if the token is in the cookies
+    // In a full implementation, you would validate the JWT token here
+    if (req.cookies && req.cookies.auth_token) {
+      return res.json({ authenticated: true });
+    }
+    return res.json({ authenticated: false });
+  });
+  
+  // Default route for SPA
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+  });
   
   // Health check route
   app.get('/health', (req, res) => {
@@ -64,19 +84,11 @@ function registerRoutes(app) {
     `);
   });
   
-  // Only API and specific routes are served - web landing page removed
-  app.use((req, res, next) => {
-    // Only process API requests or specific routes
-    if (req.path.startsWith('/api/') || req.path === '/health' || req.path === '/api-docs') {
-      return next();
-    }
-    
-    // For any other routes, return API-only mode message
-    res.status(404).json({
-      error: 'Not found',
-      message: 'This server only serves API endpoints. Web interface has been moved to a separate hosting.',
-    });
-  });
+  // The root route is already defined above
+  
+  // Serve static files
+  app.use(express.static(path.join(__dirname, '../public')));
+
   
   // Auth routes
   setupAuth(app);
@@ -350,7 +362,7 @@ function registerRoutes(app) {
   app.get('/api/analytics/dashboard', authenticateJWT, async (req, res) => {
     try {
       // For regular users, only show their own analytics
-      const userId = req.user.isAdmin || req.user.role === 'admin' ? null : req.user.id;
+      const userId = req.user.role === 'admin' ? null : req.user.id;
       const metrics = await analytics.getDashboardMetrics(userId);
       res.json({ success: true, data: metrics });
     } catch (error) {
@@ -362,7 +374,7 @@ function registerRoutes(app) {
   app.get('/api/analytics/user-performance', authenticateJWT, async (req, res) => {
     try {
       // Only admins can see user performance metrics
-      if (!req.user.isAdmin && req.user.role !== 'admin') {
+      if (req.user.role !== 'admin') {
         return res.status(403).json({ success: false, message: 'Access denied' });
       }
 
@@ -377,7 +389,7 @@ function registerRoutes(app) {
   app.get('/api/analytics/call-outcomes', authenticateJWT, async (req, res) => {
     try {
       // For regular users, only show their own call outcomes
-      const userId = req.user.isAdmin || req.user.role === 'admin' ? null : req.user.id;
+      const userId = req.user.role === 'admin' ? null : req.user.id;
       const outcomes = await analytics.getCallOutcomesDistribution(userId);
       res.json({ success: true, data: outcomes });
     } catch (error) {

@@ -11,7 +11,6 @@ const users = pgTable('users', {
   fullName: varchar('full_name', { length: 100 }).notNull(),
   companyName: varchar('company_name', { length: 100 }),
   role: varchar('role', { length: 20 }).notNull().default('user'),
-  isAdmin: boolean('is_admin').notNull().default(false),
   hasCompletedSetup: boolean('has_completed_setup').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

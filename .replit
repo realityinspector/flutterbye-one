@@ -18,15 +18,15 @@ args = "DBSetup"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Server"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "AdminOnboard"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "DemoSeeder"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Server"
 
 [[workflows.workflow]]
 name = "DBSetup"
@@ -35,15 +35,6 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node scripts/push-schema.js"
-
-[[workflows.workflow]]
-name = "Server"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node scripts/minimal-server.js"
-waitForPort = 5000
 
 [[workflows.workflow]]
 name = "AdminOnboard"
@@ -60,6 +51,15 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node scripts/seed-demo-data.js"
+
+[[workflows.workflow]]
+name = "Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server/index.js"
+waitForPort = 5000
 
 [deployment]
 run = ["sh", "-c", "npm install && npm run start"]

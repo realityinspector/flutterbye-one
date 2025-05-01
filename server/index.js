@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const registerRoutes = require('./routes');
 const { checkAndSeedForNewUsers } = require('../scripts/seed-demo-data');
 
@@ -15,6 +16,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Register all routes and create HTTP server
 const server = registerRoutes(app);

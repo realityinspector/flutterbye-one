@@ -88,6 +88,7 @@ function setupAuth(app) {
         companyName,
         role: isFirstUser ? 'admin' : role, // First user is always admin
         hasCompletedSetup: false,
+        // No isAdmin field - we use role to determine admin status
       });
       
       // Generate JWT token
@@ -132,6 +133,13 @@ function setupAuth(app) {
       
       // Generate JWT token
       const token = generateToken(user);
+      
+      // Set token as a cookie (secure in production)
+      res.cookie('auth_token', token, {
+        httpOnly: true, // Prevents JavaScript access
+        // secure: process.env.NODE_ENV === 'production', // Enable in production for HTTPS
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      });
       
       // Don't return the password
       const { password: _, ...userWithoutPassword } = user;

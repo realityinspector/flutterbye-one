@@ -72,25 +72,14 @@ async function makeFirstUserAdmin() {
       process.exit(0);
     }
     
-    // Check if user is already admin
-    if ('isAdmin' in firstUser) {
-      if (firstUser.isAdmin) {
-        console.log(`User ${firstUser.username} (ID: ${firstUser.id}) is already an admin.`);
-        process.exit(0);
-      }
-      
-      // Update user to be admin using isAdmin field
-      await pool.query('UPDATE "users" SET "isAdmin" = true WHERE id = $1', [firstUser.id]);
-    } else {
-      // Use the role field instead if isAdmin isn't available
-      if (firstUser.role === 'admin') {
-        console.log(`User ${firstUser.username} (ID: ${firstUser.id}) is already an admin.`);
-        process.exit(0);
-      }
-      
-      // Update user to be admin using role field
-      await pool.query('UPDATE "users" SET role = $1 WHERE id = $2', ['admin', firstUser.id]);
+    // Check if user is already admin by role
+    if (firstUser.role === 'admin') {
+      console.log(`User ${firstUser.username} (ID: ${firstUser.id}) is already an admin.`);
+      process.exit(0);
     }
+    
+    // Update user to be admin using role field
+    await pool.query('UPDATE "users" SET role = $1 WHERE id = $2', ['admin', firstUser.id]);
     
     console.log(`Success! User ${firstUser.username} (ID: ${firstUser.id}) is now an admin.`);
     console.log('One-time admin onboarding complete.');
