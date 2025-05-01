@@ -34,14 +34,21 @@ Walk N Talk CRM is a comprehensive mobile customer relationship management syste
 ```
 ├── server/             # Backend server code
 │   ├── auth.js         # Authentication setup
-│   ├── db.js           # Database connection
+│   ├── db.js           # Database connection (CommonJS)
+│   ├── db.ts           # TypeScript database connection
 │   ├── index.js        # Express server setup
 │   ├── routes.js       # API routes
-│   └── storage.js      # Data access layer
+│   ├── storage.js      # Data access layer (CommonJS)
+│   └── storage.ts      # TypeScript data access layer
 ├── shared/             # Shared code between client and server
-│   └── schema.js       # Database schema definitions
+│   └── db/             # Database schema definitions
+│       ├── index.ts    # Exports for TypeScript imports
+│       ├── schema.js   # CommonJS schema for Node.js
+│       ├── schema.ts   # TypeScript schema definitions
+│       └── zod-schema.ts # Zod validation schemas and types
 ├── scripts/            # Utility scripts
 │   ├── push-schema.js  # Database schema migration
+│   ├── minimal-server.js # Minimal test server
 │   └── start-server.js # Server startup script
 ├── src/                # Frontend React Native code
 │   ├── components/     # Reusable UI components
@@ -113,8 +120,13 @@ The project has implemented the basic infrastructure and API endpoints. Recent u
 - JWT-based authentication system has been completed, replacing the previous session-based authentication
 - Token refresh mechanism for extending sessions without requiring re-login
 - Updated authorization middleware for API routes
+- Improved database schema organization with TypeScript and Zod integration
+  - Moved Drizzle models to `/shared/db/` directory
+  - Created TypeScript schema definitions with proper types
+  - Added Zod validation schemas for runtime type checking
+  - Maintained backward compatibility with CommonJS for Node.js
 
-Further work is needed to complete the React Native frontend components and screens.
+Next steps include implementing frontend consumption of the Zod types and building out the mobile interface according to the streamlined feature set detailed in CHANGE-ROUND.md.
 
 ## License
 
