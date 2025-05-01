@@ -24,6 +24,19 @@ function registerRoutes(app) {
     res.sendFile(path.join(__dirname, '../public/dashboard.html'));
   });
   
+  // Only explicit exact routes
+  app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+  });
+  
+  app.get('/leads', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+  });
+  
+  app.get('/calls', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+  });
+  
   // Dashboard authentication check
   app.get('/dashboard-check', (req, res) => {
     // Get token from cookies
@@ -120,6 +133,19 @@ function registerRoutes(app) {
   // The root route is already defined above
   
   // Static files are served from index.js
+  
+  // Catch-all for SPA routes
+  app.get('/call-in-progress/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+  });
+  
+  app.get('/leads/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+  });
+  
+  app.get('/call-log/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+  });
 
   
   // Auth routes
@@ -332,6 +358,21 @@ function registerRoutes(app) {
         return res.status(404).json({ message: 'Lead not found' });
       }
       
+      // Process reminderDate if provided
+      let reminderDate = null;
+      if (req.body.reminderDate) {
+        try {
+          // Verify it's a valid ISO string by parsing and reformatting
+          const dateObj = new Date(req.body.reminderDate);
+          if (!isNaN(dateObj.getTime())) {
+            reminderDate = dateObj.toISOString();
+          }
+        } catch (e) {
+          console.error('Error parsing reminder date:', e, req.body.reminderDate);
+          // Invalid date, leave as null
+        }
+      }
+      
       // Create call record
       const [call] = await db.insert(calls).values({
         userId: req.user.id,
@@ -340,7 +381,7 @@ function registerRoutes(app) {
         duration: req.body.duration,
         outcome: req.body.outcome,
         notes: req.body.notes,
-        reminderDate: req.body.reminderDate,
+        reminderDate: reminderDate,
       }).returning();
       
       // Update lead's last contacted timestamp and status if outcome is provided
@@ -358,9 +399,9 @@ function registerRoutes(app) {
           updates.status = 'contacted';
         }
         
-        // Update reminder date if provided
-        if (req.body.reminderDate) {
-          updates.reminderDate = req.body.reminderDate;
+        // Update reminder date if provided and valid
+        if (reminderDate) {
+          updates.reminderDate = reminderDate;
         }
         
         await db.update(userLeads)

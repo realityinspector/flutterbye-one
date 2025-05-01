@@ -829,6 +829,99 @@
         min-width: 0;
       }
     }
+    
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      overflow: auto;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-content {
+      background-color: white;
+      margin: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      width: 90%;
+      max-width: 500px;
+      animation: modalAppear 0.3s ease-out;
+    }
+    
+    @keyframes modalAppear {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .modal-header {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      color: var(--dark);
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    .close-modal {
+      color: #aaa;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    .close-modal:hover {
+      color: var(--dark);
+    }
+    
+    .call-modal-info {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: var(--secondary);
+      border-radius: 6px;
+    }
+    
+    .call-modal-contact {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+    
+    .call-modal-number {
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+    
+    .call-modal-instructions {
+      margin-bottom: 20px;
+    }
+    
+    .call-modal-instructions p {
+      margin-bottom: 10px;
+      color: #666;
+    }
+    
+    .call-modal-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -1406,10 +1499,10 @@
             <div class="call-body">
               <div class="call-timer" id="callTimer">00:00</div>
               <div class="call-actions">
-                <a href="tel:${phoneNumber}" target="_blank" class="call-action-btn">
+                <button id="startCallBtn" class="call-action-btn" onclick="showCallModal('${phoneNumber}', '${globalLead.contactName}')">
                   <i class="fas fa-phone-alt"></i>
                   <span>Start Call</span>
-                </a>
+                </button>
                 <button id="callEndedBtn" class="call-action-btn call-end-btn">
                   <i class="fas fa-phone-slash"></i>
                   <span>Call Ended</span>
@@ -1688,9 +1781,19 @@
       const reminderDate = document.getElementById('reminderDate').value;
       const reminderTime = document.getElementById('reminderTime').value;
       if (reminderDate && reminderTime && document.getElementById('callbackSection').style.display !== 'none') {
-        const reminderDateTime = new Date(`${reminderDate}T${reminderTime}`).toISOString();
-        callData.reminderDate = reminderDateTime;
+        try {
+          const reminderDateTime = new Date(`${reminderDate}T${reminderTime}`);
+          if (!isNaN(reminderDateTime.getTime())) { // Check if valid date
+            callData.reminderDate = reminderDateTime.toISOString();
+          }
+        } catch (e) {
+          console.error('Error parsing reminder date:', e);
+          // Don't add an invalid date to the call data
+        }
       }
+      
+      // Log the data being sent for debugging
+      console.log('Submitting call log data:', callData);
       
       // Submit call log
       fetch('/api/calls', {
@@ -2533,15 +2636,92 @@
           const row = e.target.closest('tr');
           const leadId = row ? row.dataset.leadId : null;
           if (leadId) {
-            // Confirm before starting call
-            if (confirm('Are you ready to start a call with this lead?')) {
-              // Redirect to call in progress page first, which will then open the native dialer
-              window.location.href = `/call-in-progress/${leadId}`;
-            }
+            // Use the modal instead of system confirm
+            // First get the lead details
+            fetch(`/api/leads/${leadId}`)
+              .then(response => response.json())
+              .then(response => {
+                if (!response.success || !response.data) {
+                  throw new Error('Failed to load lead information');
+                }
+                
+                const lead = response.data;
+                const globalLead = lead.globalLead;
+                
+                // Show the call modal with lead info
+                showCallModal(globalLead.phoneNumber, globalLead.contactName);
+                
+                // When they click on the call button in the modal, redirect
+                const callLink = document.getElementById('callModalLink');
+                callLink.onclick = function() {
+                  window.location.href = `/call-in-progress/${leadId}`;
+                  return false; // Prevent the tel: link from opening
+                };
+              })
+              .catch(error => {
+                console.error('Error loading lead for call:', error);
+                alert('Error loading lead details. Please try again.');
+              });
           }
         }
       });
     });
+    
+    // Call Modal Functions
+    function showCallModal(phoneNumber, contactName) {
+      // Set the modal content
+      document.getElementById('callModalContact').textContent = contactName || 'Contact';
+      document.getElementById('callModalNumber').textContent = phoneNumber || '';
+      
+      // Set the href for the call link
+      const callLink = document.getElementById('callModalLink');
+      callLink.href = `tel:${phoneNumber}`;
+      
+      // Show the modal
+      const modal = document.getElementById('callModal');
+      modal.style.display = 'flex';
+      
+      // Handle the cancel button
+      document.getElementById('callModalCancel').onclick = function() {
+        modal.style.display = 'none';
+      };
+      
+      // Close when clicking on X
+      document.querySelector('.close-modal').onclick = function() {
+        modal.style.display = 'none';
+      };
+      
+      // Close when clicking outside the modal
+      window.onclick = function(event) {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+        }
+      };
+    }
   </script>
+  
+  <!-- Call Modal -->
+  <div id="callModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Calling...</h2>
+        <span class="close-modal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="call-modal-info">
+          <div class="call-modal-contact">Contacting: <span id="callModalContact"></span></div>
+          <div class="call-modal-number">Number: <span id="callModalNumber"></span></div>
+        </div>
+        <div class="call-modal-instructions">
+          <p>Your device will now dial this number.</p>
+          <p>After the call begins, you can return to this screen to track call time and log details.</p>
+        </div>
+        <div class="call-modal-actions">
+          <a id="callModalLink" href="" class="btn btn-primary" target="_blank">Call Now</a>
+          <button id="callModalCancel" class="btn btn-outline">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- End Call Modal -->
 </body>
 </html>
