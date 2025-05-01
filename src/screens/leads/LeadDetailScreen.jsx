@@ -25,6 +25,7 @@ import { useLeads } from '../../hooks/useLeads';
 import { useCalls } from '../../hooks/useCalls';
 import { makePhoneCall } from '../../utils/permissions';
 import CallItem from '../../components/CallItem';
+import NewCallFAB from '../../components/NewCallFAB';
 
 const LeadDetailScreen = () => {
   const navigation = useNavigation();
@@ -150,7 +151,7 @@ const LeadDetailScreen = () => {
 
   return (
     <Box flex={1} safeArea>
-      <ScrollView>
+      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
         {/* Header */}
         <Box px={4} pt={4} pb={2}>
           <HStack alignItems="center" space={2}>
@@ -299,7 +300,7 @@ const LeadDetailScreen = () => {
               
               {calls.length > 5 && (
                 <Pressable 
-                  onPress={() => navigation.navigate('CallHistory', { leadId: lead.id })}
+                  onPress={() => navigation.navigate('CallLog', { leadId: lead.id })}
                   py={2}
                 >
                   <HStack justifyContent="center" space={1}>
@@ -357,26 +358,8 @@ const LeadDetailScreen = () => {
         <Box height={20} /> {/* Extra space at bottom */}
       </ScrollView>
 
-      {/* Call-to-action floating button */}
-      <HStack 
-        position="absolute" 
-        bottom={10} 
-        width="100%" 
-        justifyContent="center"
-        space={4}
-        px={4}
-      >
-        <Button
-          leftIcon={<Icon as={Feather} name="phone" size={5} />}
-          colorScheme="primary"
-          rounded="full"
-          py={4}
-          flex={1}
-          onPress={handleCall}
-        >
-          Call Now
-        </Button>
-      </HStack>
+      {/* NewCallFAB will handle calls now */}
+      <NewCallFAB leadId={lead.id} />
 
       {/* Delete confirmation dialog */}
       <AlertDialog

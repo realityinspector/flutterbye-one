@@ -60,25 +60,18 @@ function registerRoutes(app) {
     `);
   });
   
-  // Serve the web app on all routes that aren't covered by API or specific routes
+  // Only API and specific routes are served - web landing page removed
   app.use((req, res, next) => {
-    // Skip if it's an API request
-    if (req.path.startsWith('/api/')) {
+    // Only process API requests or specific routes
+    if (req.path.startsWith('/api/') || req.path === '/health' || req.path === '/api-docs') {
       return next();
     }
     
-    // Skip if it's a health check or API docs
-    if (req.path === '/health' || req.path === '/api-docs') {
-      return next();
-    }
-    
-    // If this is a static file, let the static middleware handle it
-    if (req.path.includes('.')) {
-      return next();
-    }
-    
-    // For all other routes, serve the index.html
-    res.sendFile('index.html', { root: './public' });
+    // For any other routes, return API-only mode message
+    res.status(404).json({
+      error: 'Not found',
+      message: 'This server only serves API endpoints. Web interface has been moved to a separate hosting.',
+    });
   });
   
   // Auth routes

@@ -7,6 +7,7 @@ import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCalls } from '../../hooks/useCalls';
 import { useLeads } from '../../hooks/useLeads';
+import NewCallFAB from '../../components/NewCallFAB';
 
 const CallHistoryScreen = () => {
   const navigation = useNavigation();
@@ -114,7 +115,7 @@ const CallHistoryScreen = () => {
 
   return (
     <Box flex={1} bg="white" safeArea>
-      <VStack px={4} pt={5} space={4}>
+      <VStack px={4} pt={5} space={4} pb={20}>
         <HStack alignItems="center" space={3}>
           <IconButton
             icon={<Icon as={Feather} name="arrow-left" size="md" />}
@@ -191,17 +192,9 @@ const CallHistoryScreen = () => {
           </Box>
         </VStack>
         
-        <HStack mt={4} space={2} justifyContent="center">
-          <IconButton
-            icon={<Icon as={Feather} name="phone" size="lg" color="white" />}
-            bg="primary.500"
-            rounded="full"
-            p={4}
-            onPress={() => navigation.navigate('Call', { leadId: lead?.id })}
-            _pressed={{ bg: 'primary.600' }}
-          />
-        </HStack>
+        {/* NewCallFAB will handle calls now */}
       </VStack>
+      {lead && <NewCallFAB leadId={lead.id} />}
     </Box>
   );
 };

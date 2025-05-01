@@ -22,17 +22,23 @@
 
 ## To Be Implemented
 
-2. Cut scope to a "walking slice."
-   - Keep only auth, lead list, lead detail, call log, and call-create screens.
-   - Stub all other menu items behind a "coming soon" flag.
+✅ Cut scope to a "walking slice."
+- Simplified navigation to focus on Home, Leads, and Calls.
+- Created 'Coming Soon' screens for non-essential features.
+- Added visual indicators for upcoming features.
+- Stubbed out advanced features behind clean placeholders.
 
-3. Delete the web landing page from /src and host it separately.
-   - Shipping a single‐bundle mobile app keeps Expo build <25 MB and removes the DOM-centric CSS/JS bloat.
+✅ Delete the web landing page from /src and host it separately.
+- Created a separate 'hosted_separately' directory for web landing page content
+- Removed web-serving functionality from the main Express server
+- Extracted styles into a standalone CSS file for better organization
+- Optimized mobile app bundle size by removing DOM-centric code
 
-4. Flatten navigation.
-   - Replace the tab+stack maze with one stack: Leads → LeadDetail → CallLog.
-   - The FAB on every screen opens "New Call."
-   - Minimal cognitive load = faster taps.
+✅ Flatten navigation.
+- Replaced the tab+stack maze with one stack: Leads → LeadDetail → CallLog
+- Added the floating action button (FAB) on every screen to open "New Call"
+- Updated HomeScreen, LeadsListScreen, LeadDetailScreen, and CallHistoryScreen
+- Removed redundant call buttons and simplified navigation flow
 
 5. Strip NativeBase to its core tokens.
    - Use native-base only for primitives (Box, Heading, VStack).

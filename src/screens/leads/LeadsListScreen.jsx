@@ -22,6 +22,7 @@ import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useLeads } from '../../hooks/useLeads';
 import LeadCard from '../../components/LeadCard';
+import NewCallFAB from '../../components/NewCallFAB';
 
 const LeadsListScreen = () => {
   const navigation = useNavigation();
@@ -38,7 +39,7 @@ const LeadsListScreen = () => {
 
   // Handle navigation to lead form for creating new lead
   const handleAddLead = () => {
-    navigation.navigate('LeadForm');
+    navigation.navigate('AddLead');
   };
 
   // Filter and sort leads
@@ -255,7 +256,9 @@ const LeadsListScreen = () => {
           </Pressable>
         )}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 80 }} /* Add padding for the FAB */
       />
+      <NewCallFAB />
     </Box>
   );
 };

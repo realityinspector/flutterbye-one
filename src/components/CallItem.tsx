@@ -1,5 +1,5 @@
 import React from 'react';
-import { HStack, VStack, Box, Text, Badge, Icon, Pressable } from 'native-base';
+import { HStack, VStack, Box, Text, Pressable } from 'native-base';
 import { Feather } from '@expo/vector-icons';
 // Import Call type directly from Zod schema
 import { Call } from '../../shared/db/zod-schema';
@@ -72,12 +72,12 @@ const CallItem: React.FC<CallItemProps> = ({ call, onPress, leadName }) => {
                 p={2}
                 rounded="full"
               >
-                <Icon 
-                  as={Feather} 
-                  name="phone" 
+                <Text 
                   color={`${getOutcomeColor(call.outcome)}.600`} 
-                  size="md" 
-                />
+                  fontSize="lg"
+                >
+                  <Feather name="phone" />
+                </Text>
               </Box>
 
               <VStack flex={1}>
@@ -90,9 +90,17 @@ const CallItem: React.FC<CallItemProps> = ({ call, onPress, leadName }) => {
               </VStack>
 
               <VStack alignItems="flex-end">
-                <Badge colorScheme={getOutcomeColor(call.outcome)} rounded="md" mb={1}>
-                  {getOutcomeText(call.outcome)}
-                </Badge>
+                <Box 
+                  bg={`${getOutcomeColor(call.outcome)}.100`} 
+                  px={2} 
+                  py={1}
+                  rounded="md" 
+                  mb={1}
+                >
+                  <Text color={`${getOutcomeColor(call.outcome)}.700`} fontSize="xs" fontWeight="medium">
+                    {getOutcomeText(call.outcome)}
+                  </Text>
+                </Box>
                 <Text fontSize="xs" color="gray.500">
                   {formatDuration(call.duration)}
                 </Text>

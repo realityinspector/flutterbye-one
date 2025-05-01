@@ -4,9 +4,6 @@ import {
   HStack,
   VStack,
   Text,
-  Icon,
-  Badge,
-  Spacer,
 } from 'native-base';
 import { Feather } from '@expo/vector-icons';
 // Import the UserLead and GlobalLead types directly from Zod schema
@@ -75,8 +72,10 @@ const LeadCard: React.FC<LeadCardProps> = ({
       shadow={1}
     >
       <HStack space={3} alignItems="flex-start">
-        <Box rounded="full" bg="primary.100" p={2}>
-          <Icon as={Feather} name="briefcase" size={5} color="primary.600" />
+        <Box rounded="full" bg="secondary.100" p={2}>
+          <Text color="primary.500" fontSize="xl">
+            <Feather name="briefcase" />
+          </Text>
         </Box>
         
         <VStack space={1} flex={1}>
@@ -86,27 +85,34 @@ const LeadCard: React.FC<LeadCardProps> = ({
             </Text>
             
             {rightElement || (
-              <Badge 
-                colorScheme={getPriorityColor(lead.priority)} 
-                variant="solid" 
+              <Box 
+                bg={`${getPriorityColor(lead.priority)}.500`} 
+                px={2} 
+                py={1}
                 rounded="md"
               >
-                {getPriorityText(lead.priority)}
-              </Badge>
+                <Text color="white" fontSize="xs" fontWeight="bold">
+                  {getPriorityText(lead.priority)}
+                </Text>
+              </Box>
             )}
           </HStack>
           
           <HStack alignItems="center" space={1}>
-            <Icon as={Feather} name="user" size={3} color="gray.500" />
-            <Text color="gray.600" fontSize="sm">
+            <Text color="text.700" fontSize="xs">
+              <Feather name="user" size={12} />
+            </Text>
+            <Text color="text.700" fontSize="sm">
               {lead.globalLead?.contactName || 'No contact name'}
             </Text>
           </HStack>
           
           {lead.globalLead?.phoneNumber && (
             <HStack alignItems="center" space={1}>
-              <Icon as={Feather} name="phone" size={3} color="gray.500" />
-              <Text color="gray.600" fontSize="sm">
+              <Text color="text.700" fontSize="xs">
+                <Feather name="phone" size={12} />
+              </Text>
+              <Text color="text.700" fontSize="sm">
                 {formatPhoneNumber(lead.globalLead.phoneNumber)}
               </Text>
             </HStack>
@@ -114,8 +120,10 @@ const LeadCard: React.FC<LeadCardProps> = ({
           
           {lead.globalLead?.email && (
             <HStack alignItems="center" space={1}>
-              <Icon as={Feather} name="mail" size={3} color="gray.500" />
-              <Text color="gray.600" fontSize="sm" numberOfLines={1}>
+              <Text color="text.700" fontSize="xs">
+                <Feather name="mail" size={12} />
+              </Text>
+              <Text color="text.700" fontSize="sm" numberOfLines={1}>
                 {lead.globalLead.email}
               </Text>
             </HStack>
@@ -124,14 +132,23 @@ const LeadCard: React.FC<LeadCardProps> = ({
           {/* Optional status badge */}
           {showStatus && (
             <HStack space={2} mt={1}>
-              <Badge colorScheme={getStatusColor(lead.status)} variant="subtle">
-                {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
-              </Badge>
+              <Box
+                bg={`${getStatusColor(lead.status)}.100`}
+                px={2}
+                py={1}
+                rounded="md"
+              >
+                <Text color={`${getStatusColor(lead.status)}.700`} fontSize="xs" fontWeight="medium">
+                  {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                </Text>
+              </Box>
               
               {lead.reminderDate && new Date(lead.reminderDate) > new Date() && (
                 <HStack alignItems="center" space={1}>
-                  <Icon as={Feather} name="clock" size={3} color="amber.500" />
-                  <Text color="amber.500" fontSize="xs">
+                  <Text color="warning.500" fontSize="xs">
+                    <Feather name="clock" size={12} />
+                  </Text>
+                  <Text color="warning.500" fontSize="xs">
                     Reminder: {new Date(lead.reminderDate).toLocaleDateString()}
                   </Text>
                 </HStack>

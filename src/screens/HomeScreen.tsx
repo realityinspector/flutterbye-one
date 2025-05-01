@@ -15,8 +15,10 @@ import {
   Spinner,
   useTheme,
   useToast,
+  Badge,
 } from 'native-base';
 import { Feather } from '@expo/vector-icons';
+import NewCallFAB from '../components/NewCallFAB';
 import { useNavigation } from '@react-navigation/native';
 // Import from TypeScript hooks
 import { useLeads } from '../hooks/useLeads';
@@ -132,7 +134,7 @@ const HomeScreen: React.FC = () => {
           <Heading size="md" mb={3}>Your Activity</Heading>
           <HStack space={4}>
             <Pressable 
-              onPress={() => navigation.navigate('Leads' as never)}
+              onPress={() => navigation.navigate('Leads')}
               flex={1} 
               bg="white" 
               p={4} 
@@ -141,7 +143,9 @@ const HomeScreen: React.FC = () => {
             >
               <HStack alignItems="flex-start">
                 <Center size={10} bg="primary.100" rounded="lg">
-                  <Icon as={Feather} name="users" size={5} color="primary.500" />
+                  <Text color="primary.500" fontSize="xl">
+                    <Feather name="users" />
+                  </Text>
                 </Center>
                 <VStack ml={2}>
                   <Text color="gray.500" fontSize="sm">Total Leads</Text>
@@ -151,7 +155,7 @@ const HomeScreen: React.FC = () => {
             </Pressable>
 
             <Pressable 
-              onPress={() => navigation.navigate('CallHistory' as never)}
+              onPress={() => navigation.navigate('CallLog')}
               flex={1} 
               bg="white" 
               p={4} 
@@ -160,7 +164,9 @@ const HomeScreen: React.FC = () => {
             >
               <HStack alignItems="flex-start">
                 <Center size={10} bg="green.100" rounded="lg">
-                  <Icon as={Feather} name="phone-outgoing" size={5} color="green.500" />
+                  <Text color="green.500" fontSize="xl">
+                    <Feather name="phone-outgoing" />
+                  </Text>
                 </Center>
                 <VStack ml={2}>
                   <Text color="gray.500" fontSize="sm">Calls Today</Text>
@@ -172,7 +178,7 @@ const HomeScreen: React.FC = () => {
 
           <HStack space={4} mt={4}>
             <Pressable 
-              onPress={() => navigation.navigate('Leads' as never, { filter: 'new' } as never)}
+              onPress={() => navigation.navigate('Leads', { filter: 'new' })}
               flex={1} 
               bg="white" 
               p={4} 
@@ -191,7 +197,7 @@ const HomeScreen: React.FC = () => {
             </Pressable>
 
             <Pressable 
-              onPress={() => navigation.navigate('Reminders' as never)}
+              onPress={() => navigation.navigate('Reminders')}
               flex={1} 
               bg="white" 
               p={4} 
@@ -215,7 +221,7 @@ const HomeScreen: React.FC = () => {
         <Box bg="white" py={4} px={4} mb={6}>
           <HStack justifyContent="space-between" alignItems="center" mb={3}>
             <Heading size="md">High Priority Leads</Heading>
-            <Pressable onPress={() => navigation.navigate('Leads' as never)}>
+            <Pressable onPress={() => navigation.navigate('Leads')}>
               <Text color="primary.500" fontWeight="medium">View All</Text>
             </Pressable>
           </HStack>
@@ -230,7 +236,7 @@ const HomeScreen: React.FC = () => {
               {highPriorityLeads.map(lead => (
                 <Pressable 
                   key={lead.id} 
-                  onPress={() => navigation.navigate('LeadDetail' as never, { leadId: lead.id } as never)}
+                  onPress={() => navigation.navigate('LeadDetail', { leadId: lead.id })}
                 >
                   <LeadCard lead={lead} showStatus={true} />
                 </Pressable>
@@ -243,7 +249,7 @@ const HomeScreen: React.FC = () => {
         <Box bg="white" py={4} px={4} mb={6}>
           <HStack justifyContent="space-between" alignItems="center" mb={3}>
             <Heading size="md">Recent Calls</Heading>
-            <Pressable onPress={() => navigation.navigate('CallHistory' as never)}>
+            <Pressable onPress={() => navigation.navigate('CallLog')}>
               <Text color="primary.500" fontWeight="medium">View All</Text>
             </Pressable>
           </HStack>
@@ -272,7 +278,7 @@ const HomeScreen: React.FC = () => {
           <HStack space={3} justifyContent="space-between">
             <Pressable 
               flex={1}
-              onPress={() => navigation.navigate('LeadForm' as never)}
+              onPress={() => navigation.navigate('AddLead')}
               bg="primary.50"
               py={4}
               rounded="md"
@@ -284,7 +290,7 @@ const HomeScreen: React.FC = () => {
 
             <Pressable 
               flex={1}
-              onPress={() => navigation.navigate('CallQueue' as never)}
+              onPress={() => navigation.navigate('Call', { mode: 'queue' })}
               bg="green.50"
               py={4}
               rounded="md"
@@ -296,20 +302,27 @@ const HomeScreen: React.FC = () => {
 
             <Pressable 
               flex={1}
-              onPress={() => navigation.navigate('GenerateLeads' as never)}
-              bg="blue.50"
+              onPress={() => toast.show({
+                title: "Coming Soon",
+                description: "Lead generation will be available in a future update."
+              })}
+              bg="gray.100"
               py={4}
               rounded="md"
               alignItems="center"
             >
-              <Icon as={Feather} name="search" size={6} color="blue.500" mb={2} />
-              <Text fontWeight="medium">Find Leads</Text>
+              <Icon as={Feather} name="search" size={6} color="gray.500" mb={2} />
+              <Text fontWeight="medium" color="gray.500">Find Leads</Text>
+              <Badge mt={1} colorScheme="info" variant="subtle" rounded="full">
+                <Text fontSize="2xs">SOON</Text>
+              </Badge>
             </Pressable>
           </HStack>
         </Box>
 
-        <Box h={4} /> {/* Bottom spacing */}
+        <Box h={20} /> {/* Extra bottom spacing for FAB */}
       </ScrollView>
+      <NewCallFAB />
     </Box>
   );
 };
