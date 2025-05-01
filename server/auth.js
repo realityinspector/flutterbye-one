@@ -38,12 +38,16 @@ function authenticateJWT(req, res, next) {
   // Use token from header or cookie
   const token = authHeader ? authHeader.split(' ')[1] : cookieToken;
   
+  console.log('Auth check - Token present:', !!token, 'JWT_SECRET:', JWT_SECRET.substring(0, 5) + '...');
+  
   if (token) {
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
       if (err) {
+        console.error('Token verification failed in auth.js:', err.message);
         return res.status(401).json({ success: false, message: 'Invalid or expired token' });
       }
       
+      console.log('Token verified successfully - user:', decoded.user.username);
       req.user = decoded.user;
       next();
     });

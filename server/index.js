@@ -19,6 +19,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, '../public')));
+console.log(`Serving static files from: ${path.join(__dirname, '../public')}`);
+
+
 // Register all routes and create HTTP server
 const server = registerRoutes(app);
 

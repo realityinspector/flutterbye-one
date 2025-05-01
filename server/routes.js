@@ -17,6 +17,8 @@ function registerRoutes(app) {
   // Serve static files from the public directory - changed from earlier position
   // app.use(express.static('public')); // Will be moved to proper position
   
+  console.log('Registering all routes...');
+  
   // SPA route for dashboard (protected)
   app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/dashboard.html'));
@@ -27,6 +29,8 @@ function registerRoutes(app) {
     // Get token from cookies
     const token = req.cookies && req.cookies.auth_token;
     
+    console.log('Dashboard check - Token present:', !!token, 'JWT_SECRET:', JWT_SECRET.substring(0, 5) + '...');
+    
     if (!token) {
       return res.json({ authenticated: false });
     }
@@ -34,11 +38,12 @@ function registerRoutes(app) {
     // Verify the token
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
       if (err) {
-        console.log('Token verification failed:', err.message);
+        console.error('Token verification failed in routes.js:', err.message);
         return res.json({ authenticated: false });
       }
       
       // Token is valid
+      console.log('Dashboard check - Token verified successfully - user:', decoded.user.username);
       return res.json({ authenticated: true, user: decoded.user });
     });
   });
@@ -54,6 +59,18 @@ function registerRoutes(app) {
       status: "healthy",
       timestamp: new Date().toISOString(),
       message: "Walk N Talk CRM API is running"
+    });
+  });
+  
+  // Special reset route for testing
+  app.get('/reset-auth', (req, res) => {
+    // Clear auth cookie
+    console.log('Resetting auth state - clearing cookies');
+    res.clearCookie('auth_token');
+    res.json({
+      success: true,
+      message: 'Authentication reset successful',
+      timestamp: new Date().toISOString()
     });
   });
   
@@ -102,8 +119,7 @@ function registerRoutes(app) {
   
   // The root route is already defined above
   
-  // Serve static files
-  app.use(express.static(path.join(__dirname, '../public')));
+  // Static files are served from index.js
 
   
   // Auth routes

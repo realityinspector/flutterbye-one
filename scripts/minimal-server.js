@@ -3,9 +3,9 @@ const express = require('express');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 
-// JWT Configuration
-const JWT_SECRET = process.env.JWT_SECRET || 'walktalk-development-jwt-secret';
-const JWT_EXPIRES_IN = '24h'; // 24 hours
+// Use centralized configuration
+const config = require('../server/config');
+const { JWT_SECRET, JWT_EXPIRES_IN } = config;
 
 // Create Express app
 const app = express();
