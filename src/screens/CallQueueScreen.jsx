@@ -18,10 +18,12 @@ import {
   Menu,
 } from 'native-base';
 import Feather from 'react-native-vector-icons/Feather';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useLeads } from '../hooks/useLeads';
 import { makePhoneCall } from '../utils/permissions';
 import LeadCard from '../components/LeadCard';
+import Footer from '../components/Footer';
 
 const CallQueueScreen = () => {
   const navigation = useNavigation();
@@ -185,23 +187,33 @@ const CallQueueScreen = () => {
   // Loading state
   if (isLoading) {
     return (
-      <Center flex={1} bg="white" safeArea>
-        <Spinner size="lg" color="primary.500" />
-        <Text mt={4} color="gray.500">Loading call queue...</Text>
-      </Center>
+      <Box flex={1} bg="white" safeArea>
+        <Center flex={1}>
+          <Spinner size="lg" color="primary.500" />
+          <Text mt={4} color="gray.500">Loading call queue...</Text>
+        </Center>
+        <Box position="absolute" bottom={0} left={0} right={0} bg="white">
+          <Footer />
+        </Box>
+      </Box>
     );
   }
 
   // Error state
   if (isError) {
     return (
-      <Center flex={1} bg="white" safeArea>
-        <Icon as={Feather} name="alert-circle" size={12} color="error.500" />
-        <Text mt={4} color="error.500">Failed to load call queue</Text>
-        <Button mt={4} onPress={refetch} leftIcon={<Icon as={Feather} name="refresh-cw" size={4} />}>
-          Try Again
-        </Button>
-      </Center>
+      <Box flex={1} bg="white" safeArea>
+        <Center flex={1}>
+          <Icon as={Feather} name="alert-circle" size={12} color="error.500" />
+          <Text mt={4} color="error.500">Failed to load call queue</Text>
+          <Button mt={4} onPress={refetch} leftIcon={<Icon as={Feather} name="refresh-cw" size={4} />}>
+            Try Again
+          </Button>
+        </Center>
+        <Box position="absolute" bottom={0} left={0} right={0} bg="white">
+          <Footer />
+        </Box>
+      </Box>
     );
   }
 
@@ -209,7 +221,7 @@ const CallQueueScreen = () => {
   if (callQueue.length === 0) {
     return (
       <Box flex={1} bg="white" safeArea>
-        <VStack p={4} space={4}>
+        <VStack p={4} space={4} flex={1}>
           <Heading size="lg">Call Queue</Heading>
           
           <HStack space={4} justifyContent="space-between">
@@ -255,6 +267,9 @@ const CallQueueScreen = () => {
             </Button>
           </Center>
         </VStack>
+        <Box position="absolute" bottom={0} left={0} right={0} bg="white">
+          <Footer />
+        </Box>
       </Box>
     );
   }
@@ -329,6 +344,9 @@ const CallQueueScreen = () => {
           contentContainerStyle={{ paddingBottom: 20 }}
         />
       </VStack>
+      <Box position="absolute" bottom={0} left={0} right={0} bg="white">
+        <Footer />
+      </Box>
     </Box>
   );
 };

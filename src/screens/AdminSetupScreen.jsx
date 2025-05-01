@@ -1,7 +1,9 @@
 import React from 'react';
-import { Box, Center, Image, ScrollView } from 'native-base';
+import { Box, Center, Image, ScrollView, Icon, Heading } from 'native-base';
+import { FontAwesome5 } from '@expo/vector-icons';
 import AdminSetupForm from '../components/AdminSetupForm';
 import { useNavigation } from '@react-navigation/native';
+import Footer from '../components/Footer';
 
 const AdminSetupScreen = () => {
   const navigation = useNavigation();
@@ -17,13 +19,17 @@ const AdminSetupScreen = () => {
         <Center flex={1} px={4} py={10}>
           {/* App logo could go here */}
           <Box mb={8} alignItems="center">
-            <Box w={24} h={24} bg="primary.100" rounded="full" mb={4} />
-            {/* Replace with your app logo */}
+            <Icon as={FontAwesome5} name="wind" size={16} color="primary.500" mb={4} />
+            <Heading size="xl" color="primary.600" mb={2}>FLUTTERBYE</Heading>
+            {/* App logo */}
           </Box>
           
           <AdminSetupForm onComplete={handleSetupComplete} />
         </Center>
       </ScrollView>
+      <Box position="absolute" bottom={0} left={0} right={0} bg="white">
+        <Footer />
+      </Box>
     </Box>
   );
 };

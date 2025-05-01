@@ -17,7 +17,9 @@ import {
 } from 'native-base';
 import { Platform } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
+import Footer from '../components/Footer';
 
 const AuthScreen = () => {
   const { login, register, isAuthLoading } = useAuth();
@@ -127,9 +129,9 @@ const AuthScreen = () => {
           <VStack space={6} w="100%">
             {/* Logo placeholder */}
             <Center>
-              <Box w={20} h={20} bg="primary.100" rounded="full" mb={4} />
-              {/* Replace with your app logo */}
-              <Heading size="xl" color="primary.600" mb={1}>Walk N Talk CRM</Heading>
+              <Icon as={FontAwesome5} name="wind" size={12} color="primary.500" mb={4} />
+              {/* App logo */}
+              <Heading size="xl" color="primary.600" mb={1}>FLUTTERBYE</Heading>
               <Text color="gray.500" textAlign="center">
                 {mode === 'login' ? 'Sign in to your account' : 'Create a new account'}
               </Text>
@@ -261,6 +263,9 @@ const AuthScreen = () => {
             </VStack>
           </VStack>
         </Center>
+        <Box position="absolute" bottom={0} left={0} right={0} bg="white">
+          <Footer />
+        </Box>
       </Box>
     </KeyboardAvoidingView>
   );
