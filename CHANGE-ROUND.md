@@ -13,10 +13,14 @@
 - Updated all import paths across the codebase.
 - Added backwards compatibility for CommonJS.
 
-## To Be Implemented
+✅ Frontend imports the Zod types directly.
+- Created TypeScript versions of key hooks (useAuth, useLeads, useCalls).
+- Created TypeScript versions of core components (LeadCard, CallItem).
+- Created TypeScript version of HomeScreen with proper typing.
+- Added tsconfig.json for TypeScript support.
+- Components now import Zod types directly from shared schema files.
 
-1. Frontend imports the Zod types directly.
-   - Enable zero manual DTOs, compile-time safety, and no dual-schema drift.
+## To Be Implemented
 
 2. Cut scope to a "walking slice."
    - Keep only auth, lead list, lead detail, call log, and call-create screens.

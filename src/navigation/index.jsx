@@ -20,16 +20,39 @@ import AddLeadScreen from '../screens/leads/AddLeadScreen';
 // Import call screens
 import CallScreen from '../screens/calls/CallScreen';
 import CallHistoryScreen from '../screens/calls/CallHistoryScreen';
-import CallsScreen from '../screens/calls/CallsScreen';
 
-// Import settings screens
-import ProfileScreen from '../screens/settings/ProfileScreen';
+// Empty screen component
+import { Center, Heading, Box, VStack, Text, Badge } from 'native-base';
 
 // Create navigators
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Main tab navigator
+// Coming Soon screen component
+const ComingSoonScreen = ({ title, feature }) => (
+  <Box flex={1} bg="white" safeArea>
+    <Center flex={1}>
+      <VStack space={4} alignItems="center">
+        <Badge colorScheme="info" variant="solid" rounded="full" px={3} py={1}>
+          <Text color="white" fontSize="sm" fontWeight="bold">COMING SOON</Text>
+        </Badge>
+        <Heading color="gray.700" size="lg">{title}</Heading>
+        <Text color="gray.500" textAlign="center" px={6}>
+          {feature} functionality will be available in an upcoming release.
+        </Text>
+        <Icon as={Feather} name="clock" size="xl" color="gray.400" mt={4} />
+      </VStack>
+    </Center>
+  </Box>
+);
+
+// Placeholder screens for features not in walking slice
+const ProfileScreen = () => <ComingSoonScreen title="User Profile" feature="Profile management" />;
+const AnalyticsScreen = () => <ComingSoonScreen title="Analytics Dashboard" feature="Reporting and analytics" />;
+const RemindersScreen = () => <ComingSoonScreen title="Reminders" feature="Reminder management" />;
+const GenerateLeadsScreen = () => <ComingSoonScreen title="Generate Leads" feature="Lead generation" />;
+
+// Main tab navigator - Cut down to essential screens
 const TabNavigator = () => {
   return (
     <Tab.Navigator
@@ -39,16 +62,10 @@ const TabNavigator = () => {
 
           if (route.name === 'Home') {
             iconName = 'home';
-          } else if (route.name === 'CallQueue') {
-            iconName = 'list';
           } else if (route.name === 'Calls') {
             iconName = 'phone';
           } else if (route.name === 'Leads') {
             iconName = 'users';
-          } else if (route.name === 'Reports') {
-            iconName = 'bar-chart-2';
-          } else if (route.name === 'Profile') {
-            iconName = 'user';
           }
 
           return <Icon as={Feather} name={iconName} size={size} color={color} />;
@@ -64,29 +81,14 @@ const TabNavigator = () => {
         options={{ title: 'Home' }}
       />
       <Tab.Screen 
-        name="CallQueue" 
-        component={CallQueueScreen} 
-        options={{ title: 'Call Queue' }}
-      />
-      <Tab.Screen 
-        name="Calls" 
-        component={CallStackNavigator} 
-        options={{ title: 'Calls' }}
-      />
-      <Tab.Screen 
         name="Leads" 
         component={LeadStackNavigator} 
         options={{ title: 'Leads' }}
       />
       <Tab.Screen 
-        name="Reports" 
-        component={ReportsStackNavigator} 
-        options={{ title: 'Reports' }}
-      />
-      <Tab.Screen 
-        name="Profile" 
-        component={ProfileStackNavigator} 
-        options={{ title: 'Profile' }}
+        name="Calls" 
+        component={CallHistoryScreen} 
+        options={{ title: 'Calls' }}
       />
     </Tab.Navigator>
   );
@@ -103,53 +105,6 @@ const LeadStackNavigator = () => {
     </LeadStack.Navigator>
   );
 };
-
-// Reports stack navigator
-const ReportsStack = createStackNavigator();
-const ReportsStackNavigator = () => {
-  return (
-    <ReportsStack.Navigator screenOptions={{ headerShown: false }}>
-      <ReportsStack.Screen name="ReportsDashboard" component={AnalyticsScreen} />
-    </ReportsStack.Navigator>
-  );
-};
-
-// Call stack navigator
-const CallStack = createStackNavigator();
-const CallStackNavigator = () => {
-  return (
-    <CallStack.Navigator screenOptions={{ headerShown: false }}>
-      <CallStack.Screen name="CallsList" component={CallsScreen} />
-      <CallStack.Screen name="CallHistory" component={CallHistoryScreen} />
-      <CallStack.Screen name="Call" component={CallScreen} />
-    </CallStack.Navigator>
-  );
-};
-
-// Profile stack navigator
-const ProfileStack = createStackNavigator();
-const ProfileStackNavigator = () => {
-  return (
-    <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
-      <ProfileStack.Screen name="ProfileScreen" component={ProfileScreen} />
-    </ProfileStack.Navigator>
-  );
-};
-
-// Placeholder screens for incomplete features
-const AnalyticsScreen = () => <EmptyScreen title="Analytics Dashboard" />;
-const RemindersScreen = () => <EmptyScreen title="Reminders" />;
-const GenerateLeadsScreen = () => <EmptyScreen title="Generate Leads" />;
-
-// Empty screen component
-import { Center, Heading, Box } from 'native-base';
-const EmptyScreen = ({ title }) => (
-  <Box flex={1} bg="white" safeArea>
-    <Center flex={1}>
-      <Heading color="gray.500">{title}</Heading>
-    </Center>
-  </Box>
-);
 
 // Main app navigator
 const AppNavigator = () => {
@@ -186,6 +141,8 @@ const AppNavigator = () => {
               <Stack.Screen name="LeadDetail" component={LeadDetailScreen} />
               <Stack.Screen name="Reminders" component={RemindersScreen} />
               <Stack.Screen name="GenerateLeads" component={GenerateLeadsScreen} />
+              <Stack.Screen name="Profile" component={ProfileScreen} />
+              <Stack.Screen name="Reports" component={AnalyticsScreen} />
             </>
           )}
         </>
