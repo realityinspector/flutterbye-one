@@ -26,6 +26,7 @@ import { useCalls } from '../../hooks/useCalls';
 import { makePhoneCall } from '../../utils/permissions';
 import CallItem from '../../components/CallItem';
 import NewCallFAB from '../../components/NewCallFAB';
+import Footer from '../../components/Footer';
 
 const LeadDetailScreen = () => {
   const navigation = useNavigation();
@@ -142,19 +143,26 @@ const LeadDetailScreen = () => {
 
   if (isLoading || !lead) {
     return (
-      <Center flex={1}>
-        <Spinner size="lg" color="primary.500" />
-        <Text mt={4} color="gray.500">Loading lead details...</Text>
-      </Center>
+      <Box flex={1} bg="gray.50">
+        <VStack flex={1}>
+          <Center flex={1}>
+            <Spinner size="lg" color="primary.500" />
+            <Text mt={4} color="gray.500">Loading lead details...</Text>
+          </Center>
+          <Footer />
+        </VStack>
+      </Box>
     );
   }
 
   return (
-    <Box flex={1} safeArea>
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-        {/* Header */}
-        <Box px={4} pt={4} pb={2}>
-          <HStack alignItems="center" space={2}>
+    <Box flex={1} bg="gray.50">
+      <VStack flex={1}>
+        <Box flex={1} safeArea>
+          <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+            {/* Header */}
+            <Box px={4} pt={4} pb={2}>
+              <HStack alignItems="center" space={2}>
             <IconButton
               icon={<Icon as={Feather} name="arrow-left" size={6} />}
               onPress={() => navigation.goBack()}
@@ -388,6 +396,9 @@ const LeadDetailScreen = () => {
           </AlertDialog.Footer>
         </AlertDialog.Content>
       </AlertDialog>
+        </Box>
+        <Footer />
+      </VStack>
     </Box>
   );
 };

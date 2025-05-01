@@ -104,7 +104,7 @@ const AppNavigator = () => {
               <Stack.Screen 
                 name="Home" 
                 component={HomeScreen} 
-                options={{ title: 'Walk N Talk CRM' }}
+                options={{ title: 'FLUTTERBYE' }}
               />
               <Stack.Screen 
                 name="Leads" 

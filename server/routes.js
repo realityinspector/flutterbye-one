@@ -71,7 +71,7 @@ function registerRoutes(app) {
     res.json({
       status: "healthy",
       timestamp: new Date().toISOString(),
-      message: "Walk N Talk CRM API is running"
+      message: "FLUTTERBYE API is running"
     });
   });
   
@@ -93,7 +93,7 @@ function registerRoutes(app) {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Walk N Talk CRM API Documentation</title>
+          <title>FLUTTERBYE API Documentation</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }
             h1 { color: #4a5568; }
@@ -105,7 +105,7 @@ function registerRoutes(app) {
         </head>
         <body>
           <div class="container">
-            <h1>Walk N Talk CRM API</h1>
+            <h1>FLUTTERBYE API</h1>
             <div class="card">
               <p>The API server is running successfully!</p>
               <p>Current time: ${new Date().toLocaleString()}</p>

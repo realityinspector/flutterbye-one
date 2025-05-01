@@ -23,6 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useLeads } from '../../hooks/useLeads';
 import LeadCard from '../../components/LeadCard';
 import NewCallFAB from '../../components/NewCallFAB';
+import Footer from '../../components/Footer';
 
 const LeadsListScreen = () => {
   const navigation = useNavigation();
@@ -107,158 +108,168 @@ const LeadsListScreen = () => {
   // Show empty state
   if (filteredLeads.length === 0) {
     return (
-      <Box flex={1} p={4} safeArea>
-        <HStack alignItems="center" justifyContent="space-between" mb={4}>
-          <Heading size="lg">Leads</Heading>
-          <IconButton
-            icon={<Icon as={Feather} name="plus" size={6} />}
-            borderRadius="full"
-            bg="primary.500"
-            _icon={{ color: 'white' }}
-            onPress={handleAddLead}
-          />
-        </HStack>
+      <Box flex={1} bg="gray.50">
+        <VStack flex={1}>
+          <Box flex={1} p={4} safeArea>
+            <HStack alignItems="center" justifyContent="space-between" mb={4}>
+              <Heading size="lg">Leads</Heading>
+              <IconButton
+                icon={<Icon as={Feather} name="plus" size={6} />}
+                borderRadius="full"
+                bg="primary.500"
+                _icon={{ color: 'white' }}
+                onPress={handleAddLead}
+              />
+            </HStack>
 
-        {/* Filters */}
-        <HStack space={2} mb={6}>
-          <Select
-            flex={1}
-            selectedValue={filterStatus}
-            placeholder="All Statuses"
-            onValueChange={value => setFilterStatus(value)}
-            accessibilityLabel="Select Status"
-          >
-            <Select.Item label="All Statuses" value="" />
-            <Select.Item label="New" value="new" />
-            <Select.Item label="Contacted" value="contacted" />
-            <Select.Item label="Qualified" value="qualified" />
-            <Select.Item label="Unqualified" value="unqualified" />
-            <Select.Item label="Converted" value="converted" />
-          </Select>
-          
-          <Select
-            flex={1}
-            selectedValue={sortOrder}
-            onValueChange={value => setSortOrder(value)}
-            accessibilityLabel="Sort By"
-          >
-            <Select.Item label="Priority" value="priority" />
-            <Select.Item label="Newest" value="newest" />
-            <Select.Item label="Oldest" value="oldest" />
-          </Select>
-        </HStack>
+            {/* Filters */}
+            <HStack space={2} mb={6}>
+              <Select
+                flex={1}
+                selectedValue={filterStatus}
+                placeholder="All Statuses"
+                onValueChange={value => setFilterStatus(value)}
+                accessibilityLabel="Select Status"
+              >
+                <Select.Item label="All Statuses" value="" />
+                <Select.Item label="New" value="new" />
+                <Select.Item label="Contacted" value="contacted" />
+                <Select.Item label="Qualified" value="qualified" />
+                <Select.Item label="Unqualified" value="unqualified" />
+                <Select.Item label="Converted" value="converted" />
+              </Select>
+              
+              <Select
+                flex={1}
+                selectedValue={sortOrder}
+                onValueChange={value => setSortOrder(value)}
+                accessibilityLabel="Sort By"
+              >
+                <Select.Item label="Priority" value="priority" />
+                <Select.Item label="Newest" value="newest" />
+                <Select.Item label="Oldest" value="oldest" />
+              </Select>
+            </HStack>
 
-        <InputGroup mb={4}>
-          <InputLeftAddon
-            children={<Icon as={Feather} name="search" size={5} color="gray.400" />}
-            backgroundColor="transparent"
-          />
-          <Input
-            placeholder="Search by name or company"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            flex={1}
-          />
-        </InputGroup>
+            <InputGroup mb={4}>
+              <InputLeftAddon
+                children={<Icon as={Feather} name="search" size={5} color="gray.400" />}
+                backgroundColor="transparent"
+              />
+              <Input
+                placeholder="Search by name or company"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                flex={1}
+              />
+            </InputGroup>
 
-        <Center flex={1}>
-          <Icon as={Feather} name="users" size={16} color="gray.300" />
-          <Text fontSize="lg" fontWeight="medium" mt={4} color="gray.500">
-            No leads found
-          </Text>
-          <Text fontSize="sm" textAlign="center" mt={2} color="gray.400">
-            {filterStatus || searchQuery 
-              ? "Try changing your filters"
-              : "Get started by adding your first lead"}
-          </Text>
-          {!filterStatus && !searchQuery && (
-            <Pressable
-              mt={6}
-              bg="primary.500"
-              px={4}
-              py={3}
-              rounded="md"
-              onPress={handleAddLead}
-            >
-              <HStack space={2} alignItems="center">
-                <Icon as={Feather} name="plus" size={5} color="white" />
-                <Text color="white" fontWeight="medium">Add Lead</Text>
-              </HStack>
-            </Pressable>
-          )}
-        </Center>
+            <Center flex={1}>
+              <Icon as={Feather} name="users" size={16} color="gray.300" />
+              <Text fontSize="lg" fontWeight="medium" mt={4} color="gray.500">
+                No leads found
+              </Text>
+              <Text fontSize="sm" textAlign="center" mt={2} color="gray.400">
+                {filterStatus || searchQuery 
+                  ? "Try changing your filters"
+                  : "Get started by adding your first lead"}
+              </Text>
+              {!filterStatus && !searchQuery && (
+                <Pressable
+                  mt={6}
+                  bg="primary.500"
+                  px={4}
+                  py={3}
+                  rounded="md"
+                  onPress={handleAddLead}
+                >
+                  <HStack space={2} alignItems="center">
+                    <Icon as={Feather} name="plus" size={5} color="white" />
+                    <Text color="white" fontWeight="medium">Add Lead</Text>
+                  </HStack>
+                </Pressable>
+              )}
+            </Center>
+          </Box>
+          <Footer />
+        </VStack>
       </Box>
     );
   }
 
   // Show leads list
   return (
-    <Box flex={1} p={4} safeArea>
-      <HStack alignItems="center" justifyContent="space-between" mb={4}>
-        <Heading size="lg">Leads ({filteredLeads.length})</Heading>
-        <IconButton
-          icon={<Icon as={Feather} name="plus" size={6} />}
-          borderRadius="full"
-          bg="primary.500"
-          _icon={{ color: 'white' }}
-          onPress={handleAddLead}
-        />
-      </HStack>
+    <Box flex={1} bg="gray.50">
+      <VStack flex={1}>
+        <Box flex={1} p={4} safeArea>
+          <HStack alignItems="center" justifyContent="space-between" mb={4}>
+            <Heading size="lg">Leads ({filteredLeads.length})</Heading>
+            <IconButton
+              icon={<Icon as={Feather} name="plus" size={6} />}
+              borderRadius="full"
+              bg="primary.500"
+              _icon={{ color: 'white' }}
+              onPress={handleAddLead}
+            />
+          </HStack>
 
-      {/* Filters */}
-      <HStack space={2} mb={4}>
-        <Select
-          flex={1}
-          selectedValue={filterStatus}
-          placeholder="All Statuses"
-          onValueChange={value => setFilterStatus(value)}
-          accessibilityLabel="Select Status"
-        >
-          <Select.Item label="All Statuses" value="" />
-          <Select.Item label="New" value="new" />
-          <Select.Item label="Contacted" value="contacted" />
-          <Select.Item label="Qualified" value="qualified" />
-          <Select.Item label="Unqualified" value="unqualified" />
-          <Select.Item label="Converted" value="converted" />
-        </Select>
-        
-        <Select
-          flex={1}
-          selectedValue={sortOrder}
-          onValueChange={value => setSortOrder(value)}
-          accessibilityLabel="Sort By"
-        >
-          <Select.Item label="Priority" value="priority" />
-          <Select.Item label="Newest" value="newest" />
-          <Select.Item label="Oldest" value="oldest" />
-        </Select>
-      </HStack>
+          {/* Filters */}
+          <HStack space={2} mb={4}>
+            <Select
+              flex={1}
+              selectedValue={filterStatus}
+              placeholder="All Statuses"
+              onValueChange={value => setFilterStatus(value)}
+              accessibilityLabel="Select Status"
+            >
+              <Select.Item label="All Statuses" value="" />
+              <Select.Item label="New" value="new" />
+              <Select.Item label="Contacted" value="contacted" />
+              <Select.Item label="Qualified" value="qualified" />
+              <Select.Item label="Unqualified" value="unqualified" />
+              <Select.Item label="Converted" value="converted" />
+            </Select>
+            
+            <Select
+              flex={1}
+              selectedValue={sortOrder}
+              onValueChange={value => setSortOrder(value)}
+              accessibilityLabel="Sort By"
+            >
+              <Select.Item label="Priority" value="priority" />
+              <Select.Item label="Newest" value="newest" />
+              <Select.Item label="Oldest" value="oldest" />
+            </Select>
+          </HStack>
 
-      <InputGroup mb={4}>
-        <InputLeftAddon
-          children={<Icon as={Feather} name="search" size={5} color="gray.400" />}
-          backgroundColor="transparent"
-        />
-        <Input
-          placeholder="Search by name or company"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          flex={1}
-        />
-      </InputGroup>
+          <InputGroup mb={4}>
+            <InputLeftAddon
+              children={<Icon as={Feather} name="search" size={5} color="gray.400" />}
+              backgroundColor="transparent"
+            />
+            <Input
+              placeholder="Search by name or company"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              flex={1}
+            />
+          </InputGroup>
 
-      <FlatList
-        data={filteredLeads}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <Pressable onPress={() => handleLeadPress(item)} mb={3}>
-            <LeadCard lead={item} showStatus={true} />
-          </Pressable>
-        )}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 80 }} /* Add padding for the FAB */
-      />
-      <NewCallFAB />
+          <FlatList
+            data={filteredLeads}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <Pressable onPress={() => handleLeadPress(item)} mb={3}>
+                <LeadCard lead={item} showStatus={true} />
+              </Pressable>
+            )}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 80 }} /* Add padding for the FAB */
+          />
+          <NewCallFAB />
+        </Box>
+        <Footer />
+      </VStack>
     </Box>
   );
 };
