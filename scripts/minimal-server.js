@@ -11,6 +11,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// Body parsing middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Serve static content
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -20,22 +24,90 @@ app.get('/health', (req, res) => {
   res.send('Server is healthy');
 });
 
-// Specific route for root path
-app.get('/', (req, res) => {
-  console.log('Root path request received');
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+// API login route - simplified
+app.post('/api/login', (req, res) => {
+  console.log('Login attempt');
+  res.json({ 
+    success: true,
+    user: {
+      id: 1,
+      name: 'Demo User',
+      email: 'user@example.com',
+      role: 'user'
+    }
+  });
 });
 
-// Specific route for test page
-app.get('/test', (req, res) => {
-  console.log('Test page request received');
-  res.sendFile(path.join(__dirname, '../public/test.html'));
+// API user route - simplified
+app.get('/api/user', (req, res) => {
+  console.log('User profile request');
+  res.json({
+    success: true,
+    user: {
+      id: 1,
+      name: 'Demo User',
+      email: 'user@example.com',
+      role: 'user'
+    }
+  });
 });
 
-// Simple route
-app.get('/simple', (req, res) => {
-  console.log('Simple page request received');
-  res.sendFile(path.join(__dirname, '../public/simple.html'));
+// API leads route - simplified
+app.get('/api/leads', (req, res) => {
+  console.log('Leads request');
+  res.json([
+    {
+      id: 1,
+      userId: 1,
+      globalLead: {
+        id: 101,
+        companyName: 'Acme Corp',
+        contactName: 'John Doe',
+        phoneNumber: '555-1234',
+        email: 'john@acme.com',
+        industry: 'Technology'
+      },
+      status: 'new',
+      priority: 5
+    },
+    {
+      id: 2,
+      userId: 1,
+      globalLead: {
+        id: 102,
+        companyName: 'Widget Inc',
+        contactName: 'Jane Smith',
+        phoneNumber: '555-5678',
+        email: 'jane@widget.com',
+        industry: 'Manufacturing'
+      },
+      status: 'contacted',
+      priority: 3
+    }
+  ]);
+});
+
+// API calls route - simplified
+app.get('/api/calls', (req, res) => {
+  console.log('Calls request');
+  res.json([
+    {
+      id: 1,
+      userId: 1,
+      leadId: 1,
+      callDate: new Date().toISOString(),
+      duration: 300,
+      outcome: 'interested'
+    },
+    {
+      id: 2,
+      userId: 1,
+      leadId: 2,
+      callDate: new Date(Date.now() - 86400000).toISOString(),
+      duration: 180,
+      outcome: 'callback'
+    }
+  ]);
 });
 
 // Start server

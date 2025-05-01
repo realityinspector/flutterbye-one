@@ -2,6 +2,7 @@ modules = ["nodejs-20"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["tree"]
 
 [workflows]
 runButton = "Project"
@@ -13,11 +14,19 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Server"
+args = "DBSetup"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "DBSetup"
+args = "Server"
+
+[[workflows.workflow]]
+name = "DBSetup"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node scripts/push-schema.js"
 
 [[workflows.workflow]]
 name = "Server"
@@ -27,14 +36,6 @@ author = "agent"
 task = "shell.exec"
 args = "node scripts/minimal-server.js"
 waitForPort = 5000
-
-[[workflows.workflow]]
-name = "DBSetup"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node scripts/push-schema.js"
 
 [deployment]
 run = ["sh", "-c", "npm install && npm run start"]
