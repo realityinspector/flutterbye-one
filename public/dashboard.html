@@ -613,16 +613,30 @@
   </div>
 
   <script>
+    let isPageLoaded = false;
+
     document.addEventListener('DOMContentLoaded', function() {
-      // Check authentication
-      fetch('/api/user')
-        .then(response => {
-          if (!response.ok) {
-            // Not authenticated, redirect to landing page
-            window.location.href = '/';
-            return;
+      // Only run authentication check once per page load
+      if (isPageLoaded) return;
+      isPageLoaded = true;
+      
+      console.log('Dashboard page loaded - checking authentication');
+      
+      // Check authentication status without redirect loop
+      fetch('/dashboard-check')
+        .then(response => response.json())
+        .then(data => {
+          console.log('Authentication check result:', data);
+          if (!data.authenticated) {
+            // Not authenticated, redirect to landing page with query param
+            console.log('Not authenticated, redirecting to login');
+            window.location.replace('/?auth=required'); // Using replace to avoid browser history issues
+            return null; // Return null to break the chain
           }
-          return response.json();
+          
+          // User is authenticated, proceed with fetching user details
+          console.log('User is authenticated, fetching details');
+          return fetch('/api/user').then(response => response.json());
         })
         .then(data => {
           if (data && data.success && data.user) {

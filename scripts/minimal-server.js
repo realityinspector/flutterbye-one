@@ -55,9 +55,13 @@ app.get('/', (req, res) => {
 
 // Middleware to check if user is authenticated for dashboard
 const checkDashboardAccess = (req, res, next) => {
+  // Check if there's an active user session
   if (!req.session.user) {
-    return res.redirect('/?auth=required');
+    console.log('No session found, redirecting to login');
+    // Add a flag to prevent redirect loops
+    return res.redirect('/?auth=required&redirected=true');
   }
+  console.log('User authenticated, proceeding to dashboard');
   next();
 };
 
@@ -66,7 +70,6 @@ const spaRoutes = [
   '/dashboard',
   '/calls',
   '/leads/new',
-  '/leads/:id',
   '/settings',
   '/call-queue'
 ];
@@ -74,19 +77,20 @@ const spaRoutes = [
 spaRoutes.forEach(route => {
   app.get(route, checkDashboardAccess, (req, res) => {
     console.log(`${route} page request`);
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    // Send the dashboard HTML instead of index.html for authenticated routes
+    res.sendFile(path.join(__dirname, '../public/dashboard.html'));
   });
 });
 
 // Fallback for dynamic routes with parameters
 app.get('/leads/:id', checkDashboardAccess, (req, res) => {
   console.log(`Lead detail page request for ID: ${req.params.id}`);
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+  res.sendFile(path.join(__dirname, '../public/dashboard.html'));
 });
 
 app.get('/calls/:id', checkDashboardAccess, (req, res) => {
   console.log(`Call detail page request for ID: ${req.params.id}`);
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+  res.sendFile(path.join(__dirname, '../public/dashboard.html'));
 });
 
 // API login route
@@ -188,6 +192,15 @@ app.get('/api/user', (req, res) => {
     success: true,
     user: req.session.user
   });
+});
+
+// Break the redirect loop for dashboard
+app.get('/dashboard-check', (req, res) => {
+  if (req.session.user) {
+    return res.json({ authenticated: true });
+  } else {
+    return res.json({ authenticated: false });
+  }
 });
 
 // API leads route

@@ -507,27 +507,34 @@
   <script>
     // Check if user is already logged in
     document.addEventListener('DOMContentLoaded', function() {
-      // Check for the auth=required parameter to prevent redirect loops
+      console.log('Index page loaded - checking URL parameters');
+      
+      // Check URL parameters to avoid redirect loops
       const urlParams = new URLSearchParams(window.location.search);
       const authRequired = urlParams.get('auth') === 'required';
+      const wasRedirected = urlParams.get('redirected') === 'true';
       
-      // If user was redirected due to auth requirement, don't do automatic redirect check
-      if (!authRequired) {
-        // Check auth status only if not already redirected from dashboard
-        fetch('/api/user')
-          .then(response => {
-            if (response.ok) {
-              return response.json().then(data => {
-                if (data.success && data.user) {
-                  // User is authenticated, redirect to dashboard
-                  window.location.href = '/dashboard';
-                }
-              });
+      console.log('Auth required:', authRequired, 'Was redirected:', wasRedirected);
+      
+      // Only check auth status if we weren't redirected here from dashboard
+      if (!authRequired || !wasRedirected) {
+        console.log('Checking authentication status');
+        // Make a single auth check request
+        fetch('/dashboard-check')
+          .then(response => response.json())
+          .then(data => {
+            console.log('Auth check result:', data);
+            if (data.authenticated) {
+              // User is authenticated, redirect to dashboard
+              console.log('User authenticated, redirecting to dashboard');
+              window.location.replace('/dashboard');
             }
           })
           .catch(error => {
             console.error('Auth check failed:', error);
           });
+      } else {
+        console.log('Skipping auth check due to redirect parameters');
       }
       
       // If auth is required, show a message to the user
