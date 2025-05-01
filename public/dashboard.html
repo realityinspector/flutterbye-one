@@ -614,6 +614,42 @@
 
   <script>
     let isPageLoaded = false;
+    let currentPath = window.location.pathname;
+
+    // Function to update UI based on current path
+    function updateUIForCurrentPath() {
+      // Reset all menu items to inactive
+      document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      // Set page title and active menu item based on path
+      const pageTitle = document.querySelector('.page-title');
+      
+      if (currentPath === '/dashboard') {
+        pageTitle.textContent = 'Dashboard';
+        document.querySelector('.menu-item a[href="/dashboard"]').parentElement.classList.add('active');
+      } 
+      else if (currentPath === '/leads') {
+        pageTitle.textContent = 'Leads';
+        document.querySelector('.menu-item a[href="/leads"]').parentElement.classList.add('active');
+        // Hide dashboard specific content
+        document.querySelectorAll('.card-grid, #callsTableBody').forEach(el => {
+          el.closest('.table-container')?.style.setProperty('display', 'none');
+        });
+      }
+      else if (currentPath === '/calls') {
+        pageTitle.textContent = 'Calls';
+        document.querySelector('.menu-item a[href="/calls"]').parentElement.classList.add('active');
+        // Hide dashboard specific content
+        document.querySelectorAll('.card-grid').forEach(el => {
+          el.style.setProperty('display', 'none');
+        });
+        document.querySelectorAll('#leadsTableBody').forEach(el => {
+          el.closest('.table-container')?.style.setProperty('display', 'none');
+        });
+      }
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
       // Only run authentication check once per page load
@@ -796,8 +832,8 @@
             results.forEach(({ call, lead }) => {
               const tr = document.createElement('tr');
               tr.innerHTML = `
-                <td>${lead ? lead.globalLead.companyName : 'Unknown Company'}</td>
-                <td>${lead ? lead.globalLead.contactName : 'Unknown Contact'}</td>
+                <td>${lead && lead.globalLead ? lead.globalLead.companyName : 'Unknown Company'}</td>
+                <td>${lead && lead.globalLead ? lead.globalLead.contactName : 'Unknown Contact'}</td>
                 <td>${formatDateTime(call.callDate)}</td>
                 <td>${call.duration ? formatDuration(call.duration) : 'N/A'}</td>
                 <td><span class="status ${call.outcome === 'interested' ? 'qualified' : 'new'}">${call.outcome ? call.outcome.charAt(0).toUpperCase() + call.outcome.slice(1) : 'Unknown'}</span></td>
@@ -856,6 +892,9 @@
           console.error('Logout error:', error);
         });
       });
+      
+      // Update UI based on current path
+      updateUIForCurrentPath();
     });
   </script>
 </body>

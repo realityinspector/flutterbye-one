@@ -69,6 +69,7 @@ const checkDashboardAccess = (req, res, next) => {
 const spaRoutes = [
   '/dashboard',
   '/calls',
+  '/leads',
   '/leads/new',
   '/settings',
   '/call-queue'
