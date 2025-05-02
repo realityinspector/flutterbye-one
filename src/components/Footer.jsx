@@ -12,7 +12,7 @@ const Footer = () => {
   };
   
   return (
-    <Box bg="dark.800" px={4} py={6} width="100%" left={0} right={0} alignSelf="center">
+    <Box bg="dark.800" px={4} py={6} width="100%" left={0} right={0} alignSelf="center" maxWidth="100%">
       <VStack space={4} width="100%">
         <HStack justifyContent="space-between" flexWrap="wrap">
           <VStack space={2} mb={4} minW="180px">
@@ -64,8 +64,8 @@ const Footer = () => {
             <Image 
               source={require('../../public/images/aot-labs-logo.png')} 
               alt="AOT Labs Logo" 
-              width={116} 
-              height={35} 
+              width={232} 
+              height={70} 
               resizeMode="contain"
             />
           </Pressable>

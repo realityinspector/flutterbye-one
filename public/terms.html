@@ -107,6 +107,8 @@
       color: white;
       padding: 2rem 1rem;
       margin-top: auto;
+      width: 100%;
+      box-sizing: border-box;
     }
     
     .footer-content {
@@ -145,6 +147,18 @@
       border-top: 1px solid rgba(255, 255, 255, 0.1);
       font-size: 0.9rem;
       color: #aaa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .footer-logo {
+      margin-top: 1.5rem;
+    }
+    
+    .footer-logo img {
+      max-width: 100%;
+      height: auto;
     }
   </style>
 </head>
@@ -221,6 +235,11 @@
     </div>
     <div class="footer-bottom">
       <p>&copy; 2025 FLUTTERBYE. All rights reserved.</p>
+      <div class="footer-logo">
+        <a href="https://allonething.xyz" target="_blank">
+          <img src="/images/aot-labs-logo.png" alt="AOT Labs Logo" width="232" height="70">
+        </a>
+      </div>
     </div>
   </footer>
 </body>
