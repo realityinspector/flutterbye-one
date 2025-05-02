@@ -29,10 +29,11 @@ const server = registerRoutes(app);
 
 // Start server
 const { PORT } = config;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Enhanced server running on port ${PORT}`);
+const port = PORT || 5000;
+server.listen(port, '0.0.0.0', () => {
+  console.log(`Enhanced server running on port ${port}`);
   console.log('Server address:', server.address());
-  console.log(`Server is ready at http://localhost:${PORT}`);
+  console.log(`Server is ready at http://0.0.0.0:${port}`);
   
   // Check for new users and seed demo data
   // This runs after the server has started to avoid blocking startup
