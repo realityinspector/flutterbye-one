@@ -13,6 +13,8 @@ Walk N Talk CRM is a comprehensive mobile customer relationship management syste
 - **API Endpoints**: RESTful API endpoints for all CRM functionalities
 - **User Roles**: Admin and regular user roles with different permissions
 - **First-User Detection**: Special admin privileges for the first registered user
+- **AI Integration**: OpenRouter API integration for AI-powered features including web search
+- **Lead Generation**: AI-assisted lead generation with natural language processing
 
 ## Technical Stack
 
@@ -85,6 +87,7 @@ Walk N Talk CRM is a comprehensive mobile customer relationship management syste
 ### Prerequisites
 - Node.js (v16+)
 - PostgreSQL database
+- OpenRouter API key (for AI features)
 
 ### Installation
 
@@ -101,6 +104,30 @@ The application requires a PostgreSQL database. The schema can be created by run
 ```bash
 # Push the schema to the database
 node scripts/push-schema.js
+```
+
+### OpenRouter Setup
+
+1. Register for an account at [OpenRouter](https://openrouter.ai/)
+2. Create an API key in your OpenRouter dashboard
+3. Add your API key to the environment variables:
+   ```
+   OPENROUTER_API_KEY=your_api_key_here
+   ```
+
+#### Testing OpenRouter Integration
+
+You can verify the OpenRouter integration by running:
+
+```bash
+# Test OpenRouter functionality
+node scripts/test-openrouter.js
+```
+
+Or use the workflow:
+
+```
+Running workflow: TestOpenRouter
 ```
 
 ### Running the Application

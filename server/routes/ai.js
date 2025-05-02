@@ -137,6 +137,132 @@ router.post('/search', async (req, res) => {
 });
 
 /**
+ * Generate leads based on natural language description
+ */
+router.post('/leads/generate', async (req, res) => {
+  try {
+    const { description, options = {} } = req.body;
+    
+    if (!description) {
+      return res.status(400).json({ success: false, message: 'Lead description is required' });
+    }
+
+    // Add user ID to options
+    const leadOptions = {
+      ...options,
+      userId: req.user.id,
+    };
+
+    const result = await webSearchService.generateLeads(description, leadOptions);
+    return res.json(result);
+  } catch (error) {
+    console.error('Error in lead generation:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Failed to generate leads'
+    });
+  }
+});
+
+/**
+ * Create leads from AI-generated lead data
+ */
+router.post('/leads/create', async (req, res) => {
+  try {
+    const { leads = [], interactionId } = req.body;
+    
+    if (!leads.length) {
+      return res.status(400).json({ success: false, message: 'Lead data is required' });
+    }
+
+    // Validate the interaction if provided
+    if (interactionId) {
+      const interaction = await aiStorageService.getInteraction(parseInt(interactionId));
+      if (!interaction) {
+        return res.status(404).json({ success: false, message: 'Interaction not found' });
+      }
+      
+      // Check if the user owns this interaction
+      if (interaction.userId && interaction.userId !== req.user.id) {
+        return res.status(403).json({ success: false, message: 'Unauthorized access to interaction' });
+      }
+    }
+
+    // Import services needed to create leads
+    const { db } = require('../db');
+    const { globalLeads, userLeads } = require('../../shared/db/schema');
+    
+    // Create leads
+    const createdLeads = [];
+    const { pool } = require('../db');
+    
+    for (const lead of leads) {
+      // Create global lead record using raw SQL
+      const globalLeadQuery = `
+        INSERT INTO global_leads 
+        (company_name, contact_name, phone_number, email, industry, website, address, city, state, zip_code, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+        RETURNING *
+      `;
+      
+      const globalLeadValues = [
+        lead.companyName || 'Unknown Company',
+        lead.contactName || null,
+        lead.phoneNumber || null,
+        lead.email || null,
+        lead.industry || null,
+        lead.website || null,
+        lead.address || null,
+        lead.city || null,
+        lead.state || null,
+        lead.zipCode || null
+      ];
+      
+      const globalLeadResult = await pool.query(globalLeadQuery, globalLeadValues);
+      const globalLead = globalLeadResult.rows[0];
+      
+      // Create user-specific lead record using raw SQL
+      const userLeadQuery = `
+        INSERT INTO user_leads
+        (user_id, global_lead_id, status, priority, notes, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+        RETURNING *
+      `;
+      
+      const userLeadValues = [
+        req.user.id,
+        globalLead.id,
+        'new',
+        5, // Default medium priority
+        lead.description || ''
+      ];
+      
+      const userLeadResult = await pool.query(userLeadQuery, userLeadValues);
+      const userLead = userLeadResult.rows[0];
+      
+      // Combine data for response
+      createdLeads.push({
+        ...userLead,
+        globalLead
+      });
+    }
+    
+    // Return success response with created leads
+    return res.status(201).json({ 
+      success: true, 
+      message: `Successfully created ${createdLeads.length} leads`, 
+      data: createdLeads 
+    });
+  } catch (error) {
+    console.error('Error creating leads from AI data:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Failed to create leads from AI data'
+    });
+  }
+});
+
+/**
  * Analyze search results with follow-up questions
  */
 router.post('/search/analyze', async (req, res) => {

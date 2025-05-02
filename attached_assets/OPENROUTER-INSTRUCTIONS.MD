@@ -1,102 +1,74 @@
-# OpenRouter API Integration Guide
+# OpenRouter Integration Guide
 
 ## Overview
 
-OpenRouter provides a unified API interface to access various AI models from different providers, including OpenAI, Anthropic, and open-source models like Llama. This document explains how to use our service layer for interacting with these models.
+This document outlines the integration of OpenRouter's API service into our CRM application. OpenRouter serves as a unified gateway to state-of-the-art AI language models, allowing our application to leverage various AI capabilities including standard chat completions and web-enabled search functionality.
 
-## Features
+## Key Features
 
-- **Standard Chat Completions**: Generate text responses using various models
-- **Web Search Capabilities**: Access AI models with web search functionality
-- **Dynamic Model Selection**: Choose between different models based on your needs
-- **Interaction Management**: Store and retrieve conversation history
+### 1. Web Search vs. Standard Chat
 
-## Usage
+OpenRouter integration supports two distinct modes of operation:
 
-### Basic Chat Completion
+- **Standard Chat Completion**: Uses AI models (OpenAI GPT or Llama) for answering questions based solely on the model's training data. No external information sources are accessed.
+
+- **Web Search-Enabled Chat**: Specifically uses OpenAI's models with the "online" capability suffix (e.g., "gpt-4o:online") to perform web searches and incorporate up-to-date information in responses. This mode is crucial for retrieving current information beyond the model's training cutoff date.
+
+### 2. Lead Generation with Natural Language
+
+A specialized implementation of the web search functionality is the "Find New Leads" feature, which allows users to describe their ideal prospects in natural language and receive structured lead information.
+
+## Lead Generation Workflow
+
+1. **User Request**: The user enters a natural language description of the leads they're looking for (e.g., "Find software companies in Boston with 20-50 employees specializing in healthcare")
+
+2. **Progress Notification**: The system shows a progress indicator while the AI searches the web for matching leads
+
+3. **Structured Results**: The AI returns leads in a standardized JSON format with the following fields:
+   - Company name
+   - Contact information (when available)
+   - Industry
+   - Location data
+   - Website
+   - Description of why the lead matches the criteria
+   - Source URLs for verification
+
+4. **Lead Approval**: Users can review the generated leads and select which ones to import into their CRM database
+
+## Technical Implementation
+
+### Web Search Configuration
+
+When utilizing web search capabilities, the following parameters are used:
 
 ```javascript
-const { openRouterService } = require('./server/services/ai/openRouter');
-
-// Example: Standard text completion
-async function getCompletion() {
-  const result = await openRouterService.chatCompletion(
-    'Write a short poem about AI',
-    {
-      model: 'openai/gpt-4o', // Use GPT-4o
-      temperature: 0.7,      // Control randomness
-      maxTokens: 200         // Limit response length
-    }
-  );
-  
-  if (result.success) {
-    console.log('Response:', result.data.text);
-    console.log('Interaction ID:', result.interactionId);
-  } else {
-    console.error('Error:', result.error);
-  }
+{
+  model: "openai/gpt-4o:online", // Must use a model with :online suffix
+  webSearch: true,               // Enable web search capability
+  temperature: 0.3,              // Lower temperature for more focused results
+  maxTokens: 3000                // Higher token limit for comprehensive results
 }
 ```
 
-### Web Search Completion
+### Lead Generation Template
 
-```javascript
-// Example: Web search functionality
-async function searchWeb() {
-  const result = await openRouterService.webSearchChatCompletion(
-    'What are the latest developments in quantum computing?',
-    {
-      temperature: 0.5,
-      maxTokens: 300
-    }
-  );
-  
-  if (result.success) {
-    console.log('Response with web search results:', result.data.text);
-  } else {
-    console.error('Web search failed:', result.error);
-  }
-}
-```
+To ensure consistent results, lead generation uses a standardized prompt template that:
 
-## Available Models
+1. Instructs the AI to act as a sales research assistant
+2. Provides specific format requirements for the structured data
+3. Requests a brief summary of the search results
+4. Demands sources for all information provided
 
-- `openai/gpt-4o` - Latest GPT-4 model (standard)
-- `openai/gpt-4o:online` - GPT-4 with web search capabilities
-- `anthropic/claude-3-opus` - Claude 3 Opus model (high quality, more expensive)
-- `anthropic/claude-3-sonnet` - Claude 3 Sonnet model (balanced)
-- `anthropic/claude-3-haiku` - Claude 3 Haiku model (fastest)
+### Data Processing
 
-For a complete list of available models, check the [OpenRouter documentation](https://openrouter.ai/docs).
+The system extracts both structured lead data and a text summary from the AI response, allowing users to both understand the search context and access detailed lead information.
 
-## Configuration
+## Usage Notes
 
-The system uses an environment variable for authentication:
+1. The system will always use OpenAI's online models for web search and lead generation, as these capabilities require web access
 
-- `OPENROUTER_API_KEY`: Your API key from OpenRouter
+2. For standard chat completions without web search, the system can use either OpenAI or other available models like Llama
 
-## Performance Considerations
+3. Lead generation can return 1-5 leads per request, balancing between breadth and quality
 
-- Web search operations generally take longer than standard completions
-- For time-sensitive operations, consider using faster models like Claude 3 Haiku
-- Token usage is tracked for each interaction
-
-## Troubleshooting
-
-- If you encounter rate limits, consider using a different model provider
-- Check your API key if you receive authentication errors
-- For persistent errors, review the OpenRouter status page
-
-## Testing
-
-Use the test script to verify your setup:
-
-```
-node scripts/test-openrouter.js
-```
-
-Or use the workflow:
-
-```
-Running workflow: TestOpenRouter
-```
+4. All generated leads include source URLs, allowing users to verify the information before importing

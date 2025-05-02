@@ -5,11 +5,90 @@
 
 const { openRouterService } = require('./openRouter');
 const { aiStorageService } = require('./aiStorage');
+const { getLeadGenerationPrompt, extractLeadsFromResponse } = require('./leadPromptTemplate');
 
 /**
  * Web Search service for making web searches through OpenRouter
  */
 class WebSearchService {
+  /**
+   * Generate leads based on a natural language description
+   */
+  async generateLeads(description, options = {}) {
+    try {
+      // Get configuration if specified
+      let config = null;
+      if (options.configId) {
+        config = await aiStorageService.getConfig(options.configId);
+      } else {
+        config = await aiStorageService.getActiveConfig();
+      }
+
+      const model = options.model || (config && config.webSearchModel) || 'openai/gpt-4o:online';
+      // Use our templated prompt for lead generation
+      const prompt = getLeadGenerationPrompt(description);
+
+      // Set up search options
+      const leadOptions = {
+        model,
+        // No system prompt needed as prompt template handles it
+        temperature: options.temperature || (config && config.temperature) || 0.5,
+        maxTokens: options.maxTokens || (config && config.maxTokens) || 3000,
+        webSearch: true,
+        userId: options.userId,
+        configId: options.configId || (config && config.id),
+        metadata: {
+          leadGeneration: true,
+          criteria: description,
+          searchType: 'lead_gen',
+        },
+        response_format: { type: 'json_object' },
+      };
+
+      // Call OpenRouter with web search capabilities and full prompt
+      const result = await openRouterService.webSearchChatCompletion(prompt, leadOptions);
+
+      if (!result.success) {
+        return {
+          success: false,
+          error: result.error || 'Lead generation failed',
+        };
+      }
+
+      // Parse the response to extract leads and summary
+      let leads = [];
+      let summary = '';
+      try {
+        // Use our lead extraction utility
+        const extracted = extractLeadsFromResponse(result.data.text);
+        leads = extracted.leads || [];
+        summary = extracted.summary || 'Lead generation complete';
+      } catch (parseError) {
+        console.error('Error extracting leads from response:', parseError);
+        return {
+          success: false,
+          error: 'Failed to parse lead generation results',
+          rawText: result.data.text,
+        };
+      }
+
+      // Return the lead generation results
+      return {
+        success: true,
+        leads,
+        sources: leads.flatMap(lead => lead.sources || []), // Aggregate sources from all leads
+        summary,
+        interactionId: result.interactionId,
+      };
+    } catch (error) {
+      console.error('Lead generation error:', error);
+      return {
+        success: false,
+        error: error.message || 'An error occurred during lead generation',
+      };
+    }
+  }
+
   /**
    * Perform a web search using OpenRouter
    */

@@ -3,7 +3,8 @@
  * Handles database operations for AI-related data
  */
 
-const { db } = require('../../db');
+const { db, pool } = require('../../db');
+// Keep Drizzle imports for reference but use raw SQL
 const { eq, desc, and, isNull } = require('drizzle-orm');
 const {
   aiConfigs,
@@ -31,13 +32,14 @@ class AiStorageService {
   }
 
   async getActiveConfig() {
-    const [config] = await db
-      .select()
-      .from(aiConfigs)
-      .where(eq(aiConfigs.isActive, true))
-      .orderBy(aiConfigs.id)
-      .limit(1);
-    return config || null;
+    try {
+      const query = 'SELECT * FROM ai_configs WHERE is_active = true ORDER BY id LIMIT 1';
+      const result = await pool.query(query);
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error fetching active AI config:', error);
+      return null;
+    }
   }
 
   async updateConfig(id, data) {

@@ -2,8 +2,9 @@
  * Test script for OpenRouter integration
  */
 
-// Import our service
+// Import our services
 const { openRouterService } = require('../server/services/ai/openRouter');
+const { webSearchService } = require('../server/services/ai/webSearch');
 
 async function main() {
   try {
@@ -49,6 +50,32 @@ async function main() {
       console.log('Token usage:', result2.data.usage);
     } else {
       console.error('Web search completion failed:', result2.error);
+    }
+    
+    // Test lead generation capabilities
+    console.log('\n--- Testing lead generation ---');
+    try {
+      const result3 = await webSearchService.generateLeads(
+        'Find tech startups in Boston that focus on artificial intelligence and have less than 50 employees',
+        {
+          temperature: 0.3,
+          maxTokens: 3000
+        }
+      );
+      
+      if (result3.success) {
+        console.log('Lead generation succeeded!');
+        console.log(`Generated ${result3.leads.length} leads`);
+        if (result3.leads.length > 0) {
+          console.log('Example lead:', JSON.stringify(result3.leads[0], null, 2));
+        }
+        console.log('Sources:', result3.sources);
+        console.log('Interaction ID:', result3.interactionId);
+      } else {
+        console.error('Lead generation failed:', result3.error);
+      }
+    } catch (error) {
+      console.error('Lead generation error:', error.message);
     }
     
     console.log('\nAll tests completed!');

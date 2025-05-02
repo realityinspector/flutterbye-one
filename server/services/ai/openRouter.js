@@ -135,13 +135,21 @@ class OpenRouterService {
       });
 
       // Make the API request
-      const response = await client.chat.completions.create({
+      const requestOptions = {
         model,
         messages,
         temperature: options.temperature ?? 0.7,
         max_tokens: options.maxTokens ?? 2000,
-        response_format: { type: 'text' },
-      });
+      };
+      
+      // Set response format if specified
+      if (options.response_format) {
+        requestOptions.response_format = options.response_format;
+      } else {
+        requestOptions.response_format = { type: 'text' };
+      }
+      
+      const response = await client.chat.completions.create(requestOptions);
 
       const completionText = response.choices[0]?.message?.content;
       const duration = Date.now() - startTime;
@@ -149,16 +157,20 @@ class OpenRouterService {
       // Update the interaction in the database with results
       console.log(`Updating interaction #${interaction.id} with completion data in database`);
       
-      await db
-        .update(aiInteractions)
-        .set({
-          response: completionText || '',
-          status: 'completed',
-          duration,
-          tokenCount: response.usage?.total_tokens || 0,
-          updatedAt: new Date()
-        })
-        .where(eq(aiInteractions.id, interaction.id));
+      // Use raw SQL query for update instead of Drizzle ORM
+      const updateQuery = `
+        UPDATE ai_interactions 
+        SET response = $1, status = $2, duration = $3, token_count = $4, updated_at = NOW()
+        WHERE id = $5
+      `;
+      
+      await pool.query(updateQuery, [
+        completionText || '',
+        'completed',
+        duration,
+        response.usage?.total_tokens || 0,
+        interaction.id
+      ]);
 
       return {
         success: true,
@@ -205,22 +217,20 @@ class OpenRouterService {
    */
   async getConfig(configId) {
     try {
+      let query;
+      let params = [];
+      
       if (configId) {
         // Fetch specific config
-        const [config] = await db.query.aiConfigs.findMany({
-          where: (aiConfigs, { eq }) => eq(aiConfigs.id, configId),
-          limit: 1,
-        });
-        return config || null;
+        query = 'SELECT * FROM ai_configs WHERE id = $1 LIMIT 1';
+        params = [configId];
       } else {
         // Get default active config
-        const [config] = await db.query.aiConfigs.findMany({
-          where: (aiConfigs, { eq }) => eq(aiConfigs.isActive, true),
-          orderBy: (aiConfigs, { asc }) => [asc(aiConfigs.id)],
-          limit: 1,
-        });
-        return config || null;
+        query = 'SELECT * FROM ai_configs WHERE is_active = true ORDER BY id ASC LIMIT 1';
       }
+      
+      const result = await pool.query(query, params);
+      return result.rows[0] || null;
     } catch (error) {
       console.error('Error fetching AI config:', error);
       return null;
@@ -232,11 +242,9 @@ class OpenRouterService {
    */
   async getInteraction(interactionId) {
     try {
-      const [interaction] = await db.query.aiInteractions.findMany({
-        where: (aiInteractions, { eq }) => eq(aiInteractions.id, interactionId),
-        limit: 1,
-      });
-      return interaction || null;
+      const query = 'SELECT * FROM ai_interactions WHERE id = $1 LIMIT 1';
+      const result = await pool.query(query, [interactionId]);
+      return result.rows[0] || null;
     } catch (error) {
       console.error('Error fetching AI interaction:', error);
       return null;
