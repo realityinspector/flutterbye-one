@@ -1,0 +1,115 @@
+Thought for 30 seconds
+
+
+OpenAI’s Chat Completions endpoint treats “web search” exactly like any other function-calling tool:
+
+## 1. Declare the tool
+
+Include a `tools` entry of type `web_search` (or any custom name—“web\_search” is just a convention). The schema can be minimal: one required string parameter called `query`. ([OpenAI Platform][1], [OpenAI Platform][2])
+
+## 2. Ask the question
+
+Send the usual `system` and `user` messages along with the `tools` list. ([OpenAI Platform][3], [OpenAI Community][4])
+
+## 3. Model decides
+
+If the model thinks it needs fresh data it returns a message with
+
+```json
+{
+  "role": "assistant",
+  "tool_calls": [{
+      "id": "call_001",
+      "type": "web_search",
+      "function": { "name": "web_search", "arguments": "{\"query\":\"...\"}" }
+  }]
+}
+```
+
+`finish_reason == "tool_calls"` signals you to run the tool. ([OpenAI Platform][3])
+
+## 4. Run the search
+
+Your backend (or a helper library) executes the query against a search API and returns an array of result objects—title, snippet, url, etc. ([OpenRouter][5], [GitHub][6])
+
+## 5. Return results to the model
+
+Append a new message:
+
+```json
+{
+  "role": "tool",
+  "tool_call_id": "call_001",
+  "content": JSON.stringify(results)
+}
+```
+
+Then call `chat.completions` again. The model uses the results to craft the final answer. ([OpenAI Platform][7], [OpenAI Community][8])
+
+## 6. Repeat until `finish_reason == "stop"`
+
+You loop until the model stops calling tools. ([OpenAI Platform][3])
+
+### Minimal Python pattern
+
+```python
+tools = [{
+    "type": "web_search",
+    "function": {
+        "name": "web_search",
+        "description": "Search the web",
+        "parameters": {
+            "type": "object",
+            "properties": { "query": { "type": "string" } },
+            "required": ["query"]
+        }
+    }
+}]
+
+messages = [
+    {"role": "system", "content": "Answer with citations."},
+    {"role": "user", "content": "Latest SpaceX launch?"}
+]
+
+while True:
+    r = client.chat.completions.create(model="gpt-4o-mini", messages=messages, tools=tools)
+    msg = r.choices[0].message
+    if r.choices[0].finish_reason == "tool_calls":
+        q = json.loads(msg.tool_calls[0].function.arguments)["query"]
+        results = run_search_engine(q)          # your search implementation
+        messages += [
+            msg,
+            {"role": "tool", "tool_call_id": msg.tool_calls[0].id,
+             "content": json.dumps(results)}
+        ]
+    else:
+        print(msg.content)
+        break
+```
+
+## OpenRouter shortcut
+
+On OpenRouter any model can search by appending `:online` to the model slug (`"openai/gpt-4o:online"`), which transparently attaches the same `web` plugin without writing a tools array. ([OpenRouter][5], [OpenRouter][9], [OpenRouter][10])
+
+## Specialized search models
+
+OpenAI also ships “GPT-4o-Search-Preview”, pre-trained to decide and draft search calls more aggressively; it follows the identical tool-calling protocol. ([OpenRouter][11])
+
+## Ecosystem notes
+
+* Web search is available through the new Responses API and Agents SDK; Assistants API will sunset mid-2026. ([The Verge][12])
+* The feature underpins ChatGPT’s consumer “Browse” mode and the product-recommendation layer launched April 28 2025. ([reuters.com][13])
+
+[1]: https://platform.openai.com/docs/guides/tools?utm_source=chatgpt.com "Built-in tools - OpenAI API"
+[2]: https://platform.openai.com/docs/guides/tools-web-search?utm_source=chatgpt.com "Web search - OpenAI API"
+[3]: https://platform.openai.com/docs/guides/function-calling?utm_source=chatgpt.com "Function calling - OpenAI API"
+[4]: https://community.openai.com/t/prompting-best-practices-for-tool-use-function-calling/1123036?utm_source=chatgpt.com "Prompting Best Practices for Tool Use (Function Calling)"
+[5]: https://openrouter.ai/docs/features/web-search?utm_source=chatgpt.com "Web Search | Add Real-time Web Data to AI Model Responses"
+[6]: https://github.com/openai/openai-cookbook/blob/main/examples/third_party/Web_search_with_google_api_bring_your_own_browser_tool.ipynb?utm_source=chatgpt.com "Web_search_with_google_api_b..."
+[7]: https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat&utm_source=chatgpt.com "Web search - OpenAI API"
+[8]: https://community.openai.com/t/new-tools-for-building-agents-responses-api-web-search-file-search-computer-use-and-agents-sdk/1140896?utm_source=chatgpt.com "New tools for building agents: Responses API, web search, file ..."
+[9]: https://openrouter.ai/announcements/introducing-web-search-via-the-api?utm_source=chatgpt.com "Introducing Web Search via the API - OpenRouter"
+[10]: https://openrouter.ai/models?utm_source=chatgpt.com "Models | OpenRouter"
+[11]: https://openrouter.ai/openai/gpt-4o-search-preview?utm_source=chatgpt.com "GPT-4o Search Preview - API, Providers, Stats - OpenRouter"
+[12]: https://www.theverge.com/news/627556/openai-ai-agents-responses-api-agents-sdk?utm_source=chatgpt.com "OpenAI will let other apps deploy its computer-operating AI"
+[13]: https://www.reuters.com/business/media-telecom/openai-rolls-out-new-shopping-features-with-chatgpt-search-update-2025-04-28/?utm_source=chatgpt.com "OpenAI rolls out new shopping features with ChatGPT search update"

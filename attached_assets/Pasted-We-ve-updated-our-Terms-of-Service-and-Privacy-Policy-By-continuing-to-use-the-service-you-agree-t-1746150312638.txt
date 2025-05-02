@@ -1,0 +1,225 @@
+We've updated our Terms of Service and Privacy Policy. By continuing to use the service, you agree to these new terms.
+
+Skip to content
+
+OpenRouter
+Search models
+/
+Models
+Chat
+Rankings
+Docs
+
+Avatar for undefined
+
+Input Modalities
+Text
+Image
+File
+
+Context length
+4K
+64K
+1M
+
+Prompt pricing
+FREE
+$0.5
+$10+
+
+Series
+GPT
+
+Claude
+Gemini
+More…
+
+Categories
+Roleplay
+Programming
+Marketing
+More…
+
+Supported Parameters
+tools
+temperature
+top_p
+More…
+
+Providers
+AI21
+AionLabs
+Alibaba
+More…
+Models
+35 models
+Reset Filters
+Filter models
+SortNewest
+Top Weekly
+Pricing: Low to High
+Pricing: High to Low
+Context: High to Low
+Throughput: High to Low
+Latency: Low to High
+
+
+OpenAI: o1-mini
+213M tokens
+The latest and strongest model family from OpenAI, o1 is designed to spend more time thinking before responding.  The o1 models are optimized for math, science, programming, and other STEM-related tasks. They consistently exhibit PhD-level accuracy on benchmarks in physics, chemistry, and biology. Learn more in the launch announcement.  Note: This model is currently experimental and not suitable for production use-cases, and may be heavily rate-limited.
+
+by openai
+128K context
+$1.10/M input tokens
+$4.40/M output tokens
+OpenAI: o1-mini (2024-09-12)
+5.87M tokens
+The latest and strongest model family from OpenAI, o1 is designed to spend more time thinking before responding.  The o1 models are optimized for math, science, programming, and other STEM-related tasks. They consistently exhibit PhD-level accuracy on benchmarks in physics, chemistry, and biology. Learn more in the launch announcement.  Note: This model is currently experimental and not suitable for production use-cases, and may be heavily rate-limited.
+
+by openai
+128K context
+$1.10/M input tokens
+$4.40/M output tokens
+OpenAI: ChatGPT-4o
+1.05B tokens
+OpenAI ChatGPT 4o is continually updated by OpenAI to point to the current version of GPT-4o used by ChatGPT. It therefore differs slightly from the API version of GPT-4o in that it has additional RLHF. It is intended for research and evaluation.  OpenAI notes that this model is not suited for production use-cases as it may be removed or redirected to another model in the future.
+
+by openai
+128K context
+$5/M input tokens
+$15/M output tokens
+$7.225/K input imgs
+OpenAI: GPT-4o (2024-08-06)
+632M tokens
+The 2024-08-06 version of GPT-4o offers improved performance in structured outputs, with the ability to supply a JSON schema in the respone_format. Read more here.  GPT-4o ("o" for "omni") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of GPT-4 Turbo while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities.  For benchmarking against other models, it was briefly called "im-also-a-good-gpt2-chatbot"
+
+by openai
+128K context
+$2.50/M input tokens
+$10/M output tokens
+$3.613/K input imgs
+OpenAI: GPT-4o-mini
+32.2B tokens
+
+Science (#1)
+
+Marketing/Seo (#2)
+
+Finance (#3)
+
+Legal (#5)
+
+Trivia (#5)
+
++5 categories
+GPT-4o mini is OpenAI's newest model after GPT-4 Omni, supporting both text and image inputs with text outputs.  As their most advanced small model, it is many multiples more affordable than other recent frontier models, and more than 60% cheaper than GPT-3.5 Turbo. It maintains SOTA intelligence, while being significantly more cost-effective.  GPT-4o mini achieves an 82% score on MMLU and presently ranks higher than GPT-4 on chat preferences common leaderboards.  Check out the launch announcement to learn more.  #multimodal
+
+by openai
+128K context
+$0.15/M input tokens
+$0.60/M output tokens
+$0.217/K input imgs
+OpenAI: GPT-4o-mini (2024-07-18)
+2.56B tokens
+
+Translation (#5)
+GPT-4o mini is OpenAI's newest model after GPT-4 Omni, supporting both text and image inputs with text outputs.  As their most advanced small model, it is many multiples more affordable than other recent frontier models, and more than 60% cheaper than GPT-3.5 Turbo. It maintains SOTA intelligence, while being significantly more cost-effective.  GPT-4o mini achieves an 82% score on MMLU and presently ranks higher than GPT-4 on chat preferences common leaderboards.  Check out the launch announcement to learn more.  #multimodal
+
+by openai
+128K context
+$0.15/M input tokens
+$0.60/M output tokens
+$7.225/K input imgs
+OpenAI: GPT-4o
+6.98B tokens
+
+Marketing (#8)
+GPT-4o ("o" for "omni") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of GPT-4 Turbo while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities.  For benchmarking against other models, it was briefly called "im-also-a-good-gpt2-chatbot"  #multimodal
+
+by openai
+128K context
+$2.50/M input tokens
+$10/M output tokens
+$3.613/K input imgs
+OpenAI: GPT-4o (extended)
+20M tokens
+GPT-4o ("o" for "omni") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of GPT-4 Turbo while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities.  For benchmarking against other models, it was briefly called "im-also-a-good-gpt2-chatbot"  #multimodal
+
+by openai
+128K context
+$6/M input tokens
+$18/M output tokens
+$7.225/K input imgs
+OpenAI: GPT-4o (2024-05-13)
+65.3M tokens
+GPT-4o ("o" for "omni") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of GPT-4 Turbo while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities.  For benchmarking against other models, it was briefly called "im-also-a-good-gpt2-chatbot"  #multimodal
+
+by openai
+128K context
+$5/M input tokens
+$15/M output tokens
+$7.225/K input imgs
+OpenAI: GPT-4 Turbo
+115M tokens
+The latest GPT-4 Turbo model with vision capabilities. Vision requests can now use JSON mode and function calling.  Training data: up to December 2023.
+
+by openai
+128K context
+$10/M input tokens
+$30/M output tokens
+$14.45/K input imgs
+OpenAI: GPT-3.5 Turbo (older v0613)
+8.39M tokens
+GPT-3.5 Turbo is OpenAI's fastest model. It can understand and generate natural language or code, and is optimized for chat and traditional completion tasks.  Training data up to Sep 2021.
+
+by openai
+4K context
+$1/M input tokens
+$2/M output tokens
+OpenAI: GPT-4 Turbo Preview
+4.17M tokens
+The preview GPT-4 model with improved instruction following, JSON mode, reproducible outputs, parallel function calling, and more. Training data: up to Dec 2023.  Note: heavily rate limited by OpenAI while in preview.
+
+by openai
+128K context
+$10/M input tokens
+$30/M output tokens
+OpenAI: GPT-3.5 Turbo 16k (older v1106)
+22.9M tokens
+An older GPT-3.5 Turbo model with improved instruction following, JSON mode, reproducible outputs, parallel function calling, and more. Training data: up to Sep 2021.
+
+by openai
+16K context
+$1/M input tokens
+$2/M output tokens
+OpenAI: GPT-4 Turbo (older v1106)
+70.4M tokens
+The latest GPT-4 Turbo model with vision capabilities. Vision requests can now use JSON mode and function calling.  Training data: up to April 2023.
+
+by openai
+128K context
+$10/M input tokens
+$30/M output tokens
+OpenAI: GPT-3.5 Turbo Instruct
+10.2M tokens
+This model is a variant of GPT-3.5 Turbo tuned for instructional prompts and omitting chat-related optimizations. Training data: up to Sep 2021.
+
+by openai
+4K context
+$1.50/M input tokens
+$2/M output tokens
+
+Status
+Announcements
+Partners
+Careers
+Pricing
+Privacy
+Terms
+ 
+© 2023 – 2025 OpenRouter, Inc
+
+
+
+
+Models | OpenRouter

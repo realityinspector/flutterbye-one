@@ -1,0 +1,170 @@
+**Clarifying OpenAI use in React Native**
+
+The user’s asking about using OpenAI in a React Native (JavaScript) environment. I’ll need to explain how to integrate the OpenAI API directly into React Native code — including calling the API, setting up the environment, and building components in a minimal, direct style suitable for a technical audience. I'll use code snippets without fluff or over-explanation. I'll aim for clarity, focus on API calls, and avoid unnecessary details.
+
+**Researching OpenAI API integration in React Native**
+
+I need to gather up-to-date information on using the OpenAI API in React Native, focusing on things like environment variables, polyfills, streaming, and using the official OpenAI npm package. I'll explore notable topics like expo vs. bare React Native and handling rate limits, along with the function calling feature. I’ll run efficient search queries to compile at least 10 sources across trusted domains like the official OpenAI and React Native documentation, blogs, and GitHub. Then, I’ll summarize and provide practical code examples and citations.
+
+
+**Researching OpenAI API in React Native**
+
+I need to gather up-to-date information on integrating the OpenAI API with React Native. I'll focus on the official OpenAI npm package, environment variables, polyfills for crypto, and differences between Expo and bare React Native setups. I’ll also get into function calling, streaming, and other aspects like using fetch or openai-edge. I plan to collect 10 citations from trusted sources like OpenAI docs, React Native docs, and relevant blogs for a well-rounded answer.
+
+**Preparing OpenAI API search queries**
+
+I’m planning to search various resources to gather up-to-date details on using the OpenAI API with React Native. I'll focus on areas like fetching, environment setup, streaming, securing keys, and rate limits. After collecting at least 10 sources, I’ll provide a concise summary and break it down into sections, such as setup, basic requests, streaming, and considerations like cost. Then, I’ll include relevant code snippets with proper citations. Time to dig into those queries!
+
+
+**Looking up OpenAI and React Native integration**
+
+I need to find specific details on various important topics like OpenAI npm docs, Expo streaming, React Native fetch polyfills, and security best practices. I’ll open relevant pages and gather info, but some sites might have restrictions so I’ll reference internal documentation where possible. Although some sections may not load due to access limits, I can still rely on other trusted sources to fill in the gaps and summarize key concepts for the user.
+
+
+**Searching for relevant code and resources**
+
+I’ll search again for "OpenAI quickstart sample code" to confirm any recent updates. The doc site might be blocked, but I can still see helpful snippets. I should look for more sources related to Expo and OpenAI, especially focusing on polyfills and environment variables. Opening the OpenAI fetch polyfill and looking into Expo config plugins for OpenAI should help. Citing package lock details won’t be helpful, so exploring environment variable setups is key.
+
+
+**Gathering and organizing sources for answer**
+
+I should search again for "OpenAI quickstart sample code" to see if I can gather more details. Although the site may be blocked, snippets still show up in search results, which is enough for citations. I’ll also explore other resources from domains like Expo, OpenAI, and GitHub. Once I gather enough citations, I’ll craft a clear and concise answer with a summary and organized sections, focusing on SDK choice, polyfills, and installation steps.
+
+
+**Creating code snippets**
+
+For a basic setup, I’ll import the OpenAI SDK and include polyfills for essential features like URL and crypto. A basic example would look like this:
+
+```js
+import OpenAI from "openai";
+import 'react-native-polyfill-globals/auto'; 
+
+const openai = new OpenAI({ apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY });
+const res = await openai.chat.completions.create({...});
+```
+
+I also need to include handling for streaming with `expo/fetch` since React Native fetch doesn’t natively support it. In addition, I’ll note key points like securing the API key and keeping in mind cost and rate limits.
+
+
+Thought for 1m 8s
+
+
+OpenAI in React Native is just an HTTPS client talking to the REST endpoints—nothing special—but RN lacks several Node/Web globals, so you have to polyfill or proxy. Below is the minimal, production-safe path.
+
+## 1 · Pick a client library
+
+| option                  | pros                                                | cons                                                             |                        |
+| ----------------------- | --------------------------------------------------- | ---------------------------------------------------------------- | ---------------------- |
+| `openai` (official SDK) | Types, pagination helpers, function-calling helpers | Needs `URL`, `crypto`, `ReadableStream` polyfills in RN 0.74- 52 | ([npm][1])             |
+| `openai-react-native`   | Bundles the polyfills for you                       | Smaller community, often a version behind                        | ([DEV Community][2])   |
+| Plain `fetch`           | Zero deps                                           | You implement auth headers, retries, etc.                        | ([OpenAI Platform][3]) |
+
+## 2 · Install + polyfill
+
+```bash
+npm i openai react-native-polyfill-globals    # or yarn add …
+
+# if you’re on Expo 52+ you can skip the fetch/stream polyfill
+expo install expo-secure-store
+```
+
+```js
+// app/bootstrap.js
+import 'react-native-polyfill-globals/auto';   // URL, crypto, stream
+import OpenAI from 'openai';
+
+export const openai = new OpenAI({
+  apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,   // injected at build
+});
+```
+
+The polyfill line wires up `crypto.getRandomValues`, `URL`, and `ReadableStream` which the SDK relies on. ([GitHub][4], [Stack Overflow][5])
+
+## 3 · Simple completion request
+
+```js
+const res = await openai.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages: [{ role: 'user', content: 'Say hello in Klingon' }],
+});
+setMessage(res.choices[0].message.content);
+```
+
+This is identical to the Node example in the Quickstart; only the import path differs. ([OpenAI Platform][6])
+
+## 4 · Streaming in RN
+
+`fetch` in stock React Native can’t read `response.body` streams.
+Work-arounds:
+
+* **Expo 52+**: use `import { fetch } from 'expo/fetch';`—it wires a native stream bridge. ([AI SDK][7])
+* **Bare RN**: drop in `react-native-fetch-api` or another ReadableStream shim, then pass `{ stream:true }` to the SDK. ([GitHub][8], [Stack Overflow][5])
+  If neither is feasible, pipe through your own backend and stream over WebSocket/SSE.
+
+## 5 · Function-calling (tool calls)
+
+```js
+const tools = [{
+  type: 'function',
+  function: {
+    name: 'getWeather',
+    parameters: { type:'object', properties:{ city:{type:'string'} }, required:['city'] }
+  }
+}];
+
+const res = await openai.chat.completions.create({ model:'gpt-4o', messages, tools });
+if (res.choices[0].finish_reason === 'tool_calls') {
+  // run your tool, then send another completion with role:"tool"
+}
+```
+
+Same schema as web—nothing RN-specific. ([OpenAI Platform][9])
+
+## 6 · Key management
+
+* **Never ship the secret**—anyone can decompile an IPA/APK. ([React Native][10])
+* For prototypes, inject the key at build (`EXPO_PUBLIC_…` or RN config) and store on-device with `expo-secure-store`; still vulnerable but better than plain-text. ([Expo Documentation][11])
+* For production, move the call to a signed backend or serverless function; the mobile app sends only the prompt. ([Stack Overflow][12], [OpenAI Community][13])
+
+## 7 · Rate limits & billing caps
+
+Mobile requests count the same; set per-org or per-key caps in the dashboard to avoid runaway costs. ([OpenAI Platform][14], [OpenAI Community][13])
+
+## 8 · Minimal hook
+
+```js
+import { useState } from 'react';
+import { openai } from './bootstrap';
+
+export function useChat() {
+  const [messages, set] = useState([]);
+
+  const send = async text => {
+    set([...messages, { role:'user', content:text }]);
+    const { choices } = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [...messages, { role:'user', content:text }],
+    });
+    set([...messages, choices[0].message]);
+  };
+
+  return { messages, send };
+}
+```
+
+Wrap that hook in a flat-list chat UI and you have ChatGPT in React Native. Streaming and function-calls drop into the same loop with minor tweaks.
+
+[1]: https://www.npmjs.com/package/openai "openai - npm"
+[2]: https://dev.to/depombo/npm-i-openai-react-native-3gop?utm_source=chatgpt.com "npm i openai-react-native - DEV Community"
+[3]: https://platform.openai.com/docs/quickstart?utm_source=chatgpt.com "Developer quickstart - OpenAI API"
+[4]: https://github.com/julian-hecker/naitive?utm_source=chatgpt.com "julian-hecker/naitive: Showcase using Langchain in a React Native ..."
+[5]: https://stackoverflow.com/questions/78056641/failed-react-native-stream-response-for-openai-completion-api-from-server-to-cli?utm_source=chatgpt.com "failed React Native stream response for OpenAI completion API from ..."
+[6]: https://platform.openai.com/docs/quickstart?api-mode=chat&utm_source=chatgpt.com "Developer quickstart - OpenAI API"
+[7]: https://sdk.vercel.ai/docs/getting-started/expo "Getting Started: Expo"
+[8]: https://github.com/expo/expo/discussions/21710?utm_source=chatgpt.com "fetch stream · expo expo · Discussion #21710 - GitHub"
+[9]: https://platform.openai.com/docs/guides/function-calling?utm_source=chatgpt.com "Function calling - OpenAI API"
+[10]: https://reactnative.dev/docs/security?utm_source=chatgpt.com "Security - React Native"
+[11]: https://docs.expo.dev/versions/latest/sdk/securestore/?utm_source=chatgpt.com "SecureStore - Expo Documentation"
+[12]: https://stackoverflow.com/questions/72323975/storing-api-keys-in-react-native-app-with-expo-library?utm_source=chatgpt.com "Storing API Keys in react-native app with expo library - Stack Overflow"
+[13]: https://community.openai.com/t/safety-of-using-api-with-react-native-firebase-architecture/297601?utm_source=chatgpt.com "Safety of using API with React Native- Firebase architecture"
+[14]: https://platform.openai.com/docs/guides/rate-limits?utm_source=chatgpt.com "API rate limits - OpenAI Platform"
