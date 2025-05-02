@@ -27,6 +27,8 @@ import { makePhoneCall } from '../../utils/permissions';
 import CallItem from '../../components/CallItem';
 import NewCallFAB from '../../components/NewCallFAB';
 import Footer from '../../components/Footer';
+import MobileHeader from '../../components/MobileHeader';
+import Breadcrumbs from '../../components/Breadcrumbs';
 
 const LeadDetailScreen = () => {
   const navigation = useNavigation();
@@ -155,8 +157,20 @@ const LeadDetailScreen = () => {
     );
   }
 
+  // Create breadcrumb items
+  const breadcrumbItems = [
+    { label: 'Leads', screen: 'LeadsList' },
+    { label: lead.globalLead.contactName || 'Lead Details' }
+  ];
+
   return (
     <Box flex={1} bg="gray.50">
+      <MobileHeader 
+        title={lead.globalLead.contactName || 'Lead Details'} 
+        showBackButton={true} 
+        onBack={() => navigation.navigate('LeadsList')}
+      />
+      <Breadcrumbs items={breadcrumbItems} />
       <VStack flex={1}>
         <Box flex={1} safeArea>
           <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
@@ -168,6 +182,7 @@ const LeadDetailScreen = () => {
                   onPress={() => navigation.goBack()}
                   variant="ghost"
                   borderRadius="full"
+                  display={{ base: 'none', md: 'flex' }} // Hide on mobile, show on larger screens
                 />
                 <Heading flex={1} numberOfLines={1}>{lead.globalLead.contactName}</Heading>
                 <Menu

@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useCalls } from '../../hooks/useCalls';
 import CallItem from '../../components/CallItem';
 import Footer from '../../components/Footer';
+import MobileHeader from '../../components/MobileHeader';
 
 const CallsScreen = () => {
   const navigation = useNavigation();
@@ -58,6 +59,7 @@ const CallsScreen = () => {
   if (isLoading) {
     return (
       <Box flex={1} bg="gray.50">
+        <MobileHeader title="Call History" />
         <VStack flex={1}>
           <Center flex={1}>
             <Spinner size="lg" color="primary.500" />
@@ -72,6 +74,7 @@ const CallsScreen = () => {
   if (isError) {
     return (
       <Box flex={1} bg="gray.50">
+        <MobileHeader title="Call History" />
         <VStack flex={1}>
           <Center flex={1}>
             <Icon as={Feather} name="alert-circle" size="4xl" color="red.500" mb={4} />
@@ -96,11 +99,15 @@ const CallsScreen = () => {
 
   return (
     <Box flex={1} bg="gray.50">
+      <MobileHeader title="Call History" />
       <VStack flex={1}>
         <Box flex={1} bg="white" safeArea>
           <VStack px={4} pt={5} pb={2}>
             <HStack alignItems="center" justifyContent="space-between" mb={4}>
-              <Heading size="lg">Call History</Heading>
+              <Heading size="lg" display={{ base: 'none', md: 'flex' }}>Call History</Heading>
+              <Text flex={1} display={{ base: 'flex', md: 'none' }} fontSize="md" fontWeight="bold">
+                {filteredCalls.length > 0 ? `${filteredCalls.length} calls` : 'No calls'}
+              </Text>
               <IconButton
                 icon={<Icon as={Feather} name="phone-outgoing" size="md" color="primary.500" />}
                 variant="ghost"

@@ -24,6 +24,7 @@ import { useLeads } from '../hooks/useLeads';
 import { makePhoneCall } from '../utils/permissions';
 import LeadCard from '../components/LeadCard';
 import Footer from '../components/Footer';
+import MobileHeader from '../components/MobileHeader';
 
 const CallQueueScreen = () => {
   const navigation = useNavigation();
@@ -188,13 +189,12 @@ const CallQueueScreen = () => {
   if (isLoading) {
     return (
       <Box flex={1} bg="white" safeArea>
+        <MobileHeader title="Call Queue" />
         <Center flex={1}>
           <Spinner size="lg" color="primary.500" />
           <Text mt={4} color="gray.500">Loading call queue...</Text>
         </Center>
-        <Box position="absolute" bottom={0} left={0} right={0} bg="white">
-          <Footer />
-        </Box>
+        <Footer />
       </Box>
     );
   }
@@ -203,6 +203,7 @@ const CallQueueScreen = () => {
   if (isError) {
     return (
       <Box flex={1} bg="white" safeArea>
+        <MobileHeader title="Call Queue" />
         <Center flex={1}>
           <Icon as={Feather} name="alert-circle" size={12} color="error.500" />
           <Text mt={4} color="error.500">Failed to load call queue</Text>
@@ -210,9 +211,7 @@ const CallQueueScreen = () => {
             Try Again
           </Button>
         </Center>
-        <Box position="absolute" bottom={0} left={0} right={0} bg="white">
-          <Footer />
-        </Box>
+        <Footer />
       </Box>
     );
   }
@@ -221,8 +220,9 @@ const CallQueueScreen = () => {
   if (callQueue.length === 0) {
     return (
       <Box flex={1} bg="white" safeArea>
+        <MobileHeader title="Call Queue" />
         <VStack p={4} space={4} flex={1}>
-          <Heading size="lg">Call Queue</Heading>
+          <Heading size="lg" display={{ base: 'none', md: 'flex' }}>Call Queue</Heading>
           
           <HStack space={4} justifyContent="space-between">
             <Select
@@ -267,9 +267,7 @@ const CallQueueScreen = () => {
             </Button>
           </Center>
         </VStack>
-        <Box position="absolute" bottom={0} left={0} right={0} bg="white">
-          <Footer />
-        </Box>
+        <Footer />
       </Box>
     );
   }
@@ -277,8 +275,10 @@ const CallQueueScreen = () => {
   // Call queue list view
   return (
     <Box flex={1} bg="white" safeArea>
+      <MobileHeader title="Call Queue" />
       <VStack p={4} space={4} flex={1}>
-        <Heading size="lg">Call Queue ({callQueue.length})</Heading>
+        <Heading size="lg" display={{ base: 'none', md: 'flex' }}>Call Queue ({callQueue.length})</Heading>
+        <Text fontWeight="bold" fontSize="md" display={{ base: 'flex', md: 'none' }}>{callQueue.length} leads in queue</Text>
         
         <HStack space={4} justifyContent="space-between">
           <Select
@@ -344,9 +344,7 @@ const CallQueueScreen = () => {
           contentContainerStyle={{ paddingBottom: 20 }}
         />
       </VStack>
-      <Box position="absolute" bottom={0} left={0} right={0} bg="white">
-        <Footer />
-      </Box>
+      <Footer />
     </Box>
   );
 };

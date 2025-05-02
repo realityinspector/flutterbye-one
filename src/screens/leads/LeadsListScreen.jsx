@@ -24,6 +24,7 @@ import { useLeads } from '../../hooks/useLeads';
 import LeadCard from '../../components/LeadCard';
 import NewCallFAB from '../../components/NewCallFAB';
 import Footer from '../../components/Footer';
+import MobileHeader from '../../components/MobileHeader';
 
 const LeadsListScreen = () => {
   const navigation = useNavigation();
@@ -82,26 +83,34 @@ const LeadsListScreen = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <Center flex={1}>
-        <Spinner size="lg" color="primary.500" />
-        <Text mt={4} color="gray.500">Loading leads...</Text>
-      </Center>
+      <Box flex={1}>
+        <MobileHeader title="Leads" />
+        <Center flex={1}>
+          <Spinner size="lg" color="primary.500" />
+          <Text mt={4} color="gray.500">Loading leads...</Text>
+        </Center>
+        <Footer />
+      </Box>
     );
   }
 
   // Show error state
   if (isError) {
     return (
-      <Center flex={1}>
-        <Icon as={Feather} name="alert-circle" size={12} color="error.500" />
-        <Text mt={4} color="error.500">Failed to load leads</Text>
-        <Pressable mt={4} onPress={refetch}>
-          <HStack space={2} alignItems="center">
-            <Icon as={Feather} name="refresh-cw" size={4} color="primary.500" />
-            <Text color="primary.500">Try Again</Text>
-          </HStack>
-        </Pressable>
-      </Center>
+      <Box flex={1}>
+        <MobileHeader title="Leads" />
+        <Center flex={1}>
+          <Icon as={Feather} name="alert-circle" size={12} color="error.500" />
+          <Text mt={4} color="error.500">Failed to load leads</Text>
+          <Pressable mt={4} onPress={refetch}>
+            <HStack space={2} alignItems="center">
+              <Icon as={Feather} name="refresh-cw" size={4} color="primary.500" />
+              <Text color="primary.500">Try Again</Text>
+            </HStack>
+          </Pressable>
+        </Center>
+        <Footer />
+      </Box>
     );
   }
 
@@ -109,10 +118,11 @@ const LeadsListScreen = () => {
   if (filteredLeads.length === 0) {
     return (
       <Box flex={1} bg="gray.50">
+        <MobileHeader title="Leads" />
         <VStack flex={1}>
           <Box flex={1} p={4} safeArea>
             <HStack alignItems="center" justifyContent="space-between" mb={4}>
-              <Heading size="lg">Leads</Heading>
+              <Heading size="lg" display={{ base: 'none', md: 'flex' }}>Leads</Heading>
               <IconButton
                 icon={<Icon as={Feather} name="plus" size={6} />}
                 borderRadius="full"
@@ -200,10 +210,12 @@ const LeadsListScreen = () => {
   // Show leads list
   return (
     <Box flex={1} bg="gray.50">
+      <MobileHeader title="Leads" />
       <VStack flex={1}>
         <Box flex={1} p={4} safeArea>
           <HStack alignItems="center" justifyContent="space-between" mb={4}>
-            <Heading size="lg">Leads ({filteredLeads.length})</Heading>
+            <Heading size="lg" display={{ base: 'none', md: 'flex' }}>Leads ({filteredLeads.length})</Heading>
+            <Text fontWeight="bold" fontSize="md" display={{ base: 'flex', md: 'none' }}>{filteredLeads.length} leads found</Text>
             <IconButton
               icon={<Icon as={Feather} name="plus" size={6} />}
               borderRadius="full"

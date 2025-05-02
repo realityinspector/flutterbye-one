@@ -11,8 +11,8 @@ const Footer = () => {
   };
   
   return (
-    <Box bg="dark.800" px={4} py={6} width="100%">
-      <VStack space={4}>
+    <Box bg="dark.800" px={4} py={6} width="100vw" alignSelf="center">
+      <VStack space={4} width="100%">
         <HStack justifyContent="space-between" flexWrap="wrap">
           <VStack space={2} mb={4} minW="180px">
             <HStack alignItems="center" space={2}>
