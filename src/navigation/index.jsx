@@ -14,6 +14,7 @@ import HomeScreen from '../screens/HomeScreen';
 import LeadsListScreen from '../screens/leads/LeadsListScreen';
 import LeadDetailScreen from '../screens/leads/LeadDetailScreen';
 import AddLeadScreen from '../screens/leads/AddLeadScreen';
+import FindNewLeadsScreen from '../components/LeadGeneration/FindNewLeadsScreen';
 
 // Import call screens
 import CallScreen from '../screens/calls/CallScreen';
@@ -130,6 +131,11 @@ const AppNavigator = () => {
                 name="AddLead" 
                 component={AddLeadScreen} 
                 options={{ title: 'Add New Lead' }}
+              />
+              <Stack.Screen 
+                name="FindNewLeads" 
+                component={FindNewLeadsScreen} 
+                options={{ title: 'Find New Leads with AI' }}
               />
               
               {/* Coming Soon screens */}
