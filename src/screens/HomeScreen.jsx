@@ -23,6 +23,8 @@ import { useCalls } from '../hooks/useCalls';
 import { useAuth } from '../hooks/useAuth';
 import LeadCard from '../components/LeadCard';
 import CallItem from '../components/CallItem';
+import MobileHeader from '../components/MobileHeader';
+import Footer from '../components/Footer';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -105,6 +107,7 @@ const HomeScreen = () => {
 
   return (
     <Box flex={1} bg="gray.50" safeArea>
+      <MobileHeader title="Dashboard" />
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header section */}
         <Box px={4} pt={4} pb={6}>
@@ -298,6 +301,7 @@ const HomeScreen = () => {
 
         <Box h={4} /> {/* Bottom spacing */}
       </ScrollView>
+      <Footer />
     </Box>
   );
 };
