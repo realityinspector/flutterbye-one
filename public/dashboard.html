@@ -2437,13 +2437,15 @@
         document.getElementById('aiLeadResults').classList.add('hidden');
         
         try {
-          // Call AI lead generation API
+          console.log('Calling AI lead generation API');
+          
+          // Call AI lead generation API - using cookie-based authentication
           const response = await fetch('/api/ai/leads/generate', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${getAuthToken()}`
+              'Content-Type': 'application/json'
             },
+            credentials: 'include', // Include cookies for authentication
             body: JSON.stringify({ description: criteria })
           });
           
@@ -2515,6 +2517,8 @@
     // Function to save a lead from AI generation
     async function saveLead(leadData) {
       try {
+        console.log('Saving lead from AI generation');
+        
         const formattedData = {
           companyName: leadData.companyName,
           contactName: leadData.contactName,
@@ -2531,12 +2535,13 @@
           priority: 5
         };
         
+        // Use cookie-based authentication for saving lead
         const response = await fetch('/api/leads', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getAuthToken()}`
+            'Content-Type': 'application/json'
           },
+          credentials: 'include', // Include cookies for authentication
           body: JSON.stringify(formattedData)
         });
         
@@ -2560,19 +2565,35 @@
     // Get auth token from cookie or localStorage
     function getAuthToken() {
       try {
-        // Parse cookies
-        const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-          if (cookie.trim()) {
-            const [key, value] = cookie.trim().split('=');
-            acc[key] = value;
+        // Try document.cookie first
+        if (document.cookie) {
+          // Parse cookies
+          const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+            if (cookie.trim()) {
+              const [key, value] = cookie.trim().split('=');
+              if (key && value) {
+                acc[key] = decodeURIComponent(value);
+              }
+            }
+            return acc;
+          }, {});
+          
+          if (cookies['auth_token']) {
+            console.log('Auth token retrieved from cookie');
+            return cookies['auth_token'];
           }
-          return acc;
-        }, {});
+        }
         
-        // Get token from cookies or localStorage
-        const token = cookies['auth_token'] || localStorage.getItem('auth_token');
-        console.log('Auth token retrieved:', token ? 'Token found' : 'No token');
-        return token;
+        // Fallback to localStorage
+        const localToken = localStorage.getItem('auth_token');
+        if (localToken) {
+          console.log('Auth token retrieved from localStorage');
+          return localToken;
+        }
+        
+        // Try fetching from server as last resort
+        console.warn('No token found in cookies or localStorage');
+        return null;
       } catch (error) {
         console.error('Error getting auth token:', error);
         return null;

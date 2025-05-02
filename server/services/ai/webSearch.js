@@ -43,6 +43,7 @@ class WebSearchService {
           searchType: 'lead_gen',
         },
         response_format: { type: 'json_object' },
+        additional_instructions: 'Return valid JSON only. After your initial summary, use the precise JSON format requested. Format the JSON as a proper array of objects with strict adherence to the schema.',
       };
 
       // Call OpenRouter with web search capabilities and full prompt
@@ -59,16 +60,28 @@ class WebSearchService {
       let leads = [];
       let summary = '';
       try {
+        // Log the raw response for debugging (truncated for clarity)
+        console.log('AI Response for lead generation (truncated):', 
+          result.data.text ? result.data.text.substring(0, 100) + '...' : 'No text in response');
+        
         // Use our lead extraction utility
         const extracted = extractLeadsFromResponse(result.data.text);
         leads = extracted.leads || [];
         summary = extracted.summary || 'Lead generation complete';
+        
+        // Log extraction results
+        console.log(`Extracted ${leads.length} leads from AI response`);
+        if (leads.length > 0) {
+          console.log('First lead example:', JSON.stringify(leads[0]).substring(0, 150) + '...');
+        }
       } catch (parseError) {
         console.error('Error extracting leads from response:', parseError);
+        
+        // Return detailed error information
         return {
           success: false,
           error: 'Failed to parse lead generation results',
-          rawText: result.data.text,
+          rawText: result.data.text ? result.data.text.substring(0, 300) + '...' : 'No text received',
         };
       }
 

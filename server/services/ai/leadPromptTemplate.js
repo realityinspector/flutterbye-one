@@ -29,20 +29,25 @@ function getLeadGenerationPrompt(criteria) {
     
     When you respond, first provide a brief summary of your search results (2-3 sentences maximum).
     Then return your findings as a valid JSON array of lead objects with these exact keys:
-    [{
-      "companyName": "string",
-      "contactName": "string or null",
-      "phoneNumber": "string or null",
-      "email": "string or null",
-      "industry": "string or null",
-      "website": "string or null",
-      "address": "string or null",
-      "city": "string or null",
-      "state": "string or null",
-      "zipCode": "string or null",
-      "description": "string describing why this lead matches the criteria",
-      "sources": ["array of URLs where information was found"]
-    }]
+    
+    [
+      {
+        "companyName": "string",
+        "contactName": "string or null",
+        "phoneNumber": "string or null",
+        "email": "string or null",
+        "industry": "string or null",
+        "website": "string or null",
+        "address": "string or null",
+        "city": "string or null",
+        "state": "string or null",
+        "zipCode": "string or null",
+        "description": "string describing why this lead matches the criteria",
+        "sources": ["array of URLs where information was found"]
+      }
+    ]
+    
+    IMPORTANT: Make sure your response contains ONLY valid JSON after the summary. The JSON must be properly formatted with all quotes escaped correctly.
     
     Use your web search capability to find current, accurate information. Do not make up any information.
     If you cannot find a specific piece of information, leave it as null.
@@ -161,6 +166,55 @@ function extractLeadsFromResponse(response) {
     
     // Last attempt: try to parse the entire response as JSON
     try {
+      // Clean up the JSON string by removing incomplete fragments
+      let cleanedJsonStr = jsonStr;
+      
+      // Try to find complete JSON objects/arrays
+      const lastClosingBrace = jsonStr.lastIndexOf('}');
+      const lastClosingBracket = jsonStr.lastIndexOf(']');
+      
+      if (lastClosingBrace > 0 || lastClosingBracket > 0) {
+        // Find the position of the last valid JSON terminator
+        const lastValidPos = Math.max(lastClosingBrace, lastClosingBracket) + 1;
+        cleanedJsonStr = jsonStr.substring(0, lastValidPos);
+        
+        // Try to find the matching opening bracket/brace
+        const firstOpeningBracket = cleanedJsonStr.indexOf('[');
+        const firstOpeningBrace = cleanedJsonStr.indexOf('{');
+        
+        if (firstOpeningBracket >= 0 && lastClosingBracket > firstOpeningBracket) {
+          // We have a complete array
+          cleanedJsonStr = cleanedJsonStr.substring(firstOpeningBracket, lastClosingBracket + 1);
+          
+          try {
+            const arrayJson = JSON.parse(cleanedJsonStr);
+            if (Array.isArray(arrayJson) && arrayJson.length > 0) {
+              return { leads: arrayJson, summary };
+            }
+          } catch (arrayError) {
+            console.log('Could not parse cleaned array JSON:', arrayError);
+          }
+        } else if (firstOpeningBrace >= 0 && lastClosingBrace > firstOpeningBrace) {
+          // We have a complete object
+          cleanedJsonStr = cleanedJsonStr.substring(firstOpeningBrace, lastClosingBrace + 1);
+          
+          try {
+            const objJson = JSON.parse(cleanedJsonStr);
+            // Handle case where response is an object with a leads array
+            if (objJson && objJson.leads && Array.isArray(objJson.leads)) {
+              return { leads: objJson.leads, summary: objJson.summary || summary };
+            }
+            // Handle case where response is a single lead object
+            if (objJson && objJson.companyName) {
+              return { leads: [objJson], summary };
+            }
+          } catch (objError) {
+            console.log('Could not parse cleaned object JSON:', objError);
+          }
+        }
+      }
+      
+      // Try the original string as a fallback
       const parsedJson = JSON.parse(jsonStr);
       // Handle case where response is an object with a leads array
       if (parsedJson && parsedJson.leads && Array.isArray(parsedJson.leads)) {
@@ -175,11 +229,11 @@ function extractLeadsFromResponse(response) {
         return { leads: [parsedJson], summary };
       }
     } catch (parseError) {
-      console.error('Error parsing full response as JSON:', parseError);
+      console.log('Error parsing full response as JSON:', parseError);
     }
     
     // If we got here, we couldn't parse any leads
-    console.error('Could not extract leads from response:', response);
+    console.warn('Could not extract leads from response - returning empty results');
     return { leads: [], summary: 'No leads could be parsed from the AI response' };
   } catch (error) {
     console.error('Error extracting leads from AI response:', error);
