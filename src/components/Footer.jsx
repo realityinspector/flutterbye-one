@@ -1,7 +1,8 @@
 import React from 'react';
-import { Box, HStack, VStack, Text, Heading, Divider, Link, Center, Icon, Pressable } from 'native-base';
+import { Box, HStack, VStack, Text, Heading, Divider, Link, Center, Icon, Pressable, Image } from 'native-base';
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { Linking } from 'react-native';
 
 const Footer = () => {
   const navigation = useNavigation();
@@ -11,7 +12,7 @@ const Footer = () => {
   };
   
   return (
-    <Box bg="dark.800" px={4} py={6} width="100vw" alignSelf="center">
+    <Box bg="dark.800" px={4} py={6} width="100%" left={0} right={0} alignSelf="center">
       <VStack space={4} width="100%">
         <HStack justifyContent="space-between" flexWrap="wrap">
           <VStack space={2} mb={4} minW="180px">
@@ -56,9 +57,19 @@ const Footer = () => {
         
         <Divider bg="gray.700" />
         
-        <Center>
+        <VStack space={4} alignItems="center">
           <Text color="gray.500" fontSize="xs">&copy; 2025 FLUTTERBYE CRM. All rights reserved.</Text>
-        </Center>
+          
+          <Pressable onPress={() => Linking.openURL('https://allonething.xyz')}>
+            <Image 
+              source={require('../../public/images/aot-labs-logo.png')} 
+              alt="AOT Labs Logo" 
+              width={116} 
+              height={35} 
+              resizeMode="contain"
+            />
+          </Pressable>
+        </VStack>
       </VStack>
     </Box>
   );

@@ -36,9 +36,13 @@ const MobileHeader = ({ title, showBackButton = false, onBack }) => {
           
           <HStack alignItems="center" space={2}>
             <Icon as={FontAwesome5} name="wind" size="sm" color="white" />
-            <Heading color="white" size="sm">{title || 'FLUTTERBYE'}</Heading>
+            <Heading color="white" size="sm">FLUTTERBYE</Heading>
           </HStack>
         </HStack>
+        
+        {title && title !== 'FLUTTERBYE' && (
+          <Text color="white" fontWeight="medium">{title}</Text>
+        )}
       </HStack>
     </Box>
   );
