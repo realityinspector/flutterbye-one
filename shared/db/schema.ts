@@ -1,4 +1,4 @@
-import { pgTable, serial, text, varchar, integer, timestamp, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, varchar, integer, timestamp, boolean, jsonb, real } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Users table
@@ -60,10 +60,73 @@ export const calls = pgTable('calls', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// AI Assistant configurations table
+export const aiConfigs = pgTable('ai_configs', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  description: text('description'),
+  defaultModel: varchar('default_model', { length: 100 }).notNull(),
+  webSearchModel: varchar('web_search_model', { length: 100 }).notNull().default('openai/gpt-4o:online'),
+  fallbackModels: jsonb('fallback_models'),
+  systemPrompt: text('system_prompt'),
+  maxTokens: integer('max_tokens').default(2000),
+  temperature: real('temperature').default(0.7),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// AI Model requests and responses table
+export const aiInteractions = pgTable('ai_interactions', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+  configId: integer('config_id').references(() => aiConfigs.id, { onDelete: 'set null' }),
+  model: varchar('model', { length: 100 }).notNull(),
+  prompt: text('prompt').notNull(),
+  response: text('response'),
+  usedWebSearch: boolean('used_web_search').default(false),
+  searchQuery: text('search_query'),
+  searchResults: jsonb('search_results'),
+  tokenCount: integer('token_count'),
+  duration: integer('duration'),  // milliseconds
+  status: varchar('status', { length: 20 }).notNull().default('pending'),
+  error: text('error'),
+  metadata: jsonb('metadata'),  // For any additional data
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// AI Tool definitions for tool calling
+export const aiTools = pgTable('ai_tools', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 100 }).notNull().unique(),
+  description: text('description').notNull(),
+  parameters: jsonb('parameters').notNull(),  // JSON Schema of parameters
+  handlerFunction: varchar('handler_function', { length: 100 }).notNull(),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// AI Tool executions
+export const aiToolExecutions = pgTable('ai_tool_executions', {
+  id: serial('id').primaryKey(),
+  interactionId: integer('interaction_id').references(() => aiInteractions.id, { onDelete: 'cascade' }).notNull(),
+  toolId: integer('tool_id').references(() => aiTools.id, { onDelete: 'set null' }),
+  arguments: jsonb('arguments').notNull(),
+  result: jsonb('result'),
+  status: varchar('status', { length: 20 }).notNull().default('pending'),
+  error: text('error'),
+  duration: integer('duration'),  // milliseconds
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   userLeads: many(userLeads),
   calls: many(calls),
+  aiInteractions: many(aiInteractions),
 }));
 
 export const globalLeadsRelations = relations(globalLeads, ({ many }) => ({
@@ -81,14 +144,41 @@ export const callsRelations = relations(calls, ({ one }) => ({
   userLead: one(userLeads, { fields: [calls.userLeadId], references: [userLeads.id] }),
 }));
 
+export const aiConfigsRelations = relations(aiConfigs, ({ many }) => ({
+  aiInteractions: many(aiInteractions),
+}));
+
+export const aiInteractionsRelations = relations(aiInteractions, ({ one, many }) => ({
+  user: one(users, { fields: [aiInteractions.userId], references: [users.id] }),
+  config: one(aiConfigs, { fields: [aiInteractions.configId], references: [aiConfigs.id] }),
+  toolExecutions: many(aiToolExecutions),
+}));
+
+export const aiToolsRelations = relations(aiTools, ({ many }) => ({
+  toolExecutions: many(aiToolExecutions),
+}));
+
+export const aiToolExecutionsRelations = relations(aiToolExecutions, ({ one }) => ({
+  interaction: one(aiInteractions, { fields: [aiToolExecutions.interactionId], references: [aiInteractions.id] }),
+  tool: one(aiTools, { fields: [aiToolExecutions.toolId], references: [aiTools.id] }),
+}));
+
 // Export the combined schema
 export default {
   users,
   globalLeads,
   userLeads,
   calls,
+  aiConfigs,
+  aiInteractions,
+  aiTools,
+  aiToolExecutions,
   usersRelations,
   globalLeadsRelations,
   userLeadsRelations,
   callsRelations,
+  aiConfigsRelations,
+  aiInteractionsRelations,
+  aiToolsRelations,
+  aiToolExecutionsRelations,
 };

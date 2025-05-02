@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { users, globalLeads, userLeads, calls } from './schema';
+import { users, globalLeads, userLeads, calls, aiConfigs, aiInteractions, aiTools, aiToolExecutions } from './schema';
 
 // User schemas
 export const insertUserSchema = createInsertSchema(users, {
@@ -105,6 +105,102 @@ export const selectCallSchema = createSelectSchema(calls, {
   reminderDate: z.date().nullable().optional(),
 });
 
+// AI Config schemas
+export const insertAiConfigSchema = createInsertSchema(aiConfigs, {
+  name: z.string().min(2).max(100),
+  description: z.string().nullable().optional(),
+  defaultModel: z.string().min(2).max(100),
+  webSearchModel: z.string().min(2).max(100).default('openai/gpt-4o:online'),
+  fallbackModels: z.array(z.string()).nullable().optional(),
+  systemPrompt: z.string().nullable().optional(),
+  maxTokens: z.number().int().positive().optional().default(2000),
+  temperature: z.number().min(0).max(2).optional().default(0.7),
+  isActive: z.boolean().default(true),
+});
+
+export const selectAiConfigSchema = createSelectSchema(aiConfigs, {
+  name: z.string().min(2).max(100),
+  description: z.string().nullable().optional(),
+  defaultModel: z.string().min(2).max(100),
+  webSearchModel: z.string().min(2).max(100),
+  fallbackModels: z.array(z.string()).nullable().optional(),
+  systemPrompt: z.string().nullable().optional(),
+  maxTokens: z.number().int().positive().nullable().optional(),
+  temperature: z.number().min(0).max(2).nullable().optional(),
+  isActive: z.boolean(),
+});
+
+// AI Interaction schemas
+export const insertAiInteractionSchema = createInsertSchema(aiInteractions, {
+  userId: z.number().int().positive().optional(),
+  configId: z.number().int().positive().optional(),
+  model: z.string().min(2).max(100),
+  prompt: z.string().min(1),
+  response: z.string().nullable().optional(),
+  usedWebSearch: z.boolean().default(false),
+  searchQuery: z.string().nullable().optional(),
+  searchResults: z.array(z.any()).nullable().optional(),
+  tokenCount: z.number().int().positive().nullable().optional(),
+  duration: z.number().int().nonnegative().nullable().optional(),
+  status: z.enum(['pending', 'processing', 'completed', 'failed']).default('pending'),
+  error: z.string().nullable().optional(),
+  metadata: z.record(z.any()).nullable().optional(),
+});
+
+export const selectAiInteractionSchema = createSelectSchema(aiInteractions, {
+  userId: z.number().int().positive().nullable().optional(),
+  configId: z.number().int().positive().nullable().optional(),
+  model: z.string().min(2).max(100),
+  prompt: z.string().min(1),
+  response: z.string().nullable().optional(),
+  usedWebSearch: z.boolean(),
+  searchQuery: z.string().nullable().optional(),
+  searchResults: z.array(z.any()).nullable().optional(),
+  tokenCount: z.number().int().positive().nullable().optional(),
+  duration: z.number().int().nonnegative().nullable().optional(),
+  status: z.enum(['pending', 'processing', 'completed', 'failed']),
+  error: z.string().nullable().optional(),
+  metadata: z.record(z.any()).nullable().optional(),
+});
+
+// AI Tool schemas
+export const insertAiToolSchema = createInsertSchema(aiTools, {
+  name: z.string().min(2).max(100),
+  description: z.string().min(1),
+  parameters: z.record(z.any()),
+  handlerFunction: z.string().min(2).max(100),
+  isActive: z.boolean().default(true),
+});
+
+export const selectAiToolSchema = createSelectSchema(aiTools, {
+  name: z.string().min(2).max(100),
+  description: z.string().min(1),
+  parameters: z.record(z.any()),
+  handlerFunction: z.string().min(2).max(100),
+  isActive: z.boolean(),
+});
+
+// AI Tool Execution schemas
+export const insertAiToolExecutionSchema = createInsertSchema(aiToolExecutions, {
+  interactionId: z.number().int().positive(),
+  toolId: z.number().int().positive().nullable().optional(),
+  arguments: z.record(z.any()),
+  result: z.record(z.any()).nullable().optional(),
+  status: z.enum(['pending', 'processing', 'completed', 'failed']).default('pending'),
+  error: z.string().nullable().optional(),
+  duration: z.number().int().nonnegative().nullable().optional(),
+});
+
+export const selectAiToolExecutionSchema = createSelectSchema(aiToolExecutions, {
+  interactionId: z.number().int().positive(),
+  toolId: z.number().int().positive().nullable().optional(),
+  arguments: z.record(z.any()),
+  result: z.record(z.any()).nullable().optional(),
+  status: z.enum(['pending', 'processing', 'completed', 'failed']),
+  error: z.string().nullable().optional(),
+  duration: z.number().int().nonnegative().nullable().optional(),
+});
+
 // Type definitions from schemas
 export type User = z.infer<typeof selectUserSchema>;
 export type NewUser = z.infer<typeof insertUserSchema>;
@@ -119,6 +215,18 @@ export type NewUserLead = z.infer<typeof insertUserLeadSchema>;
 
 export type Call = z.infer<typeof selectCallSchema>;
 export type NewCall = z.infer<typeof insertCallSchema>;
+
+export type AiConfig = z.infer<typeof selectAiConfigSchema>;
+export type NewAiConfig = z.infer<typeof insertAiConfigSchema>;
+
+export type AiInteraction = z.infer<typeof selectAiInteractionSchema>;
+export type NewAiInteraction = z.infer<typeof insertAiInteractionSchema>;
+
+export type AiTool = z.infer<typeof selectAiToolSchema>;
+export type NewAiTool = z.infer<typeof insertAiToolSchema>;
+
+export type AiToolExecution = z.infer<typeof selectAiToolExecutionSchema>;
+export type NewAiToolExecution = z.infer<typeof insertAiToolExecutionSchema>;
 
 // Export all schema types
 export default {
@@ -139,5 +247,21 @@ export default {
   call: {
     insert: insertCallSchema,
     select: selectCallSchema,
+  },
+  aiConfig: {
+    insert: insertAiConfigSchema,
+    select: selectAiConfigSchema,
+  },
+  aiInteraction: {
+    insert: insertAiInteractionSchema,
+    select: selectAiInteractionSchema,
+  },
+  aiTool: {
+    insert: insertAiToolSchema,
+    select: selectAiToolSchema,
+  },
+  aiToolExecution: {
+    insert: insertAiToolExecutionSchema,
+    select: selectAiToolExecutionSchema,
   },
 };

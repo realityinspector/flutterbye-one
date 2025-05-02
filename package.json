@@ -30,6 +30,8 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "native-base": "^3.4.28",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.96.2",
     "pg": "^8.15.6",
     "react": "^19.1.0",
     "react-native": "^0.79.1",

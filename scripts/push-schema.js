@@ -1,7 +1,16 @@
 // Script to push the database schema
 require('dotenv').config();
 const { pool } = require('../server/db');
-const { users, globalLeads, userLeads, calls } = require('../shared/db/schema');
+const { 
+  users, 
+  globalLeads, 
+  userLeads, 
+  calls, 
+  aiConfigs, 
+  aiInteractions, 
+  aiTools, 
+  aiToolExecutions 
+} = require('../shared/db/schema');
 
 async function pushSchema() {
   console.log('Pushing schema to database...');
@@ -68,6 +77,64 @@ async function pushSchema() {
       sid VARCHAR NOT NULL PRIMARY KEY,
       sess JSON NOT NULL,
       expire TIMESTAMP(6) NOT NULL
+    );
+    
+    CREATE TABLE IF NOT EXISTS ai_configs (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      description TEXT,
+      default_model VARCHAR(100) NOT NULL,
+      web_search_model VARCHAR(100) NOT NULL DEFAULT 'openai/gpt-4o:online',
+      fallback_models JSONB,
+      system_prompt TEXT,
+      max_tokens INTEGER DEFAULT 2000,
+      temperature REAL DEFAULT 0.7,
+      is_active BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    );
+    
+    CREATE TABLE IF NOT EXISTS ai_interactions (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      config_id INTEGER REFERENCES ai_configs(id) ON DELETE SET NULL,
+      model VARCHAR(100) NOT NULL,
+      prompt TEXT NOT NULL,
+      response TEXT,
+      used_web_search BOOLEAN DEFAULT FALSE,
+      search_query TEXT,
+      search_results JSONB,
+      token_count INTEGER,
+      duration INTEGER,
+      status VARCHAR(20) NOT NULL DEFAULT 'pending',
+      error TEXT,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    );
+    
+    CREATE TABLE IF NOT EXISTS ai_tools (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(100) NOT NULL UNIQUE,
+      description TEXT NOT NULL,
+      parameters JSONB NOT NULL,
+      handler_function VARCHAR(100) NOT NULL,
+      is_active BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    );
+    
+    CREATE TABLE IF NOT EXISTS ai_tool_executions (
+      id SERIAL PRIMARY KEY,
+      interaction_id INTEGER REFERENCES ai_interactions(id) ON DELETE CASCADE NOT NULL,
+      tool_id INTEGER REFERENCES ai_tools(id) ON DELETE SET NULL,
+      arguments JSONB NOT NULL,
+      result JSONB,
+      status VARCHAR(20) NOT NULL DEFAULT 'pending',
+      error TEXT,
+      duration INTEGER,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
     );
     `;
     

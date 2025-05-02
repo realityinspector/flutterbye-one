@@ -516,6 +516,10 @@ function registerRoutes(app) {
     }
   });
 
+  // AI routes
+  const aiRoutes = require('./routes/ai');
+  app.use('/api/ai', aiRoutes);
+
   // Create HTTP server
   const httpServer = createServer(app);
   
