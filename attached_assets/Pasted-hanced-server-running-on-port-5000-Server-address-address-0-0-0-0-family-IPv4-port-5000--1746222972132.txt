@@ -1,0 +1,41 @@
+hanced server running on port 5000
+Server address: { address: '0.0.0.0', family: 'IPv4', port: 5000 }
+No new users without demo data found.0
+Completed check for new users to seed with demo data
+Auth check - Token present: true JWT_SECRET: flutt...
+Token verified successfully - user: realityinspector
+Inserting interaction with data: {"userId":2,"configId":null,"model":"openai/gpt-4o:online","prompt":"\n    You are a sales research assistant that helps sales professionals find new leads.\n    I will describe what kinds of leads I'm looking for, and you will use the web search feature to find 1-5 relevant companies or individuals that match my criteria.\n    \n    For each lead you find, please include the following information in a structured format:\n    - Company name\n    - Contact name (if available)\n    - Phone number (if available)\n    - Email (if available)\n    - Industry\n    - Website\n    - Address, City, State, Zip (if available)\n    - A brief description of why this lead matches my criteria\n    - List of sources (URLs) where you found the information\n    \n    My lead criteria: yoga studios in napa, ca\n    \n    When you respond, first provide a brief summary of your search results (2-3 sentences maximum).\n    Then return your findings as a valid JSON array of lead objects with these exact keys:\n    \n    [\n      {\n        \"companyName\": \"string\",\n        \"contactName\": \"string or null\",\n        \"phoneNumber\": \"string or null\",\n        \"email\": \"string or null\",\n        \"industry\": \"string or null\",\n        \"website\": \"string or null\",\n        \"address\": \"string or null\",\n        \"city\": \"string or null\",\n        \"state\": \"string or null\",\n        \"zipCode\": \"string or null\",\n        \"description\": \"string describing why this lead matches the criteria\",\n        \"sources\": [\"array of URLs where information was found\"]\n      }\n    ]\n    \n    IMPORTANT: Make sure your response contains ONLY valid JSON after the summary. The JSON must be properly formatted with all quotes escaped correctly.\n    \n    Use your web search capability to find current, accurate information. Do not make up any information.\n    If you cannot find a specific piece of information, leave it as null.\n    Limit your response to 1-5 high-quality leads that best match my criteria.\n  ","usedWebSearch":true,"status":"processing","metadata":{"leadGeneration":true,"criteria":"yoga studios in napa, ca","searchType":"lead_gen"}}
+Created AI interaction #175
+Updating interaction #175 with completion data in database
+AI Response for lead generation (truncated): 
+  {
+    "companyName": "Napa Valley Yoga Center",
+    "contactName": null,
+    "phoneNumber": null,...
+Extracted 1 leads from AI response
+First lead example: {"companyName":"Napa Valley Yoga Center","contactName":null,"phoneNumber":null,"email":null,"industry":"Yoga Studio","website":"https://napavalleyyoga...
+Auth check - Token present: true JWT_SECRET: flutt...
+Token verified successfully - user: realityinspector
+Error creating lead: error: null value in column "contact_name" of relation "global_leads" violates not-null constraint
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/runner/workspace/node_modules/drizzle-orm/node-postgres/session.cjs:148:22
+    at async /home/runner/workspace/server/routes.js:198:28 {
+  length: 387,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (11, Napa Valley Yoga Center, null, null, null, null, Napa, CA, null, Yoga Studio, https://napavalleyyogacenter.com/, 2025-05-02 21:54:16.532535, 2025-05-02 21:54:16.532535).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'global_leads',
+  column: 'contact_name',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2006',
+  routine: 'ExecConstraints'
+}

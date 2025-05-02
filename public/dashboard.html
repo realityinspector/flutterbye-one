@@ -323,28 +323,61 @@
     }
     
     /* AI Lead Generation Button Container */
+    /* Mobile-first AI Lead Generation Container */
     .ai-lead-gen-container {
-      background-color: var(--secondary);
-      border-radius: 8px;
-      padding: 1.5rem;
+      background: var(--primary-gradient);
+      border-radius: 12px;
+      padding: 1.8rem 1.5rem;
       margin-bottom: 2rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 10px rgba(0,102,255,0.2);
+    }
+    
+    .ai-lead-gen-container.mobile-optimized {
+      /* Make lead gen more prominent on mobile */
+      margin: 1rem -0.5rem 2rem;
+      border-radius: 0;
     }
     
     .btn-large {
-      font-size: 1.2rem;
-      padding: 0.8rem 2rem;
-      margin-bottom: 0.5rem;
+      font-size: 1.3rem;
+      padding: 1rem 2rem;
+      margin-bottom: 0.8rem;
+      border-radius: 8px;
+      font-weight: 600;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      background-color: white;
+      color: var(--primary-dark);
+      border: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .btn-large:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     }
     
     .ai-lead-description {
-      color: var(--dark);
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
+      color: white;
+      margin-top: 0.8rem;
+      font-size: 1rem;
+      max-width: 80%;
+    }
+    
+    /* Mobile responsiveness for AI Lead Gen */
+    @media (max-width: 768px) {
+      .ai-lead-gen-container {
+        padding: 1.5rem 1rem;
+        margin-top: 0;
+      }
+      
+      .btn-large {
+        width: 100%;
+        max-width: 300px;
+      }
     }
     
     /* AI Lead Generation Modal Styles */
@@ -407,7 +440,7 @@
       }
       
       .main-content {
-        padding: 1rem;
+        padding: 0.75rem;
       }
       
       .sidebar {
@@ -429,6 +462,24 @@
       
       .main-content {
         margin-left: 60px;
+      }
+      
+      /* Enhanced mobile-first focusing on leads */
+      .table-container.featured-section {
+        margin: 0 -0.75rem 2rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+      }
+      
+      .table-title {
+        font-size: 1.3rem;
+      }
+      
+      /* Table header border on mobile */
+      .featured-section .table-header {
+        border-bottom: 2px solid var(--primary);
+        background-color: rgba(0, 102, 255, 0.05);
       }
       
       .table-container {
@@ -585,6 +636,35 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       margin-bottom: 2rem;
+      position: relative;
+    }
+    
+    /* Featured section styling for Recent Leads */
+    .table-container.featured-section {
+      border: 2px solid var(--primary);
+      box-shadow: 0 4px 12px rgba(0, 102, 255, 0.15);
+    }
+    
+    .mobile-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background-color: var(--primary);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.7rem;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-bottom-left-radius: 8px;
+      z-index: 1;
+    }
+    
+    /* Show mobile badge only on mobile */
+    @media (min-width: 769px) {
+      .mobile-badge {
+        display: none;
+      }
     }
     
     .table-header {
@@ -1347,17 +1427,17 @@
         </div>
       </div>
       
-      <!-- Stats Cards -->
-      <!-- AI Lead Generation Button -->
-      <div class="ai-lead-gen-container">
+      <!-- Mobile-Optimized AI Lead Generation Button -->
+      <div class="ai-lead-gen-container mobile-optimized">
         <button id="aiLeadGenBtn" class="btn btn-primary btn-large">
-          <i class="fas fa-robot"></i> AI Lead Generation
+          <i class="fas fa-robot"></i> Find New Leads with AI
         </button>
         <p class="ai-lead-description">Let AI find your next qualified leads based on criteria you specify.</p>
       </div>
 
-      <!-- Recent Leads Table -->
-      <div id="leadsTableContainer" class="table-container">
+      <!-- Recent Leads Table - Prioritized for Mobile-First View -->
+      <div id="leadsTableContainer" class="table-container featured-section">
+        <div class="mobile-badge">MOST IMPORTANT</div>
         <div class="table-header">
           <div class="table-title">Recent Leads</div>
           <button class="mobile-view-toggle" id="leadsTableMobileToggle">
