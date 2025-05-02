@@ -74,7 +74,8 @@ task = "shell.exec"
 args = "node scripts/test-openrouter.js"
 
 [deployment]
-run = ["sh", "-c", "npm install && npm run start"]
+run = ["sh", "-c", "node server/index.js"]
+build = ["sh", "-c", "npm install --legacy-peer-deps"]
 
 [[ports]]
 localPort = 5000
