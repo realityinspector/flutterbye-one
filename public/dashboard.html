@@ -6,6 +6,63 @@
   <title>Dashboard - FLUTTERBYE: The CRM Focused on Healthy Meetings</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
+    /* Mobile-only header */
+    /* Define primary gradient */
+    :root {
+      --primary-gradient: linear-gradient(135deg, #0066ff 0%, #1a88ff 100%);
+    }
+    
+    .mobile-header {
+      display: none;
+      background: var(--primary-gradient);
+      padding: 15px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .mobile-header .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .mobile-header .logo i {
+      margin-right: 8px;
+      font-size: 1.2rem;
+    }
+    
+    @media (max-width: 768px) {
+      .mobile-header {
+        display: block;
+      }
+      
+      .sidebar .branding {
+        display: none; /* Hide desktop branding on mobile */
+      }
+      
+      body {
+        padding-top: 0; /* Reset any padding */
+      }
+      
+      .dashboard {
+        padding-top: 0; /* Ensure no extra padding */
+      }
+      
+      /* Adjust sidebar to appear below the header */
+      .sidebar {
+        top: 55px; /* Account for mobile header height */
+        height: calc(100vh - 55px);
+      }
+    }
+    
     :root {
       --primary: #0066ff;
       --primary-dark: #0052cc;
@@ -1216,6 +1273,11 @@
   </style>
 </head>
 <body>
+  <!-- Mobile-only header -->
+  <header class="mobile-header">
+    <div class="logo"><i class="fas fa-wind"></i> FLUTTERBYE CRM</div>
+  </header>
+  
   <div class="dashboard">
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -2376,13 +2438,13 @@
         
         try {
           // Call AI lead generation API
-          const response = await fetch('/api/ai/generate-leads', {
+          const response = await fetch('/api/ai/leads/generate', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${getAuthToken()}`
             },
-            body: JSON.stringify({ criteria })
+            body: JSON.stringify({ description: criteria })
           });
           
           const data = await response.json();
@@ -2418,10 +2480,15 @@
               // Add event listener to save button
               const saveBtn = leadItem.querySelector('.save-lead-btn');
               saveBtn.addEventListener('click', async (e) => {
+                try {
                 const leadData = JSON.parse(e.target.getAttribute('data-lead'));
                 await saveLead(leadData);
                 e.target.disabled = true;
                 e.target.textContent = 'Saved';
+              } catch (error) {
+                console.error('Error saving lead:', error);
+                alert(`Error saving lead: ${error.message}`);
+              }
               });
             });
           } else {
@@ -2492,15 +2559,24 @@
     // Function to toggle mobile view for tables
     // Get auth token from cookie or localStorage
     function getAuthToken() {
-      // Parse cookies
-      const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-        const [key, value] = cookie.trim().split('=');
-        acc[key] = value;
-        return acc;
-      }, {});
-      
-      // Return token from cookie or localStorage
-      return cookies['auth_token'] || localStorage.getItem('auth_token');
+      try {
+        // Parse cookies
+        const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+          if (cookie.trim()) {
+            const [key, value] = cookie.trim().split('=');
+            acc[key] = value;
+          }
+          return acc;
+        }, {});
+        
+        // Get token from cookies or localStorage
+        const token = cookies['auth_token'] || localStorage.getItem('auth_token');
+        console.log('Auth token retrieved:', token ? 'Token found' : 'No token');
+        return token;
+      } catch (error) {
+        console.error('Error getting auth token:', error);
+        return null;
+      }
     }
     
     // Function to toggle mobile view for tables
@@ -2629,7 +2705,10 @@
           leadsTableBody.innerHTML = '';
           
           // Update stats for total leads
-          document.getElementById('totalLeadsValue').textContent = leads.length;
+          const totalLeadsElement = document.getElementById('totalLeadsValue');
+          if (totalLeadsElement) {
+            totalLeadsElement.textContent = leads.length;
+          }
           
           // Populate leads table
           leads.forEach(lead => {
@@ -2683,7 +2762,10 @@
           callsTableBody.innerHTML = '';
           
           // Update stats for calls made
-          document.getElementById('callsMadeValue').textContent = calls.length;
+          const callsMadeElement = document.getElementById('callsMadeValue');
+          if (callsMadeElement) {
+            callsMadeElement.textContent = calls.length;
+          }
           
           // Calculate conversion rate (simplified: calls with outcome 'interested' or 'meeting_scheduled' / total calls)
           if (calls.length > 0) {
@@ -2691,11 +2773,14 @@
               call.outcome === 'interested' || call.outcome === 'meeting_scheduled'
             ).length;
             const rate = Math.round((conversions / calls.length) * 100);
-            document.getElementById('conversionRateValue').textContent = `${rate}%`;
+            const conversionRateElement = document.getElementById('conversionRateValue');
+            if (conversionRateElement) {
+              conversionRateElement.textContent = `${rate}%`;
+            }
             
             // Update trend container based on rate
             const conversionContainer = document.getElementById('conversionChangeContainer');
-            if (rate > 0) {
+            if (rate > 0 && conversionContainer) {
               conversionContainer.classList.add('up');
               conversionContainer.innerHTML = '<i class="fas fa-arrow-up"></i><span>Active conversions</span>';
             }
