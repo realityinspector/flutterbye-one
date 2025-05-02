@@ -16,9 +16,9 @@ function getLeadGenerationPrompt(criteria) {
     
     For each lead you find, please include the following information in a structured format:
     - Company name
-    - Contact name (if available)
-    - Phone number (if available)
-    - Email (if available)
+    - Contact name (CRITICALLY IMPORTANT - make extra effort to find the name of a key decision maker)
+    - Phone number (CRITICALLY IMPORTANT - make extra effort to find a direct contact number)
+    - Email (CRITICALLY IMPORTANT - make extra effort to find a direct contact email)
     - Industry
     - Website
     - Address, City, State, Zip (if available)
@@ -26,6 +26,12 @@ function getLeadGenerationPrompt(criteria) {
     - List of sources (URLs) where you found the information
     
     My lead criteria: ${criteria}
+    
+    IMPORTANT INSTRUCTIONS:
+    1. Make finding contact information your highest priority. Search company websites, LinkedIn, business directories, and other sources.
+    2. For each company, try to find a specific decision maker (CEO, founder, manager, director) rather than generic contact info.
+    3. Make multiple search attempts with different search terms if initial searches don't yield contact information.
+    4. Phone numbers should be properly formatted with area codes and country codes if available.
     
     When you respond, first provide a brief summary of your search results (2-3 sentences maximum).
     Then return your findings as a valid JSON array of lead objects with these exact keys:
@@ -51,7 +57,7 @@ function getLeadGenerationPrompt(criteria) {
     
     Use your web search capability to find current, accurate information. Do not make up any information.
     If you cannot find a specific piece of information, leave it as null.
-    Limit your response to 1-5 high-quality leads that best match my criteria.
+    Limit your response to 1-5 high-quality leads that best match my criteria, prioritizing leads where you can find complete contact information.
   `;
 }
 

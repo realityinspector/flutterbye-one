@@ -137,6 +137,49 @@ router.post('/search', async (req, res) => {
 });
 
 /**
+ * Web search endpoint for contact lookup
+ * Optimized for finding contact information for leads
+ */
+router.post('/webSearch', async (req, res) => {
+  try {
+    const { query } = req.body;
+    
+    if (!query) {
+      return res.status(400).json({ success: false, message: 'Query is required' });
+    }
+
+    // Configure search options for contact information lookup
+    const searchOptions = {
+      userId: req.user.id,
+      metadata: { purpose: 'contact_lookup' },
+      model: 'openai/gpt-4o:online', // Use best available model for contact searching
+      systemPrompt: 'You are a research assistant helping to find accurate contact information for businesses and individuals. Prioritize finding names of key decision makers, direct phone numbers, and email addresses. Keep your responses concise and focused on factual information. Include sources for verification.'
+    };
+
+    // Perform search and analysis
+    const rawSearchResults = await webSearchService.search(query, searchOptions);
+    
+    // Format and return the results
+    return res.json({
+      success: true,
+      summary: rawSearchResults.summary || 'No results found',
+      sources: rawSearchResults.sources || [],
+      metadata: {
+        searchId: rawSearchResults.searchId,
+        query,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Error in contact web search:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Failed to process web search for contact information'
+    });
+  }
+});
+
+/**
  * Generate leads based on natural language description
  */
 router.post('/leads/generate', async (req, res) => {
