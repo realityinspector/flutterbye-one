@@ -9,7 +9,7 @@ module.exports = {
   JWT_EXPIRES_IN: '24h', // 24 hours
 
   // Server configuration
-  PORT: 5000,  // Explicitly set to 5000 for Replit
+  PORT: process.env.PORT || 5000,  // Allow override but default to 5000
   NODE_ENV: process.env.NODE_ENV || 'development',
   
   // Base URL for the application
