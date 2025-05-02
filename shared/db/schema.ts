@@ -19,8 +19,8 @@ export const users = pgTable('users', {
 export const globalLeads = pgTable('global_leads', {
   id: serial('id').primaryKey(),
   companyName: varchar('company_name', { length: 100 }).notNull(),
-  contactName: varchar('contact_name', { length: 100 }).notNull(),
-  phoneNumber: varchar('phone_number', { length: 20 }).notNull(),
+  contactName: varchar('contact_name', { length: 100 }),
+  phoneNumber: varchar('phone_number', { length: 20 }),
   email: varchar('email', { length: 100 }),
   address: varchar('address', { length: 200 }),
   city: varchar('city', { length: 50 }),
