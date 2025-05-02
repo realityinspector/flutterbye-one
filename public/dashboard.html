@@ -35,6 +35,8 @@
       color: var(--dark);
       background-color: var(--light);
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
     
     a {
@@ -84,6 +86,8 @@
     /* Dashboard Layout */
     .dashboard {
       display: flex;
+      flex: 1;
+      min-height: calc(100vh - 140px); /* Account for footer height */
     }
     
     /* Sidebar */
@@ -836,9 +840,12 @@
       color: white;
       padding: 1.5rem;
       margin-top: 2rem;
-      margin-left: var(--sidebar-width);
       width: 100%;
       box-sizing: border-box;
+      position: static;
+      display: block;
+      clear: both;
+      flex-shrink: 0;
     }
 
     .footer-content {
@@ -910,7 +917,7 @@
 
     @media (max-width: 768px) {
       .dashboard-footer {
-        margin-left: 0;
+        width: 100%;
       }
     }
     
@@ -1177,6 +1184,41 @@
     </main>
   </div>
 
+  <!-- Footer -->
+  <footer class="dashboard-footer">
+    <div class="footer-content">
+      <div class="footer-col">
+        <h3>FLUTTERBYE CRM</h3>
+        <p>Making sales calls more effective and meetings healthier through our innovative walking meetings platform.</p>
+      </div>
+      <div class="footer-col">
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="/dashboard">Dashboard</a></li>
+          <li><a href="/leads">Leads</a></li>
+          <li><a href="/calls">Calls</a></li>
+          <li><a href="#">Analytics</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Support</h3>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Documentation</a></li>
+          <li><a href="#">Contact Support</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 FLUTTERBYE CRM. All rights reserved.</p>
+      <div class="footer-logo">
+        <a href="https://allonething.xyz" target="_blank">
+          <img src="/images/aot-labs-logo.png" alt="AOT Labs Logo" width="232" height="70">
+        </a>
+      </div>
+    </div>
+  </footer>
+  
   <script>
     let isPageLoaded = false;
     let currentPath = window.location.pathname;
