@@ -7,12 +7,28 @@
  * Get a templated prompt for lead generation
  * This ensures that all lead generation responses follow a consistent format
  * @param {string} criteria - Natural language description of the leads to find
+ * @param {Array} previousLeads - Array of previously returned leads (optional)
+ * @param {boolean} fetchMoreLeads - Indicates if this is a request for more leads
  * @returns {string} Formatted prompt for lead generation
  */
-function getLeadGenerationPrompt(criteria) {
+function getLeadGenerationPrompt(criteria, previousLeads = [], fetchMoreLeads = false) {
+  // Build the prompt with conditional elements
+  let previousLeadsSection = '';
+  
+  if (fetchMoreLeads && previousLeads && previousLeads.length > 0) {
+    previousLeadsSection = `
+    IMPORTANT: I already have the following leads from a previous search. 
+    Please DO NOT include these companies in your results and find different leads:
+    ${JSON.stringify(previousLeads.map(lead => ({
+      companyName: lead.companyName,
+      website: lead.website
+    })))}
+    `;
+  }
+  
   return `
     You are a sales research assistant that helps sales professionals find new leads.
-    I will describe what kinds of leads I'm looking for, and you will use the web search feature to find 1-5 relevant companies or individuals that match my criteria.
+    I will describe what kinds of leads I'm looking for, and you will use the web search feature to find relevant companies or individuals that match my criteria.
     
     For each lead you find, please include the following information in a structured format:
     - Company name
@@ -26,6 +42,8 @@ function getLeadGenerationPrompt(criteria) {
     - List of sources (URLs) where you found the information
     
     My lead criteria: ${criteria}
+    
+    ${previousLeadsSection}
     
     IMPORTANT INSTRUCTIONS:
     1. Make finding contact information your highest priority. Search company websites, LinkedIn, business directories, and other sources.
@@ -55,9 +73,12 @@ function getLeadGenerationPrompt(criteria) {
     
     IMPORTANT: Make sure your response contains ONLY valid JSON after the summary. The JSON must be properly formatted with all quotes escaped correctly.
     
+    Your response must include an additional property "no_more_records_available": boolean that should be set to true ONLY if you're confident that no additional relevant leads exist beyond what you've already provided and the previous leads. Otherwise, set this to false.
+    
     Use your web search capability to find current, accurate information. Do not make up any information.
     If you cannot find a specific piece of information, leave it as null.
-    Limit your response to 1-5 high-quality leads that best match my criteria, prioritizing leads where you can find complete contact information.
+    Find up to 15 high-quality leads that best match my criteria, prioritizing leads where you can find complete contact information.
+    ${fetchMoreLeads ? 'Try to find different leads than what might be expected from my previous search.' : ''}
   `;
 }
 
@@ -70,11 +91,12 @@ function getLeadGenerationPrompt(criteria) {
 function extractLeadsFromResponse(response) {
   try {
     if (!response) {
-      return { leads: [], summary: '' };
+      return { leads: [], summary: '', no_more_records_available: false };
     }
     
     let summary = '';
     let jsonStr = response;
+    let no_more_records_available = false;
     
     // Try to extract summary (non-JSON text before the JSON array)
     const jsonStartIndex = response.indexOf('[');
@@ -83,12 +105,18 @@ function extractLeadsFromResponse(response) {
       jsonStr = response.substring(jsonStartIndex);
     }
     
+    // Check for the no_more_records_available flag in the response
+    const noMoreRecordsMatch = response.match(/"no_more_records_available"\s*:\s*(true|false)/i);
+    if (noMoreRecordsMatch && noMoreRecordsMatch[1]) {
+      no_more_records_available = noMoreRecordsMatch[1].toLowerCase() === 'true';
+    }
+    
     // Find the first valid JSON array in the response
     const matches = jsonStr.match(/\[\s*\{.*\}\s*\]/s);
     if (matches && matches[0]) {
       try {
         const leadsArray = JSON.parse(matches[0]);
-        return { leads: leadsArray, summary };
+        return { leads: leadsArray, summary, no_more_records_available };
       } catch (parseError) {
         console.error('Error parsing extracted JSON array:', parseError);
       }
@@ -110,7 +138,7 @@ function extractLeadsFromResponse(response) {
           try {
             const lead = JSON.parse(jsonMatch[0]);
             if (lead && lead.companyName && lead.sources) {
-              return { leads: [lead], summary: newSummary || summary };
+              return { leads: [lead], summary: newSummary || summary, no_more_records_available };
             }
           } catch (parseError) {
             console.error('Error parsing matched JSON object:', parseError);
@@ -163,7 +191,7 @@ function extractLeadsFromResponse(response) {
               summary = response.substring(0, summaryEndIndex).trim();
             }
           }
-          return { leads, summary };
+          return { leads, summary, no_more_records_available };
         }
       } catch (parseError) {
         console.error('Error processing JSON objects:', parseError);
@@ -195,7 +223,7 @@ function extractLeadsFromResponse(response) {
           try {
             const arrayJson = JSON.parse(cleanedJsonStr);
             if (Array.isArray(arrayJson) && arrayJson.length > 0) {
-              return { leads: arrayJson, summary };
+              return { leads: arrayJson, summary, no_more_records_available };
             }
           } catch (arrayError) {
             console.log('Could not parse cleaned array JSON:', arrayError);
@@ -206,13 +234,22 @@ function extractLeadsFromResponse(response) {
           
           try {
             const objJson = JSON.parse(cleanedJsonStr);
+            // Extract the no_more_records_available flag if present
+            if (objJson && objJson.no_more_records_available !== undefined) {
+              no_more_records_available = !!objJson.no_more_records_available;
+            }
             // Handle case where response is an object with a leads array
             if (objJson && objJson.leads && Array.isArray(objJson.leads)) {
-              return { leads: objJson.leads, summary: objJson.summary || summary };
+              return { 
+                leads: objJson.leads, 
+                summary: objJson.summary || summary,
+                no_more_records_available: objJson.no_more_records_available !== undefined ? 
+                  objJson.no_more_records_available : no_more_records_available
+              };
             }
             // Handle case where response is a single lead object
             if (objJson && objJson.companyName) {
-              return { leads: [objJson], summary };
+              return { leads: [objJson], summary, no_more_records_available };
             }
           } catch (objError) {
             console.log('Could not parse cleaned object JSON:', objError);
@@ -222,17 +259,28 @@ function extractLeadsFromResponse(response) {
       
       // Try the original string as a fallback
       const parsedJson = JSON.parse(jsonStr);
+      
+      // Extract the no_more_records_available flag if present in the parsed JSON
+      if (parsedJson && parsedJson.no_more_records_available !== undefined) {
+        no_more_records_available = !!parsedJson.no_more_records_available;
+      }
+      
       // Handle case where response is an object with a leads array
       if (parsedJson && parsedJson.leads && Array.isArray(parsedJson.leads)) {
-        return { leads: parsedJson.leads, summary: parsedJson.summary || summary };
+        return { 
+          leads: parsedJson.leads, 
+          summary: parsedJson.summary || summary,
+          no_more_records_available: parsedJson.no_more_records_available !== undefined ? 
+            parsedJson.no_more_records_available : no_more_records_available
+        };
       }
       // Handle case where response is directly an array
       if (Array.isArray(parsedJson)) {
-        return { leads: parsedJson, summary };
+        return { leads: parsedJson, summary, no_more_records_available };
       }
       // Handle case where response is a single lead object
       if (parsedJson && parsedJson.companyName) {
-        return { leads: [parsedJson], summary };
+        return { leads: [parsedJson], summary, no_more_records_available };
       }
     } catch (parseError) {
       console.log('Error parsing full response as JSON:', parseError);
@@ -240,10 +288,10 @@ function extractLeadsFromResponse(response) {
     
     // If we got here, we couldn't parse any leads
     console.warn('Could not extract leads from response - returning empty results');
-    return { leads: [], summary: 'No leads could be parsed from the AI response' };
+    return { leads: [], summary: 'No leads could be parsed from the AI response', no_more_records_available: false };
   } catch (error) {
     console.error('Error extracting leads from AI response:', error);
-    return { leads: [], summary: 'Error parsing lead data' };
+    return { leads: [], summary: 'Error parsing lead data', no_more_records_available: false };
   }
 }
 

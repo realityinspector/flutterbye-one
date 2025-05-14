@@ -19,9 +19,17 @@ import { MaterialIcons } from '@expo/vector-icons';
  * Lead Approval List Component
  * 
  * Displays a list of AI-generated leads for user review and approval before importing
- * into the CRM system. Users can select which leads to import.
+ * into the CRM system. Users can select which leads to import and request more leads.
  */
-const LeadApprovalList = ({ leads = [], summary = '', onImportLeads, onCancel }) => {
+const LeadApprovalList = ({ 
+  leads = [], 
+  summary = '', 
+  onImportLeads, 
+  onCancel, 
+  onRequestMoreLeads, 
+  isLoadingMoreLeads = false,
+  noMoreRecordsAvailable = false
+}) => {
   // Track which leads are selected for import
   const [selectedLeads, setSelectedLeads] = useState(
     leads.map((_, index) => ({ id: index, selected: true }))
@@ -183,21 +191,47 @@ const LeadApprovalList = ({ leads = [], summary = '', onImportLeads, onCancel })
 
         {/* Action buttons */}
         <Box p={4}>
-          <HStack space={2} justifyContent="flex-end">
-            <Button
-              variant="ghost"
-              onPress={onCancel}
-            >
-              Cancel
-            </Button>
-            <Button
-              colorScheme="blue"
-              isDisabled={selectedCount === 0}
-              onPress={handleImport}
-            >
-              Import {selectedCount} {selectedCount === 1 ? 'Lead' : 'Leads'}
-            </Button>
-          </HStack>
+          <VStack space={3}>
+            {/* "More Leads" button (if applicable) */}
+            {onRequestMoreLeads && (
+              <Box>
+                {noMoreRecordsAvailable ? (
+                  <Text fontSize="sm" color="gray.500" textAlign="center">
+                    No more leads available matching your criteria
+                  </Text>
+                ) : (
+                  <Button
+                    variant="outline"
+                    colorScheme="blue"
+                    leftIcon={<Icon as={MaterialIcons} name="refresh" size="sm" />}
+                    onPress={onRequestMoreLeads}
+                    isLoading={isLoadingMoreLeads}
+                    isLoadingText="Searching..."
+                    isDisabled={isLoadingMoreLeads || noMoreRecordsAvailable}
+                    width="full"
+                  >
+                    Find More Leads (up to 15)
+                  </Button>
+                )}
+              </Box>
+            )}
+            
+            <HStack space={2} justifyContent="flex-end">
+              <Button
+                variant="ghost"
+                onPress={onCancel}
+              >
+                Cancel
+              </Button>
+              <Button
+                colorScheme="blue"
+                isDisabled={selectedCount === 0}
+                onPress={handleImport}
+              >
+                Import {selectedCount} {selectedCount === 1 ? 'Lead' : 'Leads'}
+              </Button>
+            </HStack>
+          </VStack>
         </Box>
       </VStack>
     </Box>

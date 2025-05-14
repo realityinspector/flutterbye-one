@@ -184,16 +184,18 @@ router.post('/webSearch', async (req, res) => {
  */
 router.post('/leads/generate', async (req, res) => {
   try {
-    const { description, options = {} } = req.body;
+    const { description, options = {}, previousLeads = [], fetchMoreLeads = false } = req.body;
     
     if (!description) {
       return res.status(400).json({ success: false, message: 'Lead description is required' });
     }
 
-    // Add user ID to options
+    // Add user ID and other parameters to options
     const leadOptions = {
       ...options,
       userId: req.user.id,
+      previousLeads,
+      fetchMoreLeads
     };
 
     const result = await webSearchService.generateLeads(description, leadOptions);
