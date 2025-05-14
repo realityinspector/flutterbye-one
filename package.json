@@ -32,7 +32,7 @@
     "jsonwebtoken": "^9.0.2",
     "native-base": "^3.4.28",
     "node-fetch": "^3.3.2",
-    "openai": "^4.96.2",
+    "openai": "^4.98.0",
     "pg": "^8.15.6",
     "react": "^18.2.0",
     "react-native": "^0.79.1",

@@ -65,8 +65,33 @@ class AiStorageService {
 
   // AI Interaction methods
   async createInteraction(data) {
-    const [interaction] = await db.insert(aiInteractions).values(data).returning();
-    return interaction;
+    // Skip ORM and directly use raw SQL which is more reliable for this case
+    try {
+      // Create interaction with raw SQL which handles nulls better
+      const query = `
+        INSERT INTO ai_interactions
+        (user_id, config_id, model, prompt, response, used_web_search, status, metadata, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        RETURNING *
+      `;
+      
+      const values = [
+        data.userId || null,
+        data.configId || null,
+        data.model,
+        data.prompt,
+        data.response || null,
+        data.usedWebSearch || false,
+        data.status || 'processing',
+        data.metadata ? JSON.stringify(data.metadata) : '{}'
+      ];
+      
+      const result = await pool.query(query, values);
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error creating AI interaction:', error);
+      throw error;
+    }
   }
 
   async getInteraction(id) {
@@ -78,15 +103,38 @@ class AiStorageService {
   }
 
   async updateInteraction(id, data) {
-    const [interaction] = await db
-      .update(aiInteractions)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
-      .where(eq(aiInteractions.id, id))
-      .returning();
-    return interaction || null;
+    try {
+      // Use raw SQL for updates as well
+      let setClause = [];
+      let queryParams = [];
+      let paramIndex = 1;
+      
+      // Build SET clause dynamically
+      for (const [key, value] of Object.entries(data)) {
+        // Convert camelCase to snake_case for SQL
+        const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+        setClause.push(`${snakeKey} = $${paramIndex}`);
+        queryParams.push(value === undefined ? null : value);
+        paramIndex++;
+      }
+      
+      // Always update the updated_at timestamp
+      setClause.push(`updated_at = NOW()`);
+      
+      const query = `
+        UPDATE ai_interactions
+        SET ${setClause.join(', ')}
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `;
+      queryParams.push(id);
+      
+      const result = await pool.query(query, queryParams);
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error(`Error updating interaction ${id}:`, error);
+      throw error;
+    }
   }
 
   async listInteractions(

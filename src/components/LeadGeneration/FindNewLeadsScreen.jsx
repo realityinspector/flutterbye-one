@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   VStack,
   ScrollView,
@@ -14,6 +14,7 @@ import { useLeads } from '../../hooks/useLeads';
 import FindLeadsForm from './FindLeadsForm';
 import LeadGenerationProgress from './LeadGenerationProgress';
 import LeadApprovalList from './LeadApprovalList';
+import NoMoreLeadsModal from './NoMoreLeadsModal';
 
 /**
  * Find New Leads Screen
@@ -28,8 +29,21 @@ const FindNewLeadsScreen = ({ navigation }) => {
     leads: [],
     summary: '',
     error: null,
-    interactionId: null
+    interactionId: null,
+    criteria: '',
+    noMoreRecordsAvailable: false,
+    isLoadingMoreLeads: false
   });
+  
+  // State for the NoMoreLeadsModal
+  const [showNoMoreLeadsModal, setShowNoMoreLeadsModal] = useState(false);
+  
+  // Show modal when no more leads are available after trying to get more
+  useEffect(() => {
+    if (state.noMoreRecordsAvailable && !state.isLoadingMoreLeads && state.leads.length > 0) {
+      setShowNoMoreLeadsModal(true);
+    }
+  }, [state.noMoreRecordsAvailable, state.isLoadingMoreLeads]);
 
   const { user } = useAuth();
   const { createLead } = useLeads();
@@ -42,13 +56,15 @@ const FindNewLeadsScreen = ({ navigation }) => {
       status: 'searching',
       leads: [],
       summary: '',
-      error: null
+      error: null,
+      criteria: criteria,
+      noMoreRecordsAvailable: false
     });
 
     try {
       // Call the AI lead generation endpoint
       const response = await axios.post('/api/ai/leads/generate', { 
-        criteria,
+        description: criteria,
         userId: user?.id
       });
 
@@ -58,7 +74,9 @@ const FindNewLeadsScreen = ({ navigation }) => {
           status: '',
           leads: response.data.leads || [],
           summary: response.data.summary || '',
-          interactionId: response.data.interactionId
+          interactionId: response.data.interactionId,
+          criteria: criteria,
+          noMoreRecordsAvailable: response.data.no_more_records_available || false
         });
       } else {
         setState({
@@ -66,7 +84,8 @@ const FindNewLeadsScreen = ({ navigation }) => {
           status: 'error',
           error: response.data.error || 'Failed to generate leads',
           leads: [],
-          summary: ''
+          summary: '',
+          criteria: criteria
         });
 
         toast.show({
@@ -82,7 +101,8 @@ const FindNewLeadsScreen = ({ navigation }) => {
         status: 'error',
         error: error.response?.data?.error || error.message || 'Failed to connect to the server',
         leads: [],
-        summary: ''
+        summary: '',
+        criteria: criteria
       });
 
       toast.show({
@@ -152,6 +172,76 @@ const FindNewLeadsScreen = ({ navigation }) => {
     }
   }, [user, createLead, navigation, toast]);
 
+  // Handle request for more leads
+  const handleRequestMoreLeads = useCallback(async () => {
+    // Update state to show loading for more leads
+    setState(prev => ({ 
+      ...prev, 
+      isLoadingMoreLeads: true 
+    }));
+
+    try {
+      // Call the AI lead generation endpoint with previous leads to avoid duplicates
+      const response = await axios.post('/api/ai/leads/generate', {
+        description: state.criteria,
+        previousLeads: state.leads,
+        fetchMoreLeads: true
+      });
+
+      if (response.data.success) {
+        // Combine the new leads with existing ones
+        const combinedLeads = [...state.leads, ...(response.data.leads || [])];
+        
+        setState(prev => ({
+          ...prev,
+          isLoadingMoreLeads: false,
+          leads: combinedLeads,
+          summary: response.data.summary || prev.summary,
+          noMoreRecordsAvailable: response.data.no_more_records_available || false
+        }));
+
+        if (response.data.leads?.length === 0 || response.data.no_more_records_available) {
+          toast.show({
+            description: 'No more leads found matching your criteria',
+            status: 'info',
+            placement: 'top'
+          });
+        } else {
+          toast.show({
+            description: `Found ${response.data.leads?.length || 0} more leads`,
+            status: 'success',
+            placement: 'top'
+          });
+        }
+      } else {
+        setState(prev => ({ 
+          ...prev, 
+          isLoadingMoreLeads: false,
+          error: response.data.error || 'Failed to generate more leads' 
+        }));
+
+        toast.show({
+          description: response.data.error || 'Failed to generate more leads',
+          status: 'error',
+          placement: 'top'
+        });
+      }
+    } catch (error) {
+      console.error('More leads generation error:', error);
+      setState(prev => ({ 
+        ...prev, 
+        isLoadingMoreLeads: false,
+        error: error.response?.data?.error || error.message || 'Failed to connect to the server'
+      }));
+
+      toast.show({
+        description: error.response?.data?.error || error.message || 'Failed to connect to the server',
+        status: 'error',
+        placement: 'top'
+      });
+    }
+  }, [state.leads, state.criteria, toast]);
+
   // Handle cancellation of the lead generation process
   const handleCancel = useCallback(() => {
     setState({
@@ -159,7 +249,10 @@ const FindNewLeadsScreen = ({ navigation }) => {
       status: '',
       leads: [],
       summary: '',
-      error: null
+      error: null,
+      criteria: '',
+      noMoreRecordsAvailable: false,
+      isLoadingMoreLeads: false
     });
   }, []);
 
@@ -178,6 +271,9 @@ const FindNewLeadsScreen = ({ navigation }) => {
           summary={state.summary}
           onImportLeads={handleImportLeads}
           onCancel={handleCancel}
+          onRequestMoreLeads={handleRequestMoreLeads}
+          isLoadingMoreLeads={state.isLoadingMoreLeads}
+          noMoreRecordsAvailable={state.noMoreRecordsAvailable}
         />
       );
     }
@@ -186,20 +282,51 @@ const FindNewLeadsScreen = ({ navigation }) => {
     return <FindLeadsForm onSubmit={handleSearch} isLoading={state.isLoading} />;
   };
 
+  // Handle closing the modal
+  const handleCloseModal = () => {
+    setShowNoMoreLeadsModal(false);
+  };
+
+  // Handle trying a new search
+  const handleTryNewSearch = () => {
+    setShowNoMoreLeadsModal(false);
+    setState({
+      isLoading: false,
+      status: '',
+      leads: [],
+      summary: '',
+      error: null,
+      interactionId: null,
+      criteria: '',
+      noMoreRecordsAvailable: false,
+      isLoadingMoreLeads: false
+    });
+  };
+
   return (
-    <ScrollView bg="gray.100" px={4} py={4}>
-      <VStack space={4}>
-        <Text fontSize="xl" fontWeight="bold">
-          Find New Leads
-        </Text>
+    <>
+      <ScrollView bg="gray.100" px={4} py={4}>
+        <VStack space={4}>
+          <Text fontSize="xl" fontWeight="bold">
+            Find New Leads
+          </Text>
 
-        <Text color="gray.600">
-          Describe the ideal leads you're looking for, and our AI will search the web to find matching companies.
-        </Text>
+          <Text color="gray.600">
+            Describe the ideal leads you're looking for, and our AI will search the web to find matching companies.
+          </Text>
 
-        {renderContent()}
-      </VStack>
-    </ScrollView>
+          {renderContent()}
+        </VStack>
+      </ScrollView>
+
+      {/* Modal to show when no more leads are available */}
+      <NoMoreLeadsModal 
+        isOpen={showNoMoreLeadsModal} 
+        onClose={handleCloseModal}
+        onTryNewSearch={handleTryNewSearch}
+        criteria={state.criteria}
+      />
+    </>
   );
 };
 

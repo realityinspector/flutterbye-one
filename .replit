@@ -32,6 +32,10 @@ args = "Server"
 task = "workflow.run"
 args = "TestOpenRouter"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "TestMoreLeads"
+
 [[workflows.workflow]]
 name = "DBSetup"
 author = "agent"
@@ -72,6 +76,14 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node scripts/test-openrouter.js"
+
+[[workflows.workflow]]
+name = "TestMoreLeads"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node scripts/test-more-leads.js"
 
 [deployment]
 run = ["sh", "-c", "node server/index.js"]
