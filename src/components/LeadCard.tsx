@@ -214,36 +214,24 @@ const LeadCard: React.FC<LeadCardProps> = ({
       <VStack space={3}>
         {cardContent}
         
-        {/* Always show action buttons row */}
-        <HStack space={2} mt={3} justifyContent="flex-end">
+        {/* Action buttons row matching the screenshot layout */}
+        <HStack space={4} mt={3} justifyContent="flex-end">
           <Pressable
             onPress={onPress}
-            bg="primary.50"
-            p={2}
-            rounded="sm"
-            alignItems="center"
           >
-            <Icon as={Feather} name="eye" size="sm" color="primary.600" />
+            <Icon as={Feather} name="phone" size="sm" color="gray.600" />
           </Pressable>
           
           <Pressable
             onPress={onPress}
-            bg="gray.50"
-            p={2}
-            rounded="sm"
-            alignItems="center"
-          >
-            <Icon as={Feather} name="phone" size="sm" color="green.600" />
-          </Pressable>
-          
-          <Pressable
-            onPress={onPress}
-            bg="gray.50"
-            p={2}
-            rounded="sm"
-            alignItems="center"
           >
             <Icon as={Feather} name="edit-2" size="sm" color="gray.600" />
+          </Pressable>
+          
+          <Pressable
+            onPress={onPress}
+          >
+            <Icon as={Feather} name="trash-2" size="sm" color="gray.600" />
           </Pressable>
         </HStack>
       </VStack>
