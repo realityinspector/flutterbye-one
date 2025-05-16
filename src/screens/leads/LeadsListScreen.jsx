@@ -354,16 +354,224 @@ const LeadsListScreen = () => {
             data={filteredLeads}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <Box mb={3} mx={numColumns > 1 ? 1 : 0}>
-                <LeadCard 
-                  lead={item} 
-                  showStatus={true} 
-                  onPress={() => handleLeadPress(item)}
-                  onViewContact={(lead) => handleViewContact(lead)}
-                  onCallLead={(lead) => handleCallLead(lead)}
-                  onEditLead={(lead) => handleEditLead(lead)}
-                  onDeleteLead={(lead) => handleDeleteLead(lead)}
-                />
+              <Box 
+                mb={3} 
+                mx={numColumns > 1 ? 1 : 0}
+                borderWidth={1}
+                borderColor="gray.200"
+                rounded="lg"
+                overflow="hidden"
+                bg="white"
+                shadow={1}
+              >
+                {/* Status pill row */}
+                <HStack 
+                  space={2} 
+                  bg="gray.50" 
+                  p={2} 
+                  borderBottomWidth={1} 
+                  borderBottomColor="gray.100"
+                  flexWrap="wrap"
+                >
+                  <Badge 
+                    colorScheme={item.status === 'new' ? 'info' : 
+                      item.status === 'contacted' ? 'warning' : 
+                      item.status === 'qualified' ? 'success' : 
+                      item.status === 'unqualified' ? 'error' : 
+                      item.status === 'converted' ? 'purple' : 'gray'} 
+                    rounded="md"
+                    variant="solid"
+                    px={2}
+                  >
+                    <Text fontSize="xs" color="white">
+                      {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                    </Text>
+                  </Badge>
+                  
+                  {/* Priority badge */}
+                  <Badge 
+                    colorScheme={item.priority >= 8 ? 'error' : 
+                      item.priority >= 4 ? 'warning' : 'success'} 
+                    variant="subtle" 
+                    rounded="md"
+                    px={2}
+                  >
+                    <HStack space={1} alignItems="center">
+                      <Icon 
+                        as={Feather} 
+                        name="flag" 
+                        size="2xs" 
+                        color={item.priority >= 8 ? 'error.600' : 
+                          item.priority >= 4 ? 'warning.600' : 'success.600'} 
+                      />
+                      <Text fontSize="xs">
+                        {item.priority >= 8 ? 'High' : 
+                          item.priority >= 4 ? 'Medium' : 'Low'} Priority
+                      </Text>
+                    </HStack>
+                  </Badge>
+                  
+                  {/* Team/shared badge */}
+                  {item.isShared && item.organizationId && (
+                    <Badge colorScheme="blue" variant="subtle" rounded="md" px={2}>
+                      <HStack space={1} alignItems="center">
+                        <Icon as={Feather} name="users" size="2xs" color="blue.600" />
+                        <Text fontSize="xs">
+                          {item.organization?.name || 'Team'}
+                        </Text>
+                      </HStack>
+                    </Badge>
+                  )}
+                  
+                  {/* Reminder badge */}
+                  {item.reminderDate && new Date(item.reminderDate) > new Date() && (
+                    <Badge colorScheme="amber" variant="subtle" rounded="md" px={2}>
+                      <HStack space={1} alignItems="center">
+                        <Icon as={Feather} name="clock" size="2xs" color="amber.600" />
+                        <Text fontSize="xs">
+                          Reminder: {new Date(item.reminderDate).toLocaleDateString()}
+                        </Text>
+                      </HStack>
+                    </Badge>
+                  )}
+                </HStack>
+                
+                {/* Lead content */}
+                <Box p={4}>
+                  <HStack justifyContent="space-between" alignItems="center" mb={2}>
+                    <Heading size="sm" numberOfLines={1} maxW="70%">
+                      {item.globalLead?.companyName || item.globalLead?.contactName || 'Unknown'}
+                    </Heading>
+                    <Text fontSize="xs" color="gray.500">
+                      Last updated: {new Date(item.updatedAt).toLocaleDateString()}
+                    </Text>
+                  </HStack>
+                  
+                  {/* Contact info section */}
+                  <VStack space={1} mb={3}>
+                    {item.globalLead?.contactName && (
+                      <HStack alignItems="center" space={1}>
+                        <Icon as={Feather} name="user" size={3} color="gray.500" />
+                        <Text color="gray.600" fontSize="sm">
+                          {item.globalLead?.contactName}
+                        </Text>
+                      </HStack>
+                    )}
+                    
+                    {item.globalLead?.phoneNumber && (
+                      <HStack alignItems="center" space={1}>
+                        <Icon as={Feather} name="phone" size={3} color="gray.500" />
+                        <Text color="gray.600" fontSize="sm">
+                          {item.globalLead?.phoneNumber}
+                        </Text>
+                      </HStack>
+                    )}
+                    
+                    {item.globalLead?.email && (
+                      <HStack alignItems="center" space={1}>
+                        <Icon as={Feather} name="mail" size={3} color="gray.500" />
+                        <Text color="gray.600" fontSize="sm" numberOfLines={1}>
+                          {item.globalLead?.email}
+                        </Text>
+                      </HStack>
+                    )}
+                    
+                    {item.globalLead?.industry && (
+                      <HStack alignItems="center" space={1}>
+                        <Icon as={Feather} name="briefcase" size={3} color="gray.500" />
+                        <Text color="gray.600" fontSize="sm">
+                          {item.globalLead?.industry}
+                        </Text>
+                      </HStack>
+                    )}
+                  </VStack>
+                  
+                  {/* Notes preview */}
+                  {item.notes && (
+                    <Box bg="gray.50" p={2} rounded="md" mb={3}>
+                      <Text fontSize="xs" color="gray.500" mb={1}>Notes:</Text>
+                      <Text fontSize="sm" numberOfLines={2}>
+                        {item.notes}
+                      </Text>
+                    </Box>
+                  )}
+                  
+                  {/* Last contacted info */}
+                  {item.lastContactedAt && (
+                    <HStack alignItems="center" space={1} mb={3}>
+                      <Icon as={Feather} name="clock" size={3} color="gray.500" />
+                      <Text fontSize="xs" color="gray.500">
+                        Last contacted: {new Date(item.lastContactedAt).toLocaleDateString()}
+                      </Text>
+                    </HStack>
+                  )}
+                </Box>
+                
+                {/* Action buttons */}
+                <HStack 
+                  space={1} 
+                  p={2} 
+                  borderTopWidth={1} 
+                  borderTopColor="gray.100"
+                  bg="gray.50"
+                  justifyContent="space-between"
+                >
+                  <Pressable 
+                    flex={1} 
+                    py={2} 
+                    justifyContent="center" 
+                    alignItems="center"
+                    _pressed={{ bg: 'gray.200' }}
+                    onPress={() => handleViewContact(item)}
+                  >
+                    <HStack space={1} alignItems="center">
+                      <Icon as={Feather} name="eye" size="sm" color="gray.600" />
+                      <Text fontSize="xs" color="gray.600">View</Text>
+                    </HStack>
+                  </Pressable>
+                  
+                  <Pressable 
+                    flex={1} 
+                    py={2} 
+                    justifyContent="center" 
+                    alignItems="center"
+                    _pressed={{ bg: 'gray.200' }}
+                    onPress={() => handleCallLead(item)}
+                  >
+                    <HStack space={1} alignItems="center">
+                      <Icon as={Feather} name="phone" size="sm" color="green.600" />
+                      <Text fontSize="xs" color="green.600">Call</Text>
+                    </HStack>
+                  </Pressable>
+                  
+                  <Pressable 
+                    flex={1} 
+                    py={2} 
+                    justifyContent="center" 
+                    alignItems="center"
+                    _pressed={{ bg: 'gray.200' }}
+                    onPress={() => handleEditLead(item)}
+                  >
+                    <HStack space={1} alignItems="center">
+                      <Icon as={Feather} name="edit-2" size="sm" color="blue.600" />
+                      <Text fontSize="xs" color="blue.600">Edit</Text>
+                    </HStack>
+                  </Pressable>
+                  
+                  <Pressable 
+                    flex={1} 
+                    py={2} 
+                    justifyContent="center" 
+                    alignItems="center"
+                    _pressed={{ bg: 'gray.200' }}
+                    onPress={() => handleDeleteLead(item)}
+                  >
+                    <HStack space={1} alignItems="center">
+                      <Icon as={Feather} name="trash-2" size="sm" color="red.600" />
+                      <Text fontSize="xs" color="red.600">Delete</Text>
+                    </HStack>
+                  </Pressable>
+                </HStack>
               </Box>
             )}
             numColumns={numColumns}
