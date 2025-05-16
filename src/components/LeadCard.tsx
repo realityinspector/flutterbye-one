@@ -176,8 +176,8 @@ const LeadCard: React.FC<LeadCardProps> = ({
     </HStack>
   );
 
-  // If there's an onPress handler, wrap the content in a Pressable component
-  if (onPress) {
+  // Don't wrap with Pressable anymore, always show buttons
+  if (false) {
     return (
       <Pressable
         onPress={onPress}
@@ -214,21 +214,19 @@ const LeadCard: React.FC<LeadCardProps> = ({
       <VStack space={3}>
         {cardContent}
         
-        {/* Action buttons row matching the screenshot layout */}
-        <HStack space={4} mt={3} justifyContent="flex-end">
+        {/* Action buttons row matching the screenshot layout exactly */}
+        <HStack space={4} mt={3} justifyContent="flex-end" px={2}>
           <Pressable
             onPress={() => {
-              console.log("View lead details button clicked", globalLead ? globalLead.companyName : "Unknown company");
-              if (onPress) onPress();
+              console.log("View contact card button clicked", lead?.globalLead?.companyName || "Unknown");
             }}
           >
-            <Icon as={Feather} name="file-text" size="sm" color="blue.600" />
+            <Icon as={Feather} name="eye" size="sm" color="gray.600" />
           </Pressable>
           
           <Pressable
             onPress={() => {
-              console.log("Call lead button clicked");
-              if (onPress) onPress();
+              console.log("Call lead button clicked", lead?.globalLead?.phoneNumber || "No phone");
             }}
           >
             <Icon as={Feather} name="phone" size="sm" color="gray.600" />
@@ -236,8 +234,7 @@ const LeadCard: React.FC<LeadCardProps> = ({
           
           <Pressable
             onPress={() => {
-              console.log("Edit lead button clicked");
-              if (onPress) onPress();
+              console.log("Edit lead button clicked", lead?.id);
             }}
           >
             <Icon as={Feather} name="edit-2" size="sm" color="gray.600" />
@@ -245,8 +242,7 @@ const LeadCard: React.FC<LeadCardProps> = ({
           
           <Pressable
             onPress={() => {
-              console.log("Delete lead button clicked");
-              if (onPress) onPress();
+              console.log("Delete lead button clicked", lead?.id);
             }}
           >
             <Icon as={Feather} name="trash-2" size="sm" color="gray.600" />
