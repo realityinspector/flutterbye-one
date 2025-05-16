@@ -1002,6 +1002,21 @@
       color: white;
     }
     
+    .lead-status-pill.organization {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: white;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    
+    .lead-status-pill.organization i {
+      font-size: 0.8rem;
+      margin-right: 0.4rem;
+    }
+    
     .lead-content {
       padding: 1rem;
     }
@@ -3365,11 +3380,14 @@
           const leads = response.data;
           
           // Process leads to add organization information
+          console.log('Raw leads data from API:', JSON.stringify(leads, null, 2));
+          
           leads.forEach(lead => {
             // Check if lead is shared with an organization
             if (lead.organizationId && lead.isShared) {
               lead.isSharedWithOrg = true;
               lead.orgName = lead.organization ? lead.organization.name : 'Team';
+              console.log(`Lead ${lead.id} is shared with org: ${lead.orgName}`);
             } else {
               lead.isSharedWithOrg = false;
             }
@@ -3413,7 +3431,7 @@
             
             // Check if this lead is shared with an organization
             const isShared = lead.isShared || false;
-            const orgName = lead.isSharedWithOrg && lead.orgName ? lead.orgName : 'Team';
+            const orgName = lead.organization ? lead.organization.name : 'Team';
             
             // Format date if available
             const updatedDate = lead.updatedAt ? new Date(lead.updatedAt).toLocaleDateString() : 'N/A';
@@ -3433,7 +3451,11 @@
                   <i class="fas fa-flag"></i>
                   ${priorityClass.replace('priority-', '').charAt(0).toUpperCase() + priorityClass.replace('priority-', '').slice(1)} Priority
                 </div>
-                ${isShared ? `<div class="lead-status-pill team"><i class="fas fa-users"></i> ${orgName}</div>` : ''}
+                ${isShared ? 
+                  `<div class="lead-status-pill organization">
+                    <i class="fas fa-building"></i> 
+                    ${orgName}
+                  </div>` : ''}
               </div>
               
               <div class="lead-content">
