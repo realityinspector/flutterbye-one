@@ -59,6 +59,50 @@ const LeadsListScreen = () => {
     navigation.navigate('LeadDetail', { leadId: lead.id });
   };
 
+  // Handle view contact button press
+  const handleViewContact = (lead) => {
+    console.log("View contact details for lead", lead.id, lead.globalLead?.companyName);
+    navigation.navigate('LeadDetail', { leadId: lead.id, viewContactCard: true });
+  };
+
+  // Handle call lead button press
+  const handleCallLead = (lead) => {
+    console.log("Call lead", lead.id, lead.globalLead?.phoneNumber);
+    if (lead.globalLead?.phoneNumber) {
+      // Could implement actual call functionality here
+      toast.show({
+        title: "Calling " + (lead.globalLead?.contactName || lead.globalLead?.companyName),
+        description: lead.globalLead?.phoneNumber,
+        status: "info",
+        duration: 3000
+      });
+    } else {
+      toast.show({
+        title: "No phone number available",
+        status: "warning",
+        duration: 3000
+      });
+    }
+  };
+
+  // Handle edit lead button press
+  const handleEditLead = (lead) => {
+    console.log("Edit lead", lead.id, lead.globalLead?.companyName);
+    navigation.navigate('EditLead', { leadId: lead.id });
+  };
+
+  // Handle delete lead button press
+  const handleDeleteLead = (lead) => {
+    console.log("Delete lead", lead.id, lead.globalLead?.companyName);
+    // Could implement confirmation dialog here
+    toast.show({
+      title: "Delete functionality",
+      description: "Delete functionality would be implemented here",
+      status: "info",
+      duration: 3000
+    });
+  };
+
   // Handle navigation to lead form for creating new lead
   const handleAddLead = () => {
     navigation.navigate('AddLead');
@@ -315,6 +359,10 @@ const LeadsListScreen = () => {
                   lead={item} 
                   showStatus={true} 
                   onPress={() => handleLeadPress(item)}
+                  onViewContact={(lead) => handleViewContact(lead)}
+                  onCallLead={(lead) => handleCallLead(lead)}
+                  onEditLead={(lead) => handleEditLead(lead)}
+                  onDeleteLead={(lead) => handleDeleteLead(lead)}
                 />
               </Box>
             )}
