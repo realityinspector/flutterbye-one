@@ -40,6 +40,10 @@ function registerRoutes(app) {
     res.sendFile(path.join(__dirname, '../public/dashboard.html'));
   });
   
+  app.get('/settings', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/settings.html'));
+  });
+  
   // Dashboard authentication check
   app.get('/dashboard-check', (req, res) => {
     // Get token from cookies
