@@ -39,6 +39,9 @@ const Footer = () => {
             <Pressable onPress={() => navigateTo('Analytics')}>
               <Text color="gray.300" fontSize="xs">Analytics</Text>
             </Pressable>
+            <Pressable onPress={() => navigateTo('Profile')}>
+              <Text color="gray.300" fontSize="xs">Settings</Text>
+            </Pressable>
           </VStack>
           
           <VStack space={2} mb={4} minW="120px">
