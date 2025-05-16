@@ -28,14 +28,6 @@ args = "DemoSeeder"
 task = "workflow.run"
 args = "Server"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "TestOpenRouter"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "TestMoreLeads"
-
 [[workflows.workflow]]
 name = "DBSetup"
 author = "agent"
@@ -68,22 +60,6 @@ author = "agent"
 task = "shell.exec"
 args = "node server/index.js"
 waitForPort = 5000
-
-[[workflows.workflow]]
-name = "TestOpenRouter"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node scripts/test-openrouter.js"
-
-[[workflows.workflow]]
-name = "TestMoreLeads"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node scripts/test-more-leads.js"
 
 [deployment]
 run = ["sh", "-c", "node server/index.js"]
