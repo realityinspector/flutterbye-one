@@ -1452,7 +1452,7 @@
         <div class="menu-divider"></div>
         <div class="menu-item">
           <i class="fas fa-cog"></i>
-          <a href="#">Settings</a>
+          <a href="/settings">Settings</a>
         </div>
         <div class="menu-item">
           <i class="fas fa-question-circle"></i>
@@ -1479,7 +1479,7 @@
               <i class="fas fa-user"></i>
               <span>Profile</span>
             </div>
-            <div class="dropdown-item">
+            <div class="dropdown-item" id="settingsBtn">
               <i class="fas fa-cog"></i>
               <span>Settings</span>
             </div>
@@ -3248,6 +3248,14 @@
       viewAllCallsBtn.addEventListener('click', function() {
         // Navigate to calls list
         window.location.href = '/calls';
+      });
+      
+      // Settings button functionality
+      const settingsBtn = document.getElementById('settingsBtn');
+      
+      settingsBtn.addEventListener('click', function() {
+        // Navigate to settings page
+        window.location.href = '/settings';
       });
       
       // Logout functionality
