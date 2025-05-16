@@ -13,6 +13,9 @@ const config = require('./config');
 // Use centralized configuration
 const { JWT_SECRET } = config;
 
+// Import the API routes
+const { registerApiRoutes } = require('./routes/index');
+
 function registerRoutes(app) {
   // Serve static files from the public directory - changed from earlier position
   // app.use(express.static('public')); // Will be moved to proper position
@@ -151,165 +154,8 @@ function registerRoutes(app) {
   // Auth routes
   setupAuth(app);
 
-  // Lead routes
-  app.get('/api/leads', authenticateJWT, async (req, res) => {
-    try {
-      const leads = await db.query.userLeads.findMany({
-        where: eq(userLeads.userId, req.user.id),
-        with: {
-          globalLead: true,
-        },
-        orderBy: [desc(userLeads.priority)],
-      });
-      
-      res.json({ success: true, data: leads });
-    } catch (error) {
-      console.error('Error fetching leads:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch leads' });
-    }
-  });
-
-  app.get('/api/leads/:id', authenticateJWT, async (req, res) => {
-    try {
-      const [lead] = await db.query.userLeads.findMany({
-        where: and(
-          eq(userLeads.id, parseInt(req.params.id)),
-          eq(userLeads.userId, req.user.id)
-        ),
-        with: {
-          globalLead: true,
-        },
-      });
-      
-      if (!lead) {
-        return res.status(404).json({ message: 'Lead not found' });
-      }
-      
-      res.json({ success: true, data: lead });
-    } catch (error) {
-      console.error('Error fetching lead:', error);
-      res.status(500).json({ message: 'Failed to fetch lead' });
-    }
-  });
-
-  app.post('/api/leads', authenticateJWT, async (req, res) => {
-    try {
-      // Create a global lead record
-      const [globalLead] = await db.insert(globalLeads).values({
-        companyName: req.body.companyName,
-        contactName: req.body.contactName,
-        phoneNumber: req.body.phoneNumber,
-        email: req.body.email,
-        address: req.body.address,
-        city: req.body.city,
-        state: req.body.state,
-        zipCode: req.body.zipCode,
-        industry: req.body.industry,
-        website: req.body.website,
-      }).returning();
-      
-      // Create a user-specific lead record
-      const [userLead] = await db.insert(userLeads).values({
-        userId: req.user.id,
-        globalLeadId: globalLead.id,
-        status: 'new',
-        priority: 5, // Default medium priority
-        notes: req.body.notes,
-      }).returning();
-      
-      // Return the combined lead data
-      const createdLead = {
-        ...userLead,
-        globalLead,
-      };
-      
-      res.status(201).json({ success: true, data: createdLead });
-    } catch (error) {
-      console.error('Error creating lead:', error);
-      res.status(500).json({ success: false, message: 'Failed to create lead' });
-    }
-  });
-
-  app.put('/api/leads/:id', authenticateJWT, async (req, res) => {
-    try {
-      // Check if lead belongs to user
-      const [userLead] = await db.select().from(userLeads).where(
-        and(
-          eq(userLeads.id, parseInt(req.params.id)),
-          eq(userLeads.userId, req.user.id)
-        )
-      );
-      
-      if (!userLead) {
-        return res.status(404).json({ message: 'Lead not found' });
-      }
-      
-      // Update global lead data if provided
-      if (req.body.companyName || req.body.contactName || req.body.phoneNumber) {
-        await db.update(globalLeads)
-          .set({
-            companyName: req.body.companyName,
-            contactName: req.body.contactName,
-            phoneNumber: req.body.phoneNumber,
-            email: req.body.email,
-            address: req.body.address,
-            city: req.body.city,
-            state: req.body.state,
-            zipCode: req.body.zipCode,
-            industry: req.body.industry,
-            website: req.body.website,
-          })
-          .where(eq(globalLeads.id, userLead.globalLeadId));
-      }
-      
-      // Update user lead data
-      const [updatedUserLead] = await db.update(userLeads)
-        .set({
-          status: req.body.status || userLead.status,
-          priority: req.body.priority !== undefined ? req.body.priority : userLead.priority,
-          notes: req.body.notes !== undefined ? req.body.notes : userLead.notes,
-          reminderDate: req.body.reminderDate || userLead.reminderDate,
-        })
-        .where(eq(userLeads.id, userLead.id))
-        .returning();
-      
-      // Fetch the updated lead with global data
-      const [completeLead] = await db.query.userLeads.findMany({
-        where: eq(userLeads.id, updatedUserLead.id),
-        with: {
-          globalLead: true,
-        },
-      });
-      
-      res.json({ success: true, data: completeLead });
-    } catch (error) {
-      console.error('Error updating lead:', error);
-      res.status(500).json({ success: false, message: 'Failed to update lead' });
-    }
-  });
-
-  app.delete('/api/leads/:id', authenticateJWT, async (req, res) => {
-    try {
-      // Only delete the user lead, keep the global lead
-      const result = await db.delete(userLeads)
-        .where(
-          and(
-            eq(userLeads.id, parseInt(req.params.id)),
-            eq(userLeads.userId, req.user.id)
-          )
-        )
-        .returning({ id: userLeads.id });
-      
-      if (result.length === 0) {
-        return res.status(404).json({ message: 'Lead not found' });
-      }
-      
-      res.json({ success: true, data: { id: result[0].id, message: 'Lead deleted successfully' } });
-    } catch (error) {
-      console.error('Error deleting lead:', error);
-      res.status(500).json({ success: false, message: 'Failed to delete lead' });
-    }
-  });
+  // Register all API routes (leads, organizations, etc.)
+  registerApiRoutes(app);
 
   // Call routes
   app.get('/api/calls', authenticateJWT, async (req, res) => {
