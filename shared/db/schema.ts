@@ -159,7 +159,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const organizationsRelations = relations(organizations, ({ one, many }) => ({
   creator: one(users, { fields: [organizations.createdBy], references: [users.id] }),
   members: many(organizationMembers),
-  leads: many(userLeads),
+  leads: many(userLeads, { relationName: 'lead_organization' }),
 }));
 
 export const organizationMembersRelations = relations(organizationMembers, ({ one }) => ({
@@ -174,7 +174,12 @@ export const globalLeadsRelations = relations(globalLeads, ({ many }) => ({
 export const userLeadsRelations = relations(userLeads, ({ one, many }) => ({
   user: one(users, { fields: [userLeads.userId], references: [users.id] }),
   globalLead: one(globalLeads, { fields: [userLeads.globalLeadId], references: [globalLeads.id] }),
-  organization: one(organizations, { fields: [userLeads.organizationId], references: [organizations.id] }),
+  // Make organization relation optional since organizationId can be null
+  organization: one(organizations, { 
+    fields: [userLeads.organizationId], 
+    references: [organizations.id],
+    relationName: 'lead_organization'
+  }),
   calls: many(calls),
 }));
 
