@@ -217,19 +217,37 @@ const LeadCard: React.FC<LeadCardProps> = ({
         {/* Action buttons row matching the screenshot layout */}
         <HStack space={4} mt={3} justifyContent="flex-end">
           <Pressable
-            onPress={onPress}
+            onPress={() => {
+              console.log("View lead details button clicked", globalLead ? globalLead.companyName : "Unknown company");
+              if (onPress) onPress();
+            }}
+          >
+            <Icon as={Feather} name="file-text" size="sm" color="blue.600" />
+          </Pressable>
+          
+          <Pressable
+            onPress={() => {
+              console.log("Call lead button clicked");
+              if (onPress) onPress();
+            }}
           >
             <Icon as={Feather} name="phone" size="sm" color="gray.600" />
           </Pressable>
           
           <Pressable
-            onPress={onPress}
+            onPress={() => {
+              console.log("Edit lead button clicked");
+              if (onPress) onPress();
+            }}
           >
             <Icon as={Feather} name="edit-2" size="sm" color="gray.600" />
           </Pressable>
           
           <Pressable
-            onPress={onPress}
+            onPress={() => {
+              console.log("Delete lead button clicked");
+              if (onPress) onPress();
+            }}
           >
             <Icon as={Feather} name="trash-2" size="sm" color="gray.600" />
           </Pressable>
