@@ -7,44 +7,44 @@ This document outlines the remaining tasks for the team sharing capabilities in 
 
 ### Frontend Implementation
 
-- [ ] Update lead creation UI:
-  - [ ] Add "Save to team" option in lead creation form
-  - [ ] Display organization dropdown when "Save to team" is selected
-  - [ ] Update lead list to show team/personal indicator
+- [x] Update lead creation UI:
+  - [x] Add "Save to team" option in lead creation form
+  - [x] Display organization dropdown when "Save to team" is selected
+  - [x] Update lead list to show team/personal indicator
 
-- [ ] Update lead detail view:
-  - [ ] Show organization information for shared leads
-  - [ ] Add UI for changing lead from personal to team and vice versa
+- [x] Update lead detail view:
+  - [x] Show organization information for shared leads
+  - [x] Add UI for changing lead from personal to team and vice versa
 
 ### Authentication and Permission Updates
 
-- [ ] Implement organization-based permissions:
-  - [ ] Check if user is part of organization when accessing team leads
-  - [ ] Allow organization admins to modify team leads
-  - [ ] Enforce role-based permissions within organizations
+- [x] Implement organization-based permissions:
+  - [x] Check if user is part of organization when accessing team leads
+  - [x] Allow organization admins to modify team leads
+  - [x] Enforce role-based permissions within organizations
 
 ### Testing
 
-- [ ] Test organization creation and management:
-  - [ ] Create organizations
-  - [ ] Add/remove members
-  - [ ] Update organization details
+- [x] Test organization creation and management:
+  - [x] Create organizations
+  - [x] Add/remove members
+  - [x] Update organization details
 
-- [ ] Test lead sharing:
-  - [ ] Create personal leads
-  - [ ] Create team leads
-  - [ ] Convert personal leads to team leads
-  - [ ] Verify leads appear correctly for team members
+- [x] Test lead sharing:
+  - [x] Create personal leads
+  - [x] Create team leads
+  - [x] Convert personal leads to team leads
+  - [x] Verify leads appear correctly for team members
 
-- [ ] Test permissions:
-  - [ ] Verify non-members cannot access team leads
-  - [ ] Verify role-based permissions within teams
+- [x] Test permissions:
+  - [x] Verify non-members cannot access team leads
+  - [x] Verify role-based permissions within teams
 
 ### Documentation
 
-- [ ] Update API documentation with new endpoints
-- [ ] Create user documentation for team features
-- [ ] Document database schema changes
+- [x] Update API documentation with new endpoints
+- [x] Create user documentation for team features
+- [x] Document database schema changes
 
 ## Technical Implementation Details
 

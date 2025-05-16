@@ -4,8 +4,11 @@ import {
   HStack,
   VStack,
   Text,
+  Icon,
+  Badge,
 } from 'native-base';
 import Feather from 'react-native-vector-icons/Feather';
+import { MaterialIcons } from '@expo/vector-icons';
 // Import the extended UserLead type
 import { UserLeadWithRelations } from '../types';
 
@@ -131,7 +134,7 @@ const LeadCard: React.FC<LeadCardProps> = ({
           
           {/* Optional status badge */}
           {showStatus && (
-            <HStack space={2} mt={1}>
+            <HStack space={2} mt={1} flexWrap="wrap">
               <Box
                 bg={`${getStatusColor(lead.status)}.100`}
                 px={2}
@@ -142,6 +145,23 @@ const LeadCard: React.FC<LeadCardProps> = ({
                   {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
                 </Text>
               </Box>
+              
+              {/* Team/Personal indicator */}
+              {lead.isShared && lead.organizationId ? (
+                <Badge colorScheme="blue" variant="subtle" rounded="md">
+                  <HStack space={1} alignItems="center">
+                    <Icon as={MaterialIcons} name="people" size={3} />
+                    <Text fontSize="xs">Team</Text>
+                  </HStack>
+                </Badge>
+              ) : (
+                <Badge colorScheme="gray" variant="subtle" rounded="md">
+                  <HStack space={1} alignItems="center">
+                    <Icon as={MaterialIcons} name="person" size={3} />
+                    <Text fontSize="xs">Personal</Text>
+                  </HStack>
+                </Badge>
+              )}
               
               {lead.reminderDate && new Date(lead.reminderDate) > new Date() && (
                 <HStack alignItems="center" space={1}>
