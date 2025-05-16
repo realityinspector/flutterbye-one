@@ -65,34 +65,20 @@ router.get('/', authenticateJWT, async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Find all organization memberships for the user
-    const memberships = await db.select({
-      organizationId: organizationMembers.organizationId,
-      role: organizationMembers.role,
-    })
-    .from(organizationMembers)
-    .where(eq(organizationMembers.userId, userId));
-
-    if (!memberships.length) {
-      return res.json({ success: true, data: [] });
-    }
-
-    // Get the actual organizations
-    const organizationIds = memberships.map(m => m.organizationId);
-    const orgs = await db.select()
+    // Get all organizations created by the user
+    const userOrgs = await db.select()
       .from(organizations)
-      .where(inArray(organizations.id, organizationIds));
+      .where(eq(organizations.createdBy, userId));
 
-    // Enhance the organization data with membership role
-    const enhancedOrgs = orgs.map(org => {
-      const membership = memberships.find(m => m.organizationId === org.id);
+    // Add role information to each organization
+    const orgsWithRoles = userOrgs.map(org => {
       return {
         ...org,
-        userRole: membership ? membership.role : null
+        userRole: 'admin'  // Creator is always an admin
       };
     });
 
-    return res.json({ success: true, data: enhancedOrgs });
+    return res.json({ success: true, data: orgsWithRoles });
   } catch (error) {
     console.error('Error fetching organizations:', error);
     return res.status(500).json({ success: false, message: 'Server error', error: error.message });

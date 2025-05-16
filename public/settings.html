@@ -1135,46 +1135,7 @@
         });
       }
       
-      // Create default organization
-      function createDefaultOrganization() {
-        const orgData = {
-          name: `${currentUser.fullName || currentUser.username}'s Organization`,
-          description: 'Default organization'
-        };
-        
-        fetch('/api/organizations', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify(orgData)
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to create organization');
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (data.success && data.data) {
-            // Add new organization to list
-            currentUser.organizations.push(data.data);
-            
-            // Set as current organization
-            currentOrganization = data.data;
-            
-            // Refresh team members (should be empty initially)
-            fetchTeamMembers(currentOrganization.id);
-          } else {
-            console.error('Invalid create organization response');
-          }
-        })
-        .catch(error => {
-          console.error('Error creating organization:', error);
-          alert('Failed to create organization. Please try again.');
-        });
-      }
+      // Intentionally left empty - createDefaultOrganization has been replaced by the createOrganization function
       
       // Create a new organization
       function createOrganization() {

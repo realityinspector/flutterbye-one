@@ -1,5 +1,5 @@
 // This file provides CommonJS compatibility for the schema
-const { pgTable, serial, text, varchar, integer, timestamp, boolean } = require('drizzle-orm/pg-core');
+const { pgTable, serial, text, varchar, integer, timestamp, boolean, unique } = require('drizzle-orm/pg-core');
 const { relations } = require('drizzle-orm');
 
 // Users table
@@ -61,10 +61,35 @@ const calls = pgTable('calls', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Organizations table
+const organizations = pgTable('organizations', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  description: text('description'),
+  createdBy: integer('created_by').notNull().references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Organization members table
+const organizationMembers = pgTable('organization_members', {
+  id: serial('id').primaryKey(),
+  organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: varchar('role', { length: 20 }).notNull().default('member'),
+  joinedAt: timestamp('joined_at').defaultNow().notNull(),
+}, (table) => {
+  return {
+    unqOrgUser: unique().on(table.organizationId, table.userId),
+  };
+});
+
 // Define relations
 const usersRelations = relations(users, ({ many }) => ({
   userLeads: many(userLeads),
   calls: many(calls),
+  createdOrganizations: many(organizations),
+  organizationMemberships: many(organizationMembers),
 }));
 
 const globalLeadsRelations = relations(globalLeads, ({ many }) => ({
@@ -82,13 +107,27 @@ const callsRelations = relations(calls, ({ one }) => ({
   userLead: one(userLeads, { fields: [calls.userLeadId], references: [userLeads.id] }),
 }));
 
+const organizationsRelations = relations(organizations, ({ one, many }) => ({
+  creator: one(users, { fields: [organizations.createdBy], references: [users.id] }),
+  members: many(organizationMembers),
+}));
+
+const organizationMembersRelations = relations(organizationMembers, ({ one }) => ({
+  organization: one(organizations, { fields: [organizationMembers.organizationId], references: [organizations.id] }),
+  user: one(users, { fields: [organizationMembers.userId], references: [users.id] }),
+}));
+
 module.exports = {
   users,
   globalLeads,
   userLeads,
   calls,
+  organizations,
+  organizationMembers,
   usersRelations,
   globalLeadsRelations,
   userLeadsRelations,
   callsRelations,
+  organizationsRelations,
+  organizationMembersRelations,
 };
