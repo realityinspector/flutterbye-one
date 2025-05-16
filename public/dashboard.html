@@ -201,6 +201,37 @@
       background-color: #c82333;
     }
     
+    /* Organization Pills */
+    .org-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      margin-left: 6px;
+      color: white;
+    }
+    
+    .org-pill i {
+      margin-right: 4px;
+      font-size: 0.7rem;
+    }
+    
+    .org-pill.shared {
+      background-color: var(--primary);
+    }
+    
+    .contact-sharing-status {
+      display: flex;
+      margin-top: 8px;
+    }
+    
+    .org-sharing-controls {
+      margin-top: 15px;
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+    }
+    
     /* Dashboard Layout */
     .dashboard {
       display: flex;
@@ -3085,6 +3116,17 @@
           }
           const leads = response.data;
           
+          // Process leads to add organization information
+          leads.forEach(lead => {
+            // Check if lead is shared with an organization
+            if (lead.organizationId && lead.isShared) {
+              lead.isSharedWithOrg = true;
+              lead.orgName = lead.organization ? lead.organization.name : 'Team';
+            } else {
+              lead.isSharedWithOrg = false;
+            }
+          });
+          
           // Clear existing table rows
           const leadsTableBody = document.getElementById('leadsTableBody');
           leadsTableBody.innerHTML = '';
@@ -3103,8 +3145,9 @@
             
             // Check if this lead is shared with an organization
             const isShared = lead.isShared || false;
+            const orgName = lead.isSharedWithOrg && lead.orgName ? lead.orgName : 'Team';
             const orgShareBadge = isShared ? 
-              `<div class="org-pill shared"><i class="fas fa-users"></i></div>` : '';
+              `<div class="org-pill shared"><i class="fas fa-users"></i> ${orgName}</div>` : '';
             
             tr.innerHTML = `
               <td>

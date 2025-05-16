@@ -127,22 +127,36 @@ const LeadCard = ({
             </HStack>
           )}
           
-          {/* Optional status badge */}
+          {/* Optional status badge and organization badges */}
           {showStatus && (
-            <HStack space={2} mt={1}>
-              <Badge colorScheme={getStatusColor(lead.status)} variant="subtle">
-                {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
-              </Badge>
-              
-              {lead.reminderDate && new Date(lead.reminderDate) > new Date() && (
-                <HStack alignItems="center" space={1}>
-                  <Icon as={Feather} name="clock" size={3} color="amber.500" />
-                  <Text color="amber.500" fontSize="xs">
-                    Reminder: {new Date(lead.reminderDate).toLocaleDateString()}
-                  </Text>
-                </HStack>
-              )}
-            </HStack>
+            <VStack space={2} mt={1}>
+              <HStack space={2} flexWrap="wrap">
+                <Badge colorScheme={getStatusColor(lead.status)} variant="subtle">
+                  {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                </Badge>
+                
+                {/* Organization sharing badge */}
+                {lead.isShared && lead.organizationId && (
+                  <Badge colorScheme="blue" variant="subtle">
+                    <HStack space={1} alignItems="center">
+                      <Icon as={Feather} name="users" size="2xs" />
+                      <Text fontSize="xs">
+                        {lead.organization?.name || 'Team'}
+                      </Text>
+                    </HStack>
+                  </Badge>
+                )}
+                
+                {lead.reminderDate && new Date(lead.reminderDate) > new Date() && (
+                  <HStack alignItems="center" space={1}>
+                    <Icon as={Feather} name="clock" size={3} color="amber.500" />
+                    <Text color="amber.500" fontSize="xs">
+                      Reminder: {new Date(lead.reminderDate).toLocaleDateString()}
+                    </Text>
+                  </HStack>
+                )}
+              </HStack>
+            </VStack>
           )}
           
           {/* Action buttons row */}
