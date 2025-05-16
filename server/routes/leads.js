@@ -301,14 +301,30 @@ router.put('/:id', authenticateJWT, async (req, res) => {
       .where(eq(userLeads.id, leadId))
       .returning();
     
-    // Fetch the updated lead with global data
-    const completeLead = await db.query.userLeads.findFirst({
-      where: eq(userLeads.id, updatedUserLead.id),
-      with: {
-        globalLead: true,
-        organization: organizationId ? true : undefined
-      },
-    });
+    // Fetch the updated lead with global data manually to avoid relation issues
+    const [userLeadData] = await db.select()
+      .from(userLeads)
+      .where(eq(userLeads.id, updatedUserLead.id));
+    
+    // Get global lead data
+    const [globalLeadData] = await db.select()
+      .from(globalLeads)
+      .where(eq(globalLeads.id, userLeadData.globalLeadId));
+    
+    // Get organization data if exists
+    let organizationData = null;
+    if (organizationId) {
+      [organizationData] = await db.select()
+        .from(organizations)
+        .where(eq(organizations.id, organizationId));
+    }
+    
+    // Create complete lead manually
+    const completeLead = {
+      ...userLeadData,
+      globalLead: globalLeadData,
+      organization: organizationData
+    };
     
     res.json({ success: true, data: completeLead });
   } catch (error) {

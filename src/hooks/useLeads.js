@@ -161,8 +161,16 @@ export const useLeads = () => {
     return createLeadMutation.mutateAsync(leadData);
   };
 
-  const updateLead = async (leadId, leadData) => {
-    return updateLeadMutation.mutateAsync({ leadId, leadData });
+  const updateLead = async (params) => {
+    // Handle both object argument format and separate arguments format
+    if (typeof params === 'object' && params.leadId && params.leadData) {
+      return updateLeadMutation.mutateAsync(params);
+    } else {
+      // For backward compatibility with old format (leadId, leadData)
+      const leadId = params;
+      const leadData = arguments[1];
+      return updateLeadMutation.mutateAsync({ leadId, leadData });
+    }
   };
 
   const deleteLead = async (leadId) => {

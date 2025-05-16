@@ -285,7 +285,17 @@ const OrganizationDetailsScreen = () => {
               value={orgName}
               onChangeText={setOrgName}
               placeholder="Enter organization name"
+              autoFocus
+              fontSize="md"
+              borderColor="primary.400"
+              _focus={{
+                borderColor: "primary.500",
+                backgroundColor: "coolGray.50",
+              }}
             />
+            <FormControl.HelperText>
+              As organization owner, you can change the name at any time.
+            </FormControl.HelperText>
           </FormControl>
           <FormControl mt={3}>
             <FormControl.Label>Description (Optional)</FormControl.Label>
@@ -311,8 +321,10 @@ const OrganizationDetailsScreen = () => {
               onPress={handleUpdateOrg}
               isLoading={isSubmitting}
               isDisabled={isSubmitting || !orgName.trim()}
+              colorScheme="primary"
+              leftIcon={<Icon as={MaterialIcons} name="save" size="sm" />}
             >
-              Save
+              Save Changes
             </Button>
           </Button.Group>
         </Modal.Footer>
@@ -418,7 +430,18 @@ const OrganizationDetailsScreen = () => {
         <Box bg="white" p={4} shadow={1}>
           <HStack justifyContent="space-between" alignItems="center">
             <VStack>
-              <Heading size="lg">{organization.name}</Heading>
+              <HStack alignItems="center" space={2}>
+                <Heading size="lg">{organization.name}</Heading>
+                {isAdmin && (
+                  <IconButton
+                    icon={<Icon as={MaterialIcons} name="edit" size="sm" color="primary.500" />}
+                    variant="ghost"
+                    rounded="full"
+                    onPress={() => setIsEditModalOpen(true)}
+                    _icon={{ color: "primary.500" }}
+                  />
+                )}
+              </HStack>
               {organization.description && (
                 <Text color="coolGray.600" mt={1}>
                   {organization.description}
