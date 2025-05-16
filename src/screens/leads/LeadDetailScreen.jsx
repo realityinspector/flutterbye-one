@@ -210,19 +210,51 @@ const LeadDetailScreen = () => {
                 </Menu>
               </HStack>
 
-              <HStack mt={2} space={2}>
+              <HStack mt={2} space={2} flexWrap="wrap">
                 <Badge colorScheme={getStatusColor(lead.status)} variant="subtle" rounded="md">
                   {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
                 </Badge>
                 <Badge colorScheme={lead.priority >= 8 ? "error" : lead.priority >= 4 ? "warning" : "success"} rounded="md">
                   {getPriorityText(lead.priority)} Priority
                 </Badge>
+                
+                {/* Team/Organization badge */}
+                {lead.isShared && lead.organizationId ? (
+                  <Badge colorScheme="blue" variant="subtle" rounded="md">
+                    <HStack space={1} alignItems="center">
+                      <Icon as={Feather} name="users" size="xs" />
+                      <Text>Team Lead</Text>
+                    </HStack>
+                  </Badge>
+                ) : (
+                  <Badge colorScheme="gray" variant="subtle" rounded="md">
+                    <HStack space={1} alignItems="center">
+                      <Icon as={Feather} name="user" size="xs" />
+                      <Text>Personal Lead</Text>
+                    </HStack>
+                  </Badge>
+                )}
               </HStack>
             </Box>
 
             {/* Contact Info Section */}
             <Box px={4} py={4} bg="white">
               <Heading size="md" mb={4}>Contact Information</Heading>
+              
+              {/* Organization information for team leads */}
+              {lead.isShared && lead.organizationId && (
+                <Box mb={4} p={3} bg="blue.50" rounded="md">
+                  <HStack space={3} alignItems="center">
+                    <Icon as={Feather} name="users" size={5} color="blue.500" />
+                    <VStack>
+                      <Text fontWeight="medium" color="blue.700">Shared Team Lead</Text>
+                      <Text color="blue.600" fontSize="sm">
+                        This lead is shared with your organization team members
+                      </Text>
+                    </VStack>
+                  </HStack>
+                </Box>
+              )}
               
               <VStack space={3}>
                 <HStack space={3} alignItems="center">

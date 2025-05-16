@@ -1,96 +1,115 @@
 import React from 'react';
 import { 
-  Box, 
   HStack, 
+  VStack, 
   Text, 
-  Icon, 
+  Switch, 
   Pressable, 
-  Badge
+  Icon,
+  Box,
 } from 'native-base';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface TeamLeadFilterToggleProps {
-  showTeamLeads: boolean;
-  showPersonalLeads: boolean;
-  onToggleTeamLeads: () => void;
-  onTogglePersonalLeads: () => void;
-  teamLeadCount?: number;
-  personalLeadCount?: number;
+  value: 'all' | 'team' | 'personal';
+  onChange: (value: 'all' | 'team' | 'personal') => void;
 }
 
 /**
- * Component for filtering between personal and team leads
+ * Component for filtering leads by team/personal status
  */
-const TeamLeadFilterToggle: React.FC<TeamLeadFilterToggleProps> = ({
-  showTeamLeads,
-  showPersonalLeads,
-  onToggleTeamLeads,
-  onTogglePersonalLeads,
-  teamLeadCount = 0,
-  personalLeadCount = 0
-}) => {
+const TeamLeadFilterToggle: React.FC<TeamLeadFilterToggleProps> = ({ value, onChange }) => {
   return (
-    <Box mb={4}>
-      <HStack space={2}>
+    <HStack space={2} my={2} justifyContent="space-between" px={2}>
+      <Text fontSize="sm" fontWeight="medium" color="gray.600">
+        Filter by:
+      </Text>
+      <HStack space={1}>
         <Pressable 
-          flex={1} 
-          onPress={onTogglePersonalLeads}
-          bg={showPersonalLeads ? "primary.600" : "coolGray.100"}
-          p={2} 
-          rounded="md"
-          _pressed={{ opacity: 0.8 }}
+          onPress={() => onChange('all')}
+          opacity={value === 'all' ? 1 : 0.6}
         >
-          <HStack alignItems="center" justifyContent="center" space={2}>
+          <HStack 
+            space={1} 
+            alignItems="center" 
+            bg={value === 'all' ? "blue.100" : "gray.100"} 
+            px={2} 
+            py={1} 
+            rounded="md"
+          >
             <Icon 
               as={MaterialIcons} 
-              name="person" 
-              color={showPersonalLeads ? "white" : "coolGray.600"} 
-              size="sm"
+              name="filter-list" 
+              size={4} 
+              color={value === 'all' ? "blue.500" : "gray.500"} 
             />
             <Text 
-              fontWeight="medium" 
-              color={showPersonalLeads ? "white" : "coolGray.600"}
+              fontSize="xs" 
+              fontWeight="medium"
+              color={value === 'all' ? "blue.500" : "gray.500"}
             >
-              Personal
+              All
             </Text>
-            {personalLeadCount > 0 && (
-              <Badge rounded="full" variant="solid" colorScheme={showPersonalLeads ? "info" : "coolGray"}>
-                {personalLeadCount}
-              </Badge>
-            )}
           </HStack>
         </Pressable>
         
         <Pressable 
-          flex={1} 
-          onPress={onToggleTeamLeads}
-          bg={showTeamLeads ? "primary.600" : "coolGray.100"}
-          p={2} 
-          rounded="md"
-          _pressed={{ opacity: 0.8 }}
+          onPress={() => onChange('team')}
+          opacity={value === 'team' ? 1 : 0.6}
         >
-          <HStack alignItems="center" justifyContent="center" space={2}>
+          <HStack 
+            space={1} 
+            alignItems="center" 
+            bg={value === 'team' ? "blue.100" : "gray.100"} 
+            px={2} 
+            py={1} 
+            rounded="md"
+          >
             <Icon 
               as={MaterialIcons} 
-              name="groups" 
-              color={showTeamLeads ? "white" : "coolGray.600"} 
-              size="sm"
+              name="people" 
+              size={4} 
+              color={value === 'team' ? "blue.500" : "gray.500"} 
             />
             <Text 
-              fontWeight="medium" 
-              color={showTeamLeads ? "white" : "coolGray.600"}
+              fontSize="xs" 
+              fontWeight="medium"
+              color={value === 'team' ? "blue.500" : "gray.500"}
             >
               Team
             </Text>
-            {teamLeadCount > 0 && (
-              <Badge rounded="full" variant="solid" colorScheme={showTeamLeads ? "info" : "coolGray"}>
-                {teamLeadCount}
-              </Badge>
-            )}
+          </HStack>
+        </Pressable>
+        
+        <Pressable 
+          onPress={() => onChange('personal')}
+          opacity={value === 'personal' ? 1 : 0.6}
+        >
+          <HStack 
+            space={1} 
+            alignItems="center" 
+            bg={value === 'personal' ? "blue.100" : "gray.100"} 
+            px={2} 
+            py={1} 
+            rounded="md"
+          >
+            <Icon 
+              as={MaterialIcons} 
+              name="person" 
+              size={4} 
+              color={value === 'personal' ? "blue.500" : "gray.500"} 
+            />
+            <Text 
+              fontSize="xs" 
+              fontWeight="medium"
+              color={value === 'personal' ? "blue.500" : "gray.500"}
+            >
+              Personal
+            </Text>
           </HStack>
         </Pressable>
       </HStack>
-    </Box>
+    </HStack>
   );
 };
 

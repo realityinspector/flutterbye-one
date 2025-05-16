@@ -50,7 +50,14 @@ export const useLeads = () => {
   // Create a new lead
   const createLeadMutation = useMutation({
     mutationFn: async (leadData) => {
-      const response = await leadsAxios.post('/leads', leadData);
+      // Prepare lead data with team sharing properties if specified
+      const leadPayload = {
+        ...leadData,
+        // Ensure organizationId is null if not sharing with team
+        organizationId: leadData.isShared ? leadData.organizationId : null,
+      };
+      
+      const response = await leadsAxios.post('/leads', leadPayload);
       return response.data;
     },
     onSuccess: () => {
@@ -95,7 +102,14 @@ export const useLeads = () => {
   // Update a lead
   const updateLeadMutation = useMutation({
     mutationFn: async ({ leadId, leadData }) => {
-      const response = await leadsAxios.put(`/leads/${leadId}`, leadData);
+      // Prepare lead data with team sharing properties if specified
+      const leadPayload = {
+        ...leadData,
+        // Ensure organizationId is null if not sharing with team
+        organizationId: leadData.isShared ? leadData.organizationId : null,
+      };
+      
+      const response = await leadsAxios.put(`/leads/${leadId}`, leadPayload);
       return response.data;
     },
     onSuccess: (data) => {

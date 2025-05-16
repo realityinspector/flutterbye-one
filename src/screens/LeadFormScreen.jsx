@@ -17,10 +17,12 @@ import {
   KeyboardAvoidingView,
   Spinner,
   Center,
+  Platform,
 } from 'native-base';
 import Feather from 'react-native-vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useLeads } from '../hooks/useLeads';
+import TeamLeadOptions from '../components/TeamLeadOptions';
 
 const LeadFormScreen = () => {
   const navigation = useNavigation();
@@ -43,6 +45,8 @@ const LeadFormScreen = () => {
     status: 'new',
     priority: 5,
     notes: '',
+    organizationId: null,
+    isShared: false,
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,6 +77,8 @@ const LeadFormScreen = () => {
             status: lead.status || 'new',
             priority: lead.priority || 5,
             notes: lead.notes || '',
+            organizationId: lead.organizationId || null,
+            isShared: lead.isShared || false,
           });
         } catch (error) {
           console.error('Error fetching lead details:', error);
@@ -372,6 +378,21 @@ const LeadFormScreen = () => {
                 autoCompleteType={undefined}
               />
             </FormControl>
+            
+            {/* Team Lead Options */}
+            <TeamLeadOptions 
+              value={{
+                organizationId: formData.organizationId,
+                isShared: formData.isShared
+              }}
+              onChange={(teamOptions) => {
+                setFormData(prev => ({
+                  ...prev,
+                  organizationId: teamOptions.organizationId,
+                  isShared: teamOptions.isShared
+                }));
+              }}
+            />
           </VStack>
         </ScrollView>
       </Box>

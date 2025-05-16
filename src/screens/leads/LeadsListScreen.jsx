@@ -17,6 +17,7 @@ import {
   InputGroup,
   InputLeftAddon,
   useToast,
+  Divider,
 } from 'native-base';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -25,6 +26,7 @@ import LeadCard from '../../components/LeadCard';
 import NewCallFAB from '../../components/NewCallFAB';
 import Footer from '../../components/Footer';
 import MobileHeader from '../../components/MobileHeader';
+import TeamLeadFilterToggle from '../../components/TeamLeadFilterToggle';
 
 const LeadsListScreen = () => {
   const navigation = useNavigation();
@@ -33,6 +35,7 @@ const LeadsListScreen = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('priority'); // 'priority', 'newest', 'oldest'
+  const [teamFilter, setTeamFilter] = useState('all'); // 'all', 'team', 'personal'
 
   // Handle navigation to lead detail
   const handleLeadPress = (lead) => {
@@ -53,6 +56,17 @@ const LeadsListScreen = () => {
     // Apply status filter
     if (filterStatus) {
       result = result.filter(lead => lead.status === filterStatus);
+    }
+    
+    // Apply team/personal filter
+    if (teamFilter !== 'all') {
+      if (teamFilter === 'team') {
+        // Show only team leads (shared and have organization)
+        result = result.filter(lead => lead.isShared && lead.organizationId);
+      } else if (teamFilter === 'personal') {
+        // Show only personal leads (not shared or no organization)
+        result = result.filter(lead => !lead.isShared || !lead.organizationId);
+      }
     }
     
     // Apply search filter
@@ -254,7 +268,7 @@ const LeadsListScreen = () => {
             </Select>
           </HStack>
 
-          <InputGroup mb={4}>
+          <InputGroup mb={2}>
             <InputLeftAddon
               children={<Icon as={Feather} name="search" size={5} color="gray.400" />}
               backgroundColor="transparent"
@@ -266,6 +280,14 @@ const LeadsListScreen = () => {
               flex={1}
             />
           </InputGroup>
+          
+          {/* Team lead filter toggle */}
+          <TeamLeadFilterToggle 
+            value={teamFilter}
+            onChange={setTeamFilter}
+          />
+          
+          <Divider my={2} />
 
           <FlatList
             data={filteredLeads}
