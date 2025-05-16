@@ -367,6 +367,71 @@
       max-width: 80%;
     }
     
+    /* Contact View Modal Styles */
+    .contact-details {
+      margin-bottom: 1.5rem;
+    }
+    
+    .contact-header {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    
+    .contact-header h3 {
+      margin: 0 0 0.3rem 0;
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+    
+    .company-name {
+      color: #666;
+      margin: 0;
+      font-size: 1rem;
+    }
+    
+    .contact-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    
+    .contact-info-item {
+      display: flex;
+      align-items: flex-start;
+      padding: 0.75rem;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+    }
+    
+    .contact-info-item.full-width {
+      grid-column: span 2;
+    }
+    
+    .contact-info-item i {
+      margin-right: 0.75rem;
+      margin-top: 0.3rem;
+      color: var(--primary);
+    }
+    
+    .contact-info-item label {
+      display: block;
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 0.2rem;
+    }
+    
+    .contact-info-item p {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    
+    .modal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    
     /* Mobile responsiveness for AI Lead Gen */
     @media (max-width: 768px) {
       .ai-lead-gen-container {
@@ -2981,9 +3046,10 @@
               <td><span class="status ${lead.status}">${lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}</span></td>
               <td>
                 <div class="actions">
-                  <button class="btn-icon"><i class="fas fa-phone"></i></button>
-                  <button class="btn-icon"><i class="fas fa-edit"></i></button>
-                  <button class="btn-icon"><i class="fas fa-trash"></i></button>
+                  <button class="btn-icon" title="View Contact"><i class="fas fa-eye"></i></button>
+                  <button class="btn-icon" title="Call Lead"><i class="fas fa-phone"></i></button>
+                  <button class="btn-icon" title="Edit Lead"><i class="fas fa-edit"></i></button>
+                  <button class="btn-icon" title="Delete Lead"><i class="fas fa-trash"></i></button>
                 </div>
               </td>
             `;
@@ -3562,6 +3628,33 @@
       
       // Add action to edit buttons in leads table
       document.addEventListener('click', function(e) {
+        // Handle view contact button clicks
+        if (e.target.matches('.fa-eye') || e.target.matches('.btn-icon .fa-eye')) {
+          const row = e.target.closest('tr');
+          const leadId = row ? row.dataset.leadId : null;
+          if (leadId) {
+            console.log("View contact button clicked", leadId);
+            // Fetch lead details to show contact information
+            fetch(`/api/leads/${leadId}`)
+              .then(response => response.json())
+              .then(response => {
+                if (!response.success || !response.data) {
+                  throw new Error('Failed to load lead information');
+                }
+                
+                const lead = response.data;
+                const globalLead = lead.globalLead;
+                
+                // Show contact details in a modal
+                viewContactDetails(globalLead, leadId);
+              })
+              .catch(error => {
+                console.error('Error loading contact details:', error);
+                showErrorModal('Error loading contact details. Please try again.');
+              });
+          }
+        }
+        
         // Handle edit button clicks
         if (e.target.matches('.fa-edit') || e.target.matches('.btn-icon .fa-edit')) {
           const row = e.target.closest('tr');
@@ -3826,6 +3919,104 @@
     function closeErrorModal() {
       const modal = document.getElementById('errorModal');
       modal.style.display = 'none';
+    }
+    
+    // Function to view contact details
+    function viewContactDetails(globalLead, leadId) {
+      // Create a modal to display contact details
+      const modal = document.createElement('div');
+      modal.id = 'contactViewModal';
+      modal.className = 'modal';
+      
+      // Format contact address
+      const address = [globalLead.street, globalLead.city, globalLead.state, globalLead.zip, globalLead.country]
+        .filter(Boolean)
+        .join(', ');
+      
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2><i class="fas fa-address-card"></i> Contact Details</h2>
+            <span class="close-modal">&times;</span>
+          </div>
+          <div class="modal-body">
+            <div class="contact-details">
+              <div class="contact-header">
+                <h3>${globalLead.contactName || 'Unknown Contact'}</h3>
+                <p class="company-name">${globalLead.companyName || 'Unknown Company'}</p>
+              </div>
+              
+              <div class="contact-info-grid">
+                <div class="contact-info-item">
+                  <i class="fas fa-phone"></i>
+                  <div>
+                    <label>Phone</label>
+                    <p>${globalLead.phoneNumber || 'Not available'}</p>
+                  </div>
+                </div>
+                
+                <div class="contact-info-item">
+                  <i class="fas fa-envelope"></i>
+                  <div>
+                    <label>Email</label>
+                    <p>${globalLead.email || 'Not available'}</p>
+                  </div>
+                </div>
+                
+                <div class="contact-info-item">
+                  <i class="fas fa-globe"></i>
+                  <div>
+                    <label>Website</label>
+                    <p>${globalLead.website ? `<a href="${globalLead.website}" target="_blank">${globalLead.website}</a>` : 'Not available'}</p>
+                  </div>
+                </div>
+                
+                <div class="contact-info-item">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <div>
+                    <label>Address</label>
+                    <p>${address || 'Not available'}</p>
+                  </div>
+                </div>
+                
+                <div class="contact-info-item full-width">
+                  <i class="fas fa-sticky-note"></i>
+                  <div>
+                    <label>Notes</label>
+                    <p>${globalLead.notes || 'No notes available'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="modal-actions">
+              <button onclick="document.getElementById('contactViewModal').remove()" class="btn btn-outline">Close</button>
+              <a href="/leads/${leadId}" class="btn btn-primary">View Full Lead</a>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Add the modal to the document
+      document.body.appendChild(modal);
+      
+      // Show the modal
+      modal.style.display = 'block';
+      
+      // Handle close button
+      modal.querySelector('.close-modal').addEventListener('click', () => {
+        modal.remove();
+      });
+      
+      // Close when clicking outside
+      window.addEventListener('click', function closeContactModal(event) {
+        if (event.target === modal) {
+          modal.remove();
+          window.removeEventListener('click', closeContactModal);
+        }
+      });
+      
+      console.log("Displayed contact details for:", globalLead.contactName);
     }
     
     // Function to enhance contact information for a lead
