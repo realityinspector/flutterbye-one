@@ -1,4 +1,4 @@
-import { pgTable, serial, text, varchar, integer, timestamp, boolean, jsonb, real } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, varchar, integer, timestamp, boolean, jsonb, real, unique } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Users table
@@ -13,6 +13,29 @@ export const users = pgTable('users', {
   hasCompletedSetup: boolean('has_completed_setup').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Organizations table
+export const organizations = pgTable('organizations', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  description: text('description'),
+  createdBy: integer('created_by').notNull().references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Organization members table
+export const organizationMembers = pgTable('organization_members', {
+  id: serial('id').primaryKey(),
+  organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: varchar('role', { length: 20 }).notNull().default('member'),
+  joinedAt: timestamp('joined_at').defaultNow().notNull(),
+}, (table) => {
+  return {
+    unqOrgUser: unique().on(table.organizationId, table.userId),
+  };
 });
 
 // Global leads table (shared lead data)
@@ -42,6 +65,8 @@ export const userLeads = pgTable('user_leads', {
   notes: text('notes'),
   lastContactedAt: timestamp('last_contacted_at'),
   reminderDate: timestamp('reminder_date'),
+  organizationId: integer('organization_id').references(() => organizations.id),
+  isShared: boolean('is_shared').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -127,6 +152,19 @@ export const usersRelations = relations(users, ({ many }) => ({
   userLeads: many(userLeads),
   calls: many(calls),
   aiInteractions: many(aiInteractions),
+  createdOrganizations: many(organizations, { relationName: 'creator' }),
+  memberOfOrganizations: many(organizationMembers, { relationName: 'user' }),
+}));
+
+export const organizationsRelations = relations(organizations, ({ one, many }) => ({
+  creator: one(users, { fields: [organizations.createdBy], references: [users.id] }),
+  members: many(organizationMembers),
+  leads: many(userLeads),
+}));
+
+export const organizationMembersRelations = relations(organizationMembers, ({ one }) => ({
+  organization: one(organizations, { fields: [organizationMembers.organizationId], references: [organizations.id] }),
+  user: one(users, { fields: [organizationMembers.userId], references: [users.id] }),
 }));
 
 export const globalLeadsRelations = relations(globalLeads, ({ many }) => ({
@@ -136,6 +174,7 @@ export const globalLeadsRelations = relations(globalLeads, ({ many }) => ({
 export const userLeadsRelations = relations(userLeads, ({ one, many }) => ({
   user: one(users, { fields: [userLeads.userId], references: [users.id] }),
   globalLead: one(globalLeads, { fields: [userLeads.globalLeadId], references: [globalLeads.id] }),
+  organization: one(organizations, { fields: [userLeads.organizationId], references: [organizations.id] }),
   calls: many(calls),
 }));
 
@@ -166,6 +205,8 @@ export const aiToolExecutionsRelations = relations(aiToolExecutions, ({ one }) =
 // Export the combined schema
 export default {
   users,
+  organizations,
+  organizationMembers,
   globalLeads,
   userLeads,
   calls,
@@ -174,6 +215,8 @@ export default {
   aiTools,
   aiToolExecutions,
   usersRelations,
+  organizationsRelations,
+  organizationMembersRelations,
   globalLeadsRelations,
   userLeadsRelations,
   callsRelations,

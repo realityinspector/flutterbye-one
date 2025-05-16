@@ -1,6 +1,17 @@
 import { z } from 'zod';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { users, globalLeads, userLeads, calls, aiConfigs, aiInteractions, aiTools, aiToolExecutions } from './schema';
+import { 
+  users, 
+  organizations, 
+  organizationMembers, 
+  globalLeads, 
+  userLeads, 
+  calls, 
+  aiConfigs, 
+  aiInteractions, 
+  aiTools, 
+  aiToolExecutions 
+} from './schema';
 
 // User schemas
 export const insertUserSchema = createInsertSchema(users, {
@@ -35,6 +46,20 @@ export const userUpdateSchema = z.object({
   password: z.string().min(8).max(255).optional(),
   hasCompletedSetup: z.boolean().optional(),
 });
+
+// Organization schemas
+export const insertOrganizationSchema = createInsertSchema(organizations, {
+  name: z.string().min(2).max(100),
+  description: z.string().optional(),
+});
+
+export const selectOrganizationSchema = createSelectSchema(organizations);
+
+export const insertOrganizationMemberSchema = createInsertSchema(organizationMembers, {
+  role: z.enum(['admin', 'member']),
+});
+
+export const selectOrganizationMemberSchema = createSelectSchema(organizationMembers);
 
 // Global lead schemas
 export const insertGlobalLeadSchema = createInsertSchema(globalLeads, {
@@ -72,6 +97,8 @@ export const insertUserLeadSchema = createInsertSchema(userLeads, {
   notes: z.string().nullable().optional(),
   lastContactedAt: z.date().nullable().optional(),
   reminderDate: z.date().nullable().optional(),
+  organizationId: z.number().int().positive().optional(),
+  isShared: z.boolean().optional(),
 });
 
 export const selectUserLeadSchema = createSelectSchema(userLeads, {
@@ -82,6 +109,8 @@ export const selectUserLeadSchema = createSelectSchema(userLeads, {
   notes: z.string().nullable().optional(),
   lastContactedAt: z.date().nullable().optional(),
   reminderDate: z.date().nullable().optional(),
+  organizationId: z.number().int().positive().nullable().optional(),
+  isShared: z.boolean().nullable().optional(),
 });
 
 // Call schemas
@@ -207,6 +236,11 @@ export type NewUser = z.infer<typeof insertUserSchema>;
 export type UserLogin = z.infer<typeof userLoginSchema>;
 export type UserUpdate = z.infer<typeof userUpdateSchema>;
 
+export type Organization = z.infer<typeof selectOrganizationSchema>;
+export type NewOrganization = z.infer<typeof insertOrganizationSchema>;
+export type OrganizationMember = z.infer<typeof selectOrganizationMemberSchema>;
+export type NewOrganizationMember = z.infer<typeof insertOrganizationMemberSchema>;
+
 export type GlobalLead = z.infer<typeof selectGlobalLeadSchema>;
 export type NewGlobalLead = z.infer<typeof insertGlobalLeadSchema>;
 
@@ -235,6 +269,14 @@ export default {
     select: selectUserSchema,
     login: userLoginSchema,
     update: userUpdateSchema,
+  },
+  organization: {
+    insert: insertOrganizationSchema,
+    select: selectOrganizationSchema,
+  },
+  organizationMember: {
+    insert: insertOrganizationMemberSchema,
+    select: selectOrganizationMemberSchema,
   },
   globalLead: {
     insert: insertGlobalLeadSchema,

@@ -4,8 +4,8 @@ import { useToast } from 'native-base';
 // Import our custom useAsync hook
 import { useAsync } from './useAsync';
 // Import Zod types directly from the shared schema and our extended types
-import { NewUserLead, Call } from '../../shared/db/zod-schema';
-import { UserLeadWithRelations, CallWithRelations } from '../types';
+import { NewUserLead, Call, Organization } from '../../shared/db/zod-schema';
+import { UserLeadWithRelations, CallWithRelations, UserLeadWithOrganization } from '../types';
 
 // Base URL for API
 const API_URL = 'http://localhost:5000/api';
@@ -18,21 +18,37 @@ const leadsAxios = axios.create({
 
 export const useLeads = () => {
   const toast = useToast();
-  const [leads, setLeads] = useState<UserLeadWithRelations[]>([]);
+  const [leads, setLeads] = useState<UserLeadWithOrganization[]>([]);
   
   // Create async hooks for each operation
-  const fetchLeadsAsync = useAsync<UserLeadWithRelations[]>();
-  const fetchLeadAsync = useAsync<UserLeadWithRelations, Error, [number]>();
-  const createLeadAsync = useAsync<UserLeadWithRelations, Error, [NewUserLead]>();
-  const updateLeadAsync = useAsync<UserLeadWithRelations, Error, [number, Partial<UserLeadWithRelations>]>();
+  const fetchLeadsAsync = useAsync<UserLeadWithOrganization[]>();
+  const fetchLeadAsync = useAsync<UserLeadWithOrganization, Error, [number]>();
+  const createLeadAsync = useAsync<UserLeadWithOrganization, Error, [Partial<NewUserLead> & { organizationId?: number, isShared?: boolean }]>();
+  const updateLeadAsync = useAsync<UserLeadWithOrganization, Error, [number, Partial<UserLeadWithOrganization>]>();
   const deleteLeadAsync = useAsync<{success: boolean}, Error, [number]>();
   const fetchCallsForLeadAsync = useAsync<CallWithRelations[], Error, [number]>();
   
-  // Fetch all leads with type safety
-  const fetchLeads = useCallback(async () => {
+  // Fetch all leads with type safety, with optional filtering
+  const fetchLeads = useCallback(async (filters?: { organizationId?: number, isShared?: boolean }) => {
     try {
       return await fetchLeadsAsync.execute(async () => {
-        const response = await leadsAxios.get<{success: boolean, data: UserLeadWithRelations[]}>('/leads');
+        let url = '/leads';
+        const params = new URLSearchParams();
+        
+        if (filters?.organizationId) {
+          params.append('orgId', filters.organizationId.toString());
+        }
+        
+        if (filters?.isShared !== undefined) {
+          params.append('isShared', filters.isShared.toString());
+        }
+        
+        const queryString = params.toString();
+        if (queryString) {
+          url += `?${queryString}`;
+        }
+        
+        const response = await leadsAxios.get<{success: boolean, data: UserLeadWithOrganization[]}>(url);
         return response.data.data;
       });
     } catch (error) {
@@ -54,11 +70,11 @@ export const useLeads = () => {
   }, [fetchLeads]);
 
   // Get a single lead by id with proper typing
-  const getLead = async (leadId: number): Promise<UserLeadWithRelations> => {
+  const getLead = async (leadId: number): Promise<UserLeadWithOrganization> => {
     try {
       return await fetchLeadAsync.execute(async (id) => {
-        const response = await leadsAxios.get<{success: boolean, data: UserLeadWithRelations}>(`/leads/${id}`);
-        return response.data.data;
+        const response = await leadsAxios.get<{success: boolean, data: any}>(`/leads/${id}`);
+        return response.data.data as UserLeadWithOrganization;
       }, leadId);
     } catch (error) {
       console.error('Error fetching lead details:', error);
@@ -66,12 +82,17 @@ export const useLeads = () => {
     }
   };
 
-  // Create a new lead with type safety
-  const createLead = async (leadData: NewUserLead): Promise<UserLeadWithRelations> => {
+  // Create a new lead with team sharing support
+  const createLead = async (
+    leadData: Partial<NewUserLead> & { 
+      organizationId?: number,
+      isShared?: boolean 
+    }
+  ): Promise<UserLeadWithOrganization> => {
     try {
       const result = await createLeadAsync.execute(async (data) => {
-        const response = await leadsAxios.post<{success: boolean, data: UserLeadWithRelations}>('/leads', data);
-        return response.data.data;
+        const response = await leadsAxios.post<{success: boolean, data: any}>('/leads', data);
+        return response.data.data as UserLeadWithOrganization;
       }, leadData);
       
       // Update local state
@@ -79,7 +100,7 @@ export const useLeads = () => {
       
       // Show success message
       toast.show({
-        title: "Lead created successfully",
+        title: result.isShared ? "Team lead created successfully" : "Lead created successfully",
         placement: "top",
         variant: "solid",
       });
@@ -116,20 +137,29 @@ export const useLeads = () => {
     }
   };
 
-  // Update a lead with proper typing
-  const updateLead = async (leadId: number, leadData: Partial<UserLeadWithRelations>): Promise<UserLeadWithRelations> => {
+  // Update a lead with team sharing support
+  const updateLead = async (leadId: number, leadData: Partial<UserLeadWithOrganization>): Promise<UserLeadWithOrganization> => {
     try {
       const result = await updateLeadAsync.execute(async (id, data) => {
-        const response = await leadsAxios.put<{success: boolean, data: UserLeadWithRelations}>(`/leads/${id}`, data);
-        return response.data.data;
+        const response = await leadsAxios.put<{success: boolean, data: any}>(`/leads/${id}`, data);
+        return response.data.data as UserLeadWithOrganization;
       }, leadId, leadData);
       
       // Update local state
       setLeads(prev => prev.map(lead => lead.id === leadId ? result : lead));
       
-      // Show success message
+      // Show appropriate success message
+      let message = "Lead updated successfully";
+      if (leadData.isShared !== undefined) {
+        message = leadData.isShared 
+          ? "Lead shared with team successfully" 
+          : "Lead converted to personal successfully";
+      } else if (leadData.organizationId !== undefined && !leadData.organizationId) {
+        message = "Lead removed from team successfully";
+      }
+      
       toast.show({
-        title: "Lead updated successfully",
+        title: message,
         placement: "top",
         variant: "solid",
       });
