@@ -46,17 +46,26 @@ router.get('/', authenticateJWT, async (req, res) => {
       .where(eq(userLeads.userId, userId))
       .orderBy(desc(userLeads.priority));
       
-    // Get the global lead details for each lead
+    // Get the global lead details and organization info for each lead
     const leads = [];
     for (const lead of rawLeads) {
       const [globalLeadInfo] = await db.select()
         .from(globalLeads)
         .where(eq(globalLeads.id, lead.globalLeadId));
         
+      // Add organization information if the lead is shared
+      let organizationInfo = null;
+      if (lead.organizationId && lead.isShared) {
+        [organizationInfo] = await db.select()
+          .from(organizations)
+          .where(eq(organizations.id, lead.organizationId));
+      }
+        
       if (globalLeadInfo) {
         leads.push({
           ...lead,
-          globalLead: globalLeadInfo
+          globalLead: globalLeadInfo,
+          organization: organizationInfo
         });
       }
     }

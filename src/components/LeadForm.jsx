@@ -12,13 +12,19 @@ import {
   KeyboardAvoidingView,
   useToast,
   HStack,
+  Checkbox,
+  Select,
+  Text,
+  Divider,
 } from 'native-base';
 import Feather from 'react-native-vector-icons/Feather';
 import { useLeads } from '../hooks/useLeads';
 import { Platform } from 'react-native';
+import { useOrganizations } from '../hooks/useOrganizations';
 
 const LeadForm = ({ leadId, onSuccess, onCancel }) => {
   const { createLead, updateLead, getLead, isCreatingLead, isUpdatingLead } = useLeads();
+  const { getUserOrganizations } = useOrganizations();
   const toast = useToast();
   const isEditing = !!leadId;
   
@@ -34,31 +40,65 @@ const LeadForm = ({ leadId, onSuccess, onCancel }) => {
     industry: '',
     website: '',
     notes: '',
+    // Organization sharing fields
+    isShared: false,
+    organizationId: null,
   });
+  
+  const [organizations, setOrganizations] = useState([]);
   
   const [errors, setErrors] = useState({});
   
+  // Load organizations for sharing
+  useEffect(() => {
+    const fetchOrganizations = async () => {
+      try {
+        const orgs = await getUserOrganizations();
+        setOrganizations(orgs || []);
+      } catch (error) {
+        console.error('Error fetching organizations:', error);
+      }
+    };
+    
+    fetchOrganizations();
+  }, [getUserOrganizations]);
+
   // Load lead data if editing
   useEffect(() => {
     if (isEditing) {
-      const { data: lead, isLoading } = getLead(leadId);
-      if (lead && !isLoading) {
-        setFormData({
-          companyName: lead.globalLead?.companyName || '',
-          contactName: lead.globalLead?.contactName || '',
-          phoneNumber: lead.globalLead?.phoneNumber || '',
-          email: lead.globalLead?.email || '',
-          address: lead.globalLead?.address || '',
-          city: lead.globalLead?.city || '',
-          state: lead.globalLead?.state || '',
-          zipCode: lead.globalLead?.zipCode || '',
-          industry: lead.globalLead?.industry || '',
-          website: lead.globalLead?.website || '',
-          notes: lead.notes || '',
-        });
-      }
+      const fetchLead = async () => {
+        try {
+          const lead = await getLead(leadId);
+          if (lead) {
+            setFormData({
+              companyName: lead.globalLead?.companyName || '',
+              contactName: lead.globalLead?.contactName || '',
+              phoneNumber: lead.globalLead?.phoneNumber || '',
+              email: lead.globalLead?.email || '',
+              address: lead.globalLead?.address || '',
+              city: lead.globalLead?.city || '',
+              state: lead.globalLead?.state || '',
+              zipCode: lead.globalLead?.zipCode || '',
+              industry: lead.globalLead?.industry || '',
+              website: lead.globalLead?.website || '',
+              notes: lead.notes || '',
+              // Organization sharing fields
+              isShared: lead.isShared || false,
+              organizationId: lead.organizationId || null,
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching lead details:', error);
+          toast.show({
+            title: "Error loading lead",
+            status: "error"
+          });
+        }
+      };
+      
+      fetchLead();
     }
-  }, [isEditing, leadId, getLead]);
+  }, [isEditing, leadId, getLead, toast]);
   
   const validateForm = () => {
     const newErrors = {};
@@ -88,19 +128,38 @@ const LeadForm = ({ leadId, onSuccess, onCancel }) => {
   const handleSubmit = async () => {
     if (!validateForm()) return;
     
+    // Validate organization selection if sharing is enabled
+    if (formData.isShared && !formData.organizationId) {
+      toast.show({
+        title: "Organization Required",
+        description: "Please select an organization to share with",
+        status: "warning",
+      });
+      return;
+    }
+    
     try {
+      // Prepare the data with organization sharing information
+      const leadDataToSave = {
+        ...formData,
+        // Only include organization fields if sharing is enabled
+        organizationId: formData.isShared ? formData.organizationId : null,
+        isShared: formData.isShared,
+      };
+      
       if (isEditing) {
         await updateLead({
           leadId,
-          leadData: formData,
+          leadData: leadDataToSave,
         });
       } else {
-        await createLead(formData);
+        await createLead(leadDataToSave);
       }
       
       toast.show({
         title: isEditing ? "Lead updated" : "Lead created",
         status: "success",
+        description: formData.isShared ? "Contact shared with organization" : undefined,
       });
       
       if (onSuccess) onSuccess();
@@ -276,6 +335,65 @@ const LeadForm = ({ leadId, onSuccess, onCancel }) => {
                 h={20}
               />
             </FormControl>
+            
+            {/* Organization Sharing Section */}
+            <Box mt={4}>
+              <Divider my={2} />
+              <Heading size="sm" my={2}>Team Sharing</Heading>
+              
+              <FormControl>
+                <Checkbox
+                  value="isShared"
+                  isChecked={formData.isShared}
+                  onChange={(isSelected) => {
+                    setFormData({
+                      ...formData,
+                      isShared: isSelected,
+                      // Reset organization if unsharing
+                      organizationId: isSelected ? formData.organizationId : null
+                    });
+                  }}
+                  colorScheme="primary"
+                  mb={2}
+                >
+                  <Text ml={2}>Share this contact with team</Text>
+                </Checkbox>
+                
+                {formData.isShared && (
+                  <Box mt={2}>
+                    <FormControl.Label>Select Organization</FormControl.Label>
+                    <Select
+                      selectedValue={formData.organizationId?.toString()}
+                      minWidth="200"
+                      placeholder="Select organization"
+                      onValueChange={(itemValue) => {
+                        setFormData({
+                          ...formData,
+                          organizationId: itemValue ? parseInt(itemValue) : null
+                        });
+                      }}
+                      _selectedItem={{
+                        bg: "primary.100",
+                      }}
+                    >
+                      {organizations.map(org => (
+                        <Select.Item 
+                          key={org.id} 
+                          label={org.name} 
+                          value={org.id.toString()} 
+                        />
+                      ))}
+                    </Select>
+                    
+                    {organizations.length === 0 && (
+                      <Text fontSize="sm" color="gray.500" mt={1}>
+                        You don't belong to any organizations yet.
+                      </Text>
+                    )}
+                  </Box>
+                )}
+              </FormControl>
+            </Box>
           </VStack>
           
           <VStack space={3} mt={6} mb={8}>
