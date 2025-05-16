@@ -20,15 +20,26 @@ router.post('/', authenticateJWT, async (req, res) => {
     const { name, description } = req.body;
     const userId = req.user.id;
 
-    if (!name) {
-      return res.status(400).json({ success: false, message: 'Organization name is required' });
+    // Validate organization name
+    if (!name || name.trim().length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Organization name is required' 
+      });
+    }
+    
+    if (name.trim().length > 100) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Organization name cannot exceed 100 characters' 
+      });
     }
 
-    // Create the organization
+    // Create the organization with trimmed values
     const [newOrganization] = await db.insert(organizations)
       .values({
-        name,
-        description,
+        name: name.trim(),
+        description: description ? description.trim() : null,
         createdBy: userId,
       })
       .returning();
@@ -169,6 +180,21 @@ router.put('/:id', authenticateJWT, async (req, res) => {
     const userId = req.user.id;
     const { name, description } = req.body;
 
+    // Validate organization name
+    if (name !== undefined && (!name || name.trim().length === 0)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Organization name cannot be empty' 
+      });
+    }
+
+    if (name && name.trim().length > 100) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Organization name cannot exceed 100 characters' 
+      });
+    }
+
     // Check if user is an admin of this organization
     const [membership] = await db.select()
       .from(organizationMembers)
@@ -192,11 +218,27 @@ router.put('/:id', authenticateJWT, async (req, res) => {
       });
     }
 
+    // Check if user is the creator of this organization (for additional authorization)
+    const [organization] = await db.select()
+      .from(organizations)
+      .where(eq(organizations.id, organizationId))
+      .limit(1);
+
+    const isCreator = organization && organization.createdBy === userId;
+
+    // If user is not the creator and trying to change the name, restrict the action
+    if (!isCreator && name !== undefined && name !== organization.name) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Only the organization creator can change the organization name' 
+      });
+    }
+
     // Update the organization
     const [updatedOrganization] = await db.update(organizations)
       .set({
-        name: name,
-        description: description,
+        ...(name !== undefined ? { name: name.trim() } : {}),
+        ...(description !== undefined ? { description: description.trim() } : {}),
         updatedAt: new Date()
       })
       .where(eq(organizations.id, organizationId))
