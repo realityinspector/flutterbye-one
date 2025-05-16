@@ -1,0 +1,131 @@
+~/workspace$ tree -I 'attached_assets|node_modules'
+.
+├── © 2025 FLUTTERBYE CRM. All rights reserved.
+├── App.jsx
+├── CHANGE-ROUND.md
+├── cookies.txt
+├── cookie.txt
+├── export.py
+├── FULL_REQUIREMENTS.TXT
+├── homepage.html
+├── hosted_separately
+│   ├── app.js
+│   ├── index.html
+│   ├── README.md
+│   └── style.css
+├── package.json
+├── package-lock.json
+├── public
+│   ├── app.js
+│   ├── dashboard.html
+│   ├── images
+│   │   └── aot-labs-logo.png
+│   ├── index.html
+│   ├── privacy.html
+│   ├── simple.html
+│   ├── terms.html
+│   └── test.html
+├── README.md
+├── scripts
+│   ├── admin-onboard.js
+│   ├── minimal-server.js
+│   ├── push-schema.js
+│   ├── seed-demo-data.js
+│   ├── start-server.js
+│   ├── test-more-leads.js
+│   └── test-openrouter.js
+├── server
+│   ├── analytics.js
+│   ├── auth.js
+│   ├── config.js
+│   ├── db.js
+│   ├── db.ts
+│   ├── index.js
+│   ├── routes
+│   │   └── ai.js
+│   ├── routes.js
+│   ├── services
+│   │   └── ai
+│   │       ├── aiStorage.js
+│   │       ├── aiStorage.ts
+│   │       ├── index.js
+│   │       ├── index.ts
+│   │       ├── leadPromptTemplate.js
+│   │       ├── openai.js
+│   │       ├── openRouter.js
+│   │       ├── openRouter.ts
+│   │       ├── webSearch.js
+│   │       └── webSearch.ts
+│   ├── storage.js
+│   └── storage.ts
+├── shared
+│   ├── db
+│   │   ├── index.ts
+│   │   ├── schema.js
+│   │   ├── schema.ts
+│   │   └── zod-schema.ts
+│   └── schema.js
+├── src
+│   ├── components
+│   │   ├── AdminSetupForm.jsx
+│   │   ├── Breadcrumbs.jsx
+│   │   ├── CallActions.jsx
+│   │   ├── CallItem.jsx
+│   │   ├── CallItem.tsx
+│   │   ├── Footer.jsx
+│   │   ├── LeadCard.jsx
+│   │   ├── LeadCard.tsx
+│   │   ├── LeadForm.jsx
+│   │   ├── LeadGeneration
+│   │   │   ├── FindLeadsForm.jsx
+│   │   │   ├── FindNewLeadsScreen.jsx
+│   │   │   ├── LeadApprovalList.jsx
+│   │   │   ├── LeadGenerationProgress.jsx
+│   │   │   └── NoMoreLeadsModal.jsx
+│   │   ├── MobileHeader.jsx
+│   │   ├── NewCallFAB.tsx
+│   │   ├── SetupWizard.jsx
+│   │   ├── ShareCallRecap.tsx
+│   │   └── UserSetupForm.jsx
+│   ├── hooks
+│   │   ├── useAsync.ts
+│   │   ├── useAuth.js
+│   │   ├── useAuth.ts
+│   │   ├── useCalls.js
+│   │   ├── useCalls.ts
+│   │   ├── useLeads.js
+│   │   └── useLeads.ts
+│   ├── navigation
+│   │   └── index.jsx
+│   ├── screens
+│   │   ├── AdminSetupScreen.jsx
+│   │   ├── analytics
+│   │   ├── AuthScreen.jsx
+│   │   ├── CallQueueScreen.jsx
+│   │   ├── calls
+│   │   │   ├── CallHistoryScreen.jsx
+│   │   │   ├── CallScreen.jsx
+│   │   │   └── CallsScreen.jsx
+│   │   ├── HomeScreen.jsx
+│   │   ├── HomeScreen.tsx
+│   │   ├── LeadFormScreen.jsx
+│   │   ├── leads
+│   │   │   ├── AddLeadScreen.jsx
+│   │   │   ├── LeadDetailScreen.jsx
+│   │   │   └── LeadsListScreen.jsx
+│   │   ├── settings
+│   │   │   └── ProfileScreen.jsx
+│   │   └── UserSetupScreen.jsx
+│   ├── services
+│   │   ├── CallHandler.ts
+│   │   ├── SqliteService.ts
+│   │   └── SyncService.ts
+│   ├── types
+│   │   └── index.ts
+│   └── utils
+│       ├── permissions.js
+│       └── theme.js
+├── TEAM-PLAN.md
+└── tsconfig.json
+
+24 directories, 104 files

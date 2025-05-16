@@ -1,64 +1,69 @@
-# Walk N Talk CRM
+# FlutterBye CRM
 
-A mobile-first sales acceleration platform built with React Native, Expo, and PostgreSQL.
+![FlutterBye CRM](public/images/aot-labs-logo.png)
+
+A mobile-first sales acceleration platform built with React Native, Expo, PostgreSQL, and AI-powered lead generation.
 
 ## Project Overview
 
-Walk N Talk CRM is a comprehensive mobile customer relationship management system designed for sales professionals on the go. The application features lead management, call tracking, and a streamlined sales process, all optimized for mobile use.
+FlutterBye CRM is a comprehensive mobile customer relationship management system designed for sales professionals on the go. The application features intelligent lead management, call tracking, AI-powered lead generation, and a streamlined sales process optimized for mobile use.
 
-## Features Implemented
+## Key Features
 
-- **Database Schema**: PostgreSQL database with tables for users, leads, and call tracking
-- **Authentication System**: Complete user authentication with registration, login, and JWT-based token management
-- **API Endpoints**: RESTful API endpoints for all CRM functionalities
-- **User Roles**: Admin and regular user roles with different permissions
-- **First-User Detection**: Special admin privileges for the first registered user
-- **AI Integration**: OpenRouter API integration for AI-powered features including web search
-- **Lead Generation**: AI-assisted lead generation with natural language processing
+- **Intelligent Lead Management**: Organize, track, and manage leads with customizable statuses and priority levels
+- **Call Tracking & Documentation**: Record calls, outcomes, and follow-up actions with automatic reminders
+- **AI-Powered Lead Generation**: Generate new leads using natural language prompts and web search capabilities
+- **Mobile-First Design**: Optimized for sales professionals who need CRM access while away from their desk
+- **Offline Capability**: Continue working without an internet connection using local data storage
+- **User Setup Wizard**: Guided onboarding process for new users
+- **Analytics Dashboard**: Track performance metrics and call outcomes
+- **Team Lead Sharing**: Share leads with team members (planned feature)
 
 ## Technical Stack
 
 ### Backend
-- **Language**: JavaScript (Node.js)
+- **Language**: JavaScript & TypeScript (Node.js)
 - **Web Framework**: Express.js
 - **Database**: PostgreSQL
-- **ORM**: Drizzle ORM
+- **ORM**: Drizzle ORM with Zod validation
 - **Authentication**: JWT-based token authentication with refresh capability
+- **AI Integration**: OpenRouter API for AI-powered features
 
 ### Frontend
 - **Framework**: React Native with Expo
-- **State Management**: React Query
 - **UI Components**: Native Base
 - **Navigation**: React Navigation
+- **State Management**: Custom hooks with context API
+- **Local Storage**: Expo SQLite for offline data
+- **Network Management**: NetInfo for connectivity monitoring
 
 ## Project Structure
 
 ```
 ├── server/             # Backend server code
 │   ├── auth.js         # Authentication setup
-│   ├── db.js           # Database connection (CommonJS)
-│   ├── db.ts           # TypeScript database connection
+│   ├── db.js/ts        # Database connection
 │   ├── index.js        # Express server setup
 │   ├── routes.js       # API routes
-│   ├── storage.js      # Data access layer (CommonJS)
-│   └── storage.ts      # TypeScript data access layer
+│   ├── routes/ai.js    # AI-related API routes
+│   ├── services/ai/    # AI service implementations
+│   └── storage.js/ts   # Data access layer
 ├── shared/             # Shared code between client and server
 │   └── db/             # Database schema definitions
-│       ├── index.ts    # Exports for TypeScript imports
-│       ├── schema.js   # CommonJS schema for Node.js
-│       ├── schema.ts   # TypeScript schema definitions
+│       ├── schema.ts   # Drizzle ORM schema definitions
 │       └── zod-schema.ts # Zod validation schemas and types
 ├── scripts/            # Utility scripts
 │   ├── push-schema.js  # Database schema migration
-│   ├── minimal-server.js # Minimal test server
-│   └── start-server.js # Server startup script
+│   ├── admin-onboard.js # Admin user setup script
+│   ├── seed-demo-data.js # Demo data seeding script
+│   └── test-openrouter.js # OpenRouter API test script
 ├── src/                # Frontend React Native code
 │   ├── components/     # Reusable UI components
 │   ├── hooks/          # Custom React hooks
 │   ├── navigation/     # Navigation configuration
 │   ├── screens/        # Application screens
+│   ├── services/       # Frontend services (call handling, sync)
 │   └── utils/          # Utility functions
-└── App.jsx            # Root application component
 ```
 
 ## API Endpoints
@@ -81,6 +86,19 @@ Walk N Talk CRM is a comprehensive mobile customer relationship management syste
 - `GET /api/calls` - Get all calls for the current user
 - `GET /api/leads/:leadId/calls` - Get all calls for a specific lead
 - `POST /api/calls` - Create a new call record
+
+### AI Features
+- `POST /api/ai/chat` - Chat with AI assistant
+- `POST /api/ai/web-search` - Perform web search with AI processing
+- `POST /api/ai/leads/generate` - Generate leads based on criteria
+- `POST /api/ai/leads/create` - Create leads from AI-generated lead data
+- `GET /api/ai/interactions` - Get AI interactions for user
+- `GET /api/ai/interactions/:id` - Get specific AI interaction
+
+### Analytics
+- `GET /api/analytics/dashboard` - Get dashboard metrics
+- `GET /api/analytics/user-performance` - Get user performance (admin only)
+- `GET /api/analytics/call-outcomes` - Get call outcome distribution
 
 ## Getting Started
 
@@ -115,46 +133,52 @@ node scripts/push-schema.js
    OPENROUTER_API_KEY=your_api_key_here
    ```
 
-#### Testing OpenRouter Integration
-
-You can verify the OpenRouter integration by running:
-
-```bash
-# Test OpenRouter functionality
-node scripts/test-openrouter.js
-```
-
-Or use the workflow:
-
-```
-Running workflow: TestOpenRouter
-```
-
 ### Running the Application
 
 ```bash
 # Start the server
-node scripts/start-server.js
+node server/index.js
 
 # Start the React Native application
 npm start
 ```
 
-## Development Status
+## Development Workflows
 
-The project has implemented the basic infrastructure and API endpoints. Recent updates include:
+The project includes several workflow scripts for development and testing:
 
-- JWT-based authentication system has been completed, replacing the previous session-based authentication
-- Token refresh mechanism for extending sessions without requiring re-login
-- Updated authorization middleware for API routes
-- Improved database schema organization with TypeScript and Zod integration
-  - Moved Drizzle models to `/shared/db/` directory
-  - Created TypeScript schema definitions with proper types
-  - Added Zod validation schemas for runtime type checking
-  - Maintained backward compatibility with CommonJS for Node.js
+- **DBSetup**: Push database schema to PostgreSQL
+  ```bash
+  node scripts/push-schema.js
+  ```
 
-Next steps include implementing frontend consumption of the Zod types and building out the mobile interface according to the streamlined feature set detailed in CHANGE-ROUND.md.
+- **AdminOnboard**: Setup the first admin user
+  ```bash
+  node scripts/admin-onboard.js
+  ```
+
+- **DemoSeeder**: Seed demonstration data
+  ```bash
+  node scripts/seed-demo-data.js
+  ```
+
+- **TestOpenRouter**: Test OpenRouter API integration
+  ```bash
+  node scripts/test-openrouter.js
+  ```
+
+- **TestMoreLeads**: Test lead generation capabilities
+  ```bash
+  node scripts/test-more-leads.js
+  ```
+
+## Upcoming Features
+
+- **Team Lead Sharing**: Share leads with team members
+- **Enhanced Analytics**: More detailed performance metrics and visualizations
+- **Call Recording**: Record and transcribe calls for better follow-up
+- **Email Integration**: Send and track emails directly from the CRM
 
 ## License
 
-This project is proprietary and confidential.
+© 2025 FlutterBye CRM. All rights reserved.
