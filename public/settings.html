@@ -400,6 +400,57 @@
       color: var(--success);
     }
     
+    .org-list {
+      margin-top: 1rem;
+    }
+    
+    .org-item {
+      padding: 1rem;
+      background-color: white;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .org-item:hover {
+      border-color: var(--primary);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .org-item.active {
+      border-color: var(--primary);
+      background-color: var(--secondary);
+    }
+    
+    .org-details {
+      flex: 1;
+    }
+    
+    .org-name {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    
+    .org-description {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
+    .org-details-item {
+      margin-bottom: 0.5rem;
+    }
+    
+    .org-details-item .label {
+      font-weight: 500;
+      margin-right: 0.5rem;
+      color: #666;
+    }
+    
     .modal {
       display: none;
       position: fixed;
@@ -636,17 +687,74 @@
           <!-- Team Management Section -->
           <div class="settings-section" id="team-section" style="display: none;">
             <h2>Team Management</h2>
-            <p>Manage team members and control their access to your organization.</p>
+            <p>Manage your organizations and team members.</p>
             
-            <div class="btn-group" style="margin-bottom: 1.5rem;">
-              <button class="btn btn-primary" id="inviteTeamMemberBtn">
-                <i class="fas fa-plus"></i> Invite Team Member
-              </button>
+            <!-- Organization selection and management -->
+            <div class="organization-management" style="margin-bottom: 2rem;">
+              <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3>Your Organizations</h3>
+                <button class="btn btn-primary" id="createNewOrgBtn">
+                  <i class="fas fa-plus"></i> Create New Organization
+                </button>
+              </div>
+              
+              <div id="organizationsList" style="margin-bottom: 1.5rem;">
+                <!-- Organizations will be populated here -->
+                <div class="loading-status">Loading your organizations...</div>
+              </div>
             </div>
             
-            <div class="team-members" id="teamMembersList">
-              <!-- Team members will be populated here -->
-              <div class="loading-status">Loading team members...</div>
+            <!-- Selected organization details -->
+            <div id="selectedOrgDetails" style="display: none; margin-bottom: 2rem;">
+              <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 id="selectedOrgName">Organization Name</h3>
+                <div class="btn-group">
+                  <button class="btn btn-outline" id="editOrgBtn">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button class="btn btn-outline btn-danger" id="deleteOrgBtn">
+                    <i class="fas fa-trash-alt"></i> Delete
+                  </button>
+                </div>
+              </div>
+              <p id="selectedOrgDescription">Organization description</p>
+              <div class="org-details-item">
+                <span class="label">Created By:</span>
+                <span id="selectedOrgCreator">You</span>
+              </div>
+              <div class="org-details-item">
+                <span class="label">Created On:</span>
+                <span id="selectedOrgDate">January 1, 2025</span>
+              </div>
+              <div class="org-details-item">
+                <span class="label">Your Role:</span>
+                <span id="selectedOrgRole" class="member-role-badge admin">Admin</span>
+              </div>
+            </div>
+            
+            <!-- Team members section -->
+            <div id="teamMembersSection" style="display: none;">
+              <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3>Team Members</h3>
+                <button class="btn btn-primary" id="inviteTeamMemberBtn">
+                  <i class="fas fa-plus"></i> Invite Team Member
+                </button>
+              </div>
+              
+              <div class="team-members" id="teamMembersList">
+                <!-- Team members will be populated here -->
+                <div class="loading-status">Loading team members...</div>
+              </div>
+            </div>
+            
+            <!-- No organizations message -->
+            <div id="noOrganizationsMessage" style="display: none;">
+              <div class="no-data-message">
+                <p>You don't have any organizations yet. Create one to start adding team members.</p>
+                <button id="createFirstOrgBtn" class="btn btn-primary" style="margin-top: 1rem;">
+                  <i class="fas fa-plus"></i> Create Organization
+                </button>
+              </div>
             </div>
           </div>
           
@@ -874,6 +982,52 @@
       </div>
     </div>
   </div>
+
+  <!-- Edit Organization Modal -->
+  <div id="editOrgModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-edit"></i> Edit Organization</h2>
+        <span class="close-modal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="editOrgForm">
+          <input type="hidden" id="editOrgId">
+          <div class="form-group">
+            <label for="editOrgName">Organization Name*</label>
+            <input type="text" id="editOrgName" class="form-control" placeholder="Organization Name" required>
+          </div>
+          <div class="form-group">
+            <label for="editOrgDescription">Description</label>
+            <textarea id="editOrgDescription" class="form-control" rows="3" placeholder="Organization description"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="cancelEditOrgBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveEditOrgBtn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Organization Modal -->
+  <div id="deleteOrgModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-trash-alt"></i> Delete Organization</h2>
+        <span class="close-modal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="deleteOrgId">
+        <p>Are you sure you want to delete the organization "<span id="deleteOrgName">this organization</span>"?</p>
+        <p class="text-danger">This action cannot be undone. All team members will lose access, and any shared data will no longer be accessible.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="cancelDeleteOrgBtn">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteOrgBtn">Delete Organization</button>
+      </div>
+    </div>
+  </div>
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -1020,6 +1174,11 @@
         removeTeamMember(memberId);
       });
       
+      // Create organization buttons
+      document.getElementById('createNewOrgBtn').addEventListener('click', function() {
+        openModal('createOrgModal');
+      });
+      
       // Create organization modal events
       document.getElementById('cancelCreateOrgBtn').addEventListener('click', function() {
         closeModal('createOrgModal');
@@ -1028,6 +1187,49 @@
       
       document.getElementById('saveCreateOrgBtn').addEventListener('click', function() {
         createOrganization();
+      });
+      
+      // Edit organization button
+      document.getElementById('editOrgBtn').addEventListener('click', function() {
+        if (!currentOrganization) return;
+        
+        // Populate edit form with current organization details
+        document.getElementById('editOrgId').value = currentOrganization.id;
+        document.getElementById('editOrgName').value = currentOrganization.name;
+        document.getElementById('editOrgDescription').value = currentOrganization.description || '';
+        
+        // Open edit modal
+        openModal('editOrgModal');
+      });
+      
+      // Edit organization modal events
+      document.getElementById('cancelEditOrgBtn').addEventListener('click', function() {
+        closeModal('editOrgModal');
+      });
+      
+      document.getElementById('saveEditOrgBtn').addEventListener('click', function() {
+        editOrganization();
+      });
+      
+      // Delete organization button
+      document.getElementById('deleteOrgBtn').addEventListener('click', function() {
+        if (!currentOrganization) return;
+        
+        // Populate delete confirmation
+        document.getElementById('deleteOrgId').value = currentOrganization.id;
+        document.getElementById('deleteOrgName').textContent = currentOrganization.name;
+        
+        // Open delete confirmation modal
+        openModal('deleteOrgModal');
+      });
+      
+      // Delete organization modal events
+      document.getElementById('cancelDeleteOrgBtn').addEventListener('click', function() {
+        closeModal('deleteOrgModal');
+      });
+      
+      document.getElementById('confirmDeleteOrgBtn').addEventListener('click', function() {
+        deleteOrganization();
       });
       
       // Profile form submission
@@ -1083,6 +1285,14 @@
       
       // Fetch user organizations
       function fetchUserOrganizations() {
+        const organizationsList = document.getElementById('organizationsList');
+        organizationsList.innerHTML = '<div class="loading-status">Loading your organizations...</div>';
+        
+        // Hide organization details and team members sections initially
+        document.getElementById('selectedOrgDetails').style.display = 'none';
+        document.getElementById('teamMembersSection').style.display = 'none';
+        document.getElementById('noOrganizationsMessage').style.display = 'none';
+        
         fetch('/api/organizations', {
           method: 'GET',
           headers: {
@@ -1100,39 +1310,152 @@
           if (data.success && data.data) {
             currentUser.organizations = data.data;
             
-            // Set current organization
             if (currentUser.organizations.length > 0) {
+              // Display organizations list
+              renderOrganizationsList();
+              
+              // Set current organization to the first one by default
               currentOrganization = currentUser.organizations[0];
               
-              // Fetch team members for the current organization
+              // Show organization details and fetch team members
+              showOrganizationDetails(currentOrganization);
               fetchTeamMembers(currentOrganization.id);
             } else {
-              // Create a new organization if none exists
-              const teamMembersList = document.getElementById('teamMembersList');
-              teamMembersList.innerHTML = `
-                <div class="no-data-message">
-                  <p>You don't have any organizations yet. Create one to start adding team members.</p>
-                  <button id="createOrgBtn" class="btn btn-primary" style="margin-top: 1rem;">
-                    <i class="fas fa-plus"></i> Create Organization
-                  </button>
-                </div>
-              `;
+              // Show message for no organizations
+              document.getElementById('noOrganizationsMessage').style.display = 'block';
+              organizationsList.innerHTML = '';
               
-              const createOrgBtn = document.getElementById('createOrgBtn');
-              if (createOrgBtn) {
-                createOrgBtn.addEventListener('click', function() {
-                  // Show create organization modal
+              // Add event listener for create organization button
+              const createFirstOrgBtn = document.getElementById('createFirstOrgBtn');
+              if (createFirstOrgBtn) {
+                createFirstOrgBtn.addEventListener('click', function() {
                   openModal('createOrgModal');
                 });
               }
             }
           } else {
             console.error('Invalid organizations response');
+            organizationsList.innerHTML = '<div class="error-message">Failed to load organizations.</div>';
           }
         })
         .catch(error => {
           console.error('Error fetching organizations:', error);
+          organizationsList.innerHTML = '<div class="error-message">Failed to load organizations.</div>';
         });
+      }
+      
+      // Render the list of organizations
+      function renderOrganizationsList() {
+        const organizationsList = document.getElementById('organizationsList');
+        
+        if (!currentUser.organizations || currentUser.organizations.length === 0) {
+          document.getElementById('noOrganizationsMessage').style.display = 'block';
+          organizationsList.innerHTML = '';
+          return;
+        }
+        
+        // Create the organization list
+        let html = '<div class="org-list">';
+        
+        currentUser.organizations.forEach(org => {
+          const isActive = currentOrganization && org.id === currentOrganization.id;
+          const activeClass = isActive ? 'active' : '';
+          
+          html += `
+            <div class="org-item ${activeClass}" data-org-id="${org.id}">
+              <div class="org-details">
+                <div class="org-name">${org.name}</div>
+                <div class="org-description">${org.description || 'No description'}</div>
+              </div>
+              <div>
+                <span class="member-role-badge ${org.userRole === 'admin' ? 'admin' : ''}">${org.userRole || 'member'}</span>
+              </div>
+            </div>
+          `;
+        });
+        
+        html += '</div>';
+        organizationsList.innerHTML = html;
+        
+        // Add click event listeners to organization items
+        const orgItems = document.querySelectorAll('.org-item');
+        orgItems.forEach(item => {
+          item.addEventListener('click', function() {
+            const orgId = parseInt(this.getAttribute('data-org-id'));
+            selectOrganization(orgId);
+          });
+        });
+      }
+      
+      // Select an organization
+      function selectOrganization(orgId) {
+        // Find the organization in the list
+        const organization = currentUser.organizations.find(org => org.id === orgId);
+        
+        if (!organization) {
+          console.error('Organization not found:', orgId);
+          return;
+        }
+        
+        // Update current organization
+        currentOrganization = organization;
+        
+        // Update active state in UI
+        const orgItems = document.querySelectorAll('.org-item');
+        orgItems.forEach(item => {
+          const itemOrgId = parseInt(item.getAttribute('data-org-id'));
+          if (itemOrgId === orgId) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+        
+        // Show organization details
+        showOrganizationDetails(organization);
+        
+        // Fetch team members for this organization
+        fetchTeamMembers(organization.id);
+      }
+      
+      // Show organization details
+      function showOrganizationDetails(organization) {
+        const detailsSection = document.getElementById('selectedOrgDetails');
+        
+        // Update organization details in UI
+        document.getElementById('selectedOrgName').textContent = organization.name;
+        document.getElementById('selectedOrgDescription').textContent = organization.description || 'No description provided';
+        
+        // Format date
+        const createdDate = new Date(organization.createdAt);
+        const formattedDate = createdDate.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
+        document.getElementById('selectedOrgDate').textContent = formattedDate;
+        
+        // Show role badge
+        const roleElem = document.getElementById('selectedOrgRole');
+        roleElem.textContent = organization.userRole || 'Member';
+        
+        if (organization.userRole === 'admin') {
+          roleElem.classList.add('admin');
+        } else {
+          roleElem.classList.remove('admin');
+        }
+        
+        // Show/hide edit/delete buttons based on role
+        const isAdmin = organization.userRole === 'admin';
+        document.getElementById('editOrgBtn').style.display = isAdmin ? 'inline-block' : 'none';
+        document.getElementById('deleteOrgBtn').style.display = isAdmin ? 'inline-block' : 'none';
+        
+        // Show the details section
+        detailsSection.style.display = 'block';
+        
+        // Show team members section
+        document.getElementById('teamMembersSection').style.display = 'block';
       }
       
       // Intentionally left empty - createDefaultOrganization has been replaced by the createOrganization function
@@ -1175,10 +1498,16 @@
               currentUser.organizations = [];
             }
             
-            currentUser.organizations.push(data.data);
+            // Add the new organization to the user's list with admin role
+            const newOrg = {
+              ...data.data,
+              userRole: 'admin'
+            };
+            
+            currentUser.organizations.push(newOrg);
             
             // Set as current organization
-            currentOrganization = data.data;
+            currentOrganization = newOrg;
             
             // Close the modal
             closeModal('createOrgModal');
@@ -1186,12 +1515,20 @@
             // Clear form
             document.getElementById('createOrgForm').reset();
             
-            // Refresh team management section
-            const teamMembersList = document.getElementById('teamMembersList');
-            teamMembersList.innerHTML = '<div class="loading-status">Loading team members...</div>';
+            // Hide "no organizations" message if it was showing
+            document.getElementById('noOrganizationsMessage').style.display = 'none';
+            
+            // Redisplay the organizations list with the new one
+            renderOrganizationsList();
+            
+            // Show organization details
+            showOrganizationDetails(newOrg);
+            
+            // Show team members section (which should be empty initially)
+            document.getElementById('teamMembersSection').style.display = 'block';
             
             // Update team members list
-            fetchTeamMembers(currentOrganization.id);
+            fetchTeamMembers(newOrg.id);
             
             // Show success message
             alert('Organization created successfully!');
@@ -1203,6 +1540,140 @@
         .catch(error => {
           console.error('Error creating organization:', error);
           alert('Failed to create organization. Please try again.');
+        });
+      }
+      
+      // Edit an organization
+      function editOrganization() {
+        const orgId = document.getElementById('editOrgId').value;
+        const orgName = document.getElementById('editOrgName').value;
+        const orgDescription = document.getElementById('editOrgDescription').value;
+        
+        if (!orgId || !orgName) {
+          alert('Organization ID and name are required.');
+          return;
+        }
+        
+        const orgData = {
+          name: orgName,
+          description: orgDescription
+        };
+        
+        fetch(`/api/organizations/${orgId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify(orgData)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to update organization');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success && data.data) {
+            // Update organization in the user's list
+            const updatedOrg = {
+              ...data.data,
+              userRole: currentOrganization.userRole
+            };
+            
+            // Find the index of the organization in the array
+            const orgIndex = currentUser.organizations.findIndex(o => o.id === parseInt(orgId));
+            
+            if (orgIndex !== -1) {
+              // Replace the organization in the array
+              currentUser.organizations[orgIndex] = updatedOrg;
+            }
+            
+            // Update current organization if it's the one being edited
+            if (currentOrganization.id === parseInt(orgId)) {
+              currentOrganization = updatedOrg;
+            }
+            
+            // Close the modal
+            closeModal('editOrgModal');
+            
+            // Update the UI
+            renderOrganizationsList();
+            showOrganizationDetails(updatedOrg);
+            
+            // Show success message
+            alert('Organization updated successfully!');
+          } else {
+            console.error('Invalid update organization response');
+            alert('Failed to update organization. Please try again.');
+          }
+        })
+        .catch(error => {
+          console.error('Error updating organization:', error);
+          alert('Failed to update organization. Please try again.');
+        });
+      }
+      
+      // Delete an organization
+      function deleteOrganization() {
+        const orgId = document.getElementById('deleteOrgId').value;
+        
+        if (!orgId) {
+          alert('Organization ID is required.');
+          return;
+        }
+        
+        fetch(`/api/organizations/${orgId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to delete organization');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            // Remove the organization from the user's list
+            const orgIndex = currentUser.organizations.findIndex(o => o.id === parseInt(orgId));
+            
+            if (orgIndex !== -1) {
+              currentUser.organizations.splice(orgIndex, 1);
+            }
+            
+            // Close the modal
+            closeModal('deleteOrgModal');
+            
+            // Check if there are any organizations left
+            if (currentUser.organizations.length === 0) {
+              // No organizations left, show the "no organizations" message
+              document.getElementById('noOrganizationsMessage').style.display = 'block';
+              document.getElementById('organizationsList').innerHTML = '';
+              document.getElementById('selectedOrgDetails').style.display = 'none';
+              document.getElementById('teamMembersSection').style.display = 'none';
+              currentOrganization = null;
+            } else {
+              // Select the first organization
+              currentOrganization = currentUser.organizations[0];
+              renderOrganizationsList();
+              showOrganizationDetails(currentOrganization);
+              fetchTeamMembers(currentOrganization.id);
+            }
+            
+            // Show success message
+            alert('Organization deleted successfully!');
+          } else {
+            console.error('Invalid delete organization response');
+            alert('Failed to delete organization. Please try again.');
+          }
+        })
+        .catch(error => {
+          console.error('Error deleting organization:', error);
+          alert('Failed to delete organization. Please try again.');
         });
       }
       
