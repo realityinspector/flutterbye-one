@@ -3331,11 +3331,7 @@
       // Show notification when viewing lead details
       showNotification('Opening Lead Details', 'Loading the detailed view for this lead...', 'info');
       
-      fetch(`/api/leads/${leadId}`, {
-        headers: {
-          'Authorization': `Bearer ${getToken()}`
-        }
-      })
+      fetch(`/api/leads/${leadId}`)
       .then(response => {
         if (!response.ok) {
           throw new Error(`Failed to fetch lead details: ${response.status}`);
@@ -3508,34 +3504,10 @@
     // Function to start a call with a lead
     function startCall(leadId) {
       // Show notification when starting a call
-      showNotification('Starting Call', 'Preparing to initiate a call session...', 'info');
+      showNotification('Starting Call', 'Redirecting to call page...', 'info');
       
-      fetch(`/api/leads/${leadId}`, {
-        headers: {
-          'Authorization': `Bearer ${getToken()}`
-        }
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Failed to fetch lead for call: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(result => {
-        if (!result.success) {
-          throw new Error(result.message || 'Failed to load lead for call');
-        }
-        
-        const lead = result.data;
-        const globalLead = lead.globalLead;
-        
-        // Show the call modal with lead info
-        showCallModal(globalLead.phoneNumber, globalLead.contactName, leadId);
-      })
-      .catch(error => {
-        console.error('Error starting call:', error);
-        showNotification('Error', `Failed to start call: ${error.message}`, 'error');
-      });
+      // Redirect to the call page
+      window.location.href = `/leads/${leadId}/call`;
     }
     
     // Function to open edit form for a lead
@@ -3581,10 +3553,7 @@
         
         // Send delete request
         fetch(`/api/leads/${leadId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${getToken()}`
-          }
+          method: 'DELETE'
         })
         .then(response => {
           if (!response.ok) {
