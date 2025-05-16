@@ -864,6 +864,7 @@
         <span class="close-modal">&times;</span>
       </div>
       <div class="modal-body">
+        <p class="modal-info-text">Inviting a team member to join <strong id="inviteOrgName">your organization</strong></p>
         <form id="inviteForm">
           <div class="form-group">
             <label for="inviteEmail">Email Address*</label>
@@ -876,6 +877,10 @@
               <option value="member">Member</option>
               <option value="admin">Admin</option>
             </select>
+            <small class="form-text text-muted">
+              <strong>Member:</strong> Can view and manage shared leads<br>
+              <strong>Admin:</strong> Can manage team members, settings, and all organization data
+            </small>
           </div>
           <div class="form-group">
             <label for="inviteMessage">Personal Message (Optional)</label>
@@ -1677,7 +1682,7 @@
         });
       }
       
-      // Fetch team members
+      // Fetch team members for an organization
       function fetchTeamMembers(organizationId) {
         if (!organizationId) {
           const teamMembersList = document.getElementById('teamMembersList');
@@ -1699,6 +1704,9 @@
           return;
         }
         
+        // Show the team members section
+        document.getElementById('teamMembersSection').style.display = 'block';
+        
         const teamMembersList = document.getElementById('teamMembersList');
         teamMembersList.innerHTML = '<div class="loading-status">Loading team members...</div>';
         
@@ -1719,6 +1727,13 @@
           if (data.success && data.data) {
             teamMembers = data.data;
             renderTeamMembers();
+            
+            // Only show invite button for admins
+            const inviteBtn = document.getElementById('inviteTeamMemberBtn');
+            if (inviteBtn) {
+              const isAdmin = currentOrganization && currentOrganization.userRole === 'admin';
+              inviteBtn.style.display = isAdmin ? 'inline-block' : 'none';
+            }
           } else {
             console.error('Invalid team members response');
             teamMembersList.innerHTML = '<div class="error-message">Failed to load team members.</div>';
@@ -1734,7 +1749,7 @@
       function renderTeamMembers() {
         const teamMembersList = document.getElementById('teamMembersList');
         
-        if (teamMembers.length === 0) {
+        if (!teamMembers || teamMembers.length === 0) {
           teamMembersList.innerHTML = `
             <div class="no-data-message">
               <p>No team members found. Invite someone to get started.</p>
@@ -1746,21 +1761,27 @@
         let html = '';
         
         teamMembers.forEach(member => {
-          const isCurrentUser = member.user.id === currentUser.id;
-          const initials = getInitials(member.user.fullName || member.user.username);
+          const isCurrentUser = member.userId === currentUser.id;
+          const initials = getInitials(member.fullName || member.username);
+          const joinDate = new Date(member.joinedAt || Date.now()).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
           
           html += `
             <div class="team-member" data-member-id="${member.id}">
               <div class="team-member-avatar">${initials}</div>
               <div class="team-member-info">
                 <div class="team-member-name">
-                  ${member.user.fullName || member.user.username}
+                  ${member.fullName || member.username}
                   ${isCurrentUser ? ' (You)' : ''}
-                  <span class="member-role-badge ${member.role === 'admin' ? 'admin' : ''}">${member.role}</span>
+                  <span class="member-role-badge ${member.role === 'admin' ? 'admin' : 'member'}">${member.role}</span>
                 </div>
-                <div class="team-member-email">${member.user.email}</div>
+                <div class="team-member-email">${member.email}</div>
+                <div class="team-member-joined">Joined: ${joinDate}</div>
               </div>
-              ${!isCurrentUser ? `
+              ${!isCurrentUser && (currentOrganization && currentOrganization.userRole === 'admin') ? `
                 <div class="team-member-actions">
                   <button class="btn btn-outline btn-sm edit-member-btn" data-member-id="${member.id}">
                     <i class="fas fa-edit"></i> Edit
@@ -1803,8 +1824,8 @@
       // Show edit member modal
       function showEditMemberModal(member) {
         document.getElementById('editMemberId').value = member.id;
-        document.getElementById('editMemberName').value = member.user.fullName || member.user.username;
-        document.getElementById('editMemberEmail').value = member.user.email;
+        document.getElementById('editMemberName').textContent = member.fullName || member.username;
+        document.getElementById('editMemberEmail').textContent = member.email;
         document.getElementById('editMemberRole').value = member.role;
         
         openModal('editMemberModal');
@@ -1813,7 +1834,7 @@
       // Show remove member modal
       function showRemoveMemberModal(member) {
         document.getElementById('removeMemberId').value = member.id;
-        document.getElementById('removeMemberName').textContent = member.user.fullName || member.user.username;
+        document.getElementById('removeMemberName').textContent = member.fullName || member.username;
         
         openModal('removeMemberModal');
       }
