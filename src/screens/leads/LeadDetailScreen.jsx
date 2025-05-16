@@ -23,6 +23,7 @@ import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useLeads } from '../../hooks/useLeads';
 import { useCalls } from '../../hooks/useCalls';
+import { useOrganizations } from '../../hooks/useOrganizations';
 import { makePhoneCall } from '../../utils/permissions';
 import CallItem from '../../components/CallItem';
 import NewCallFAB from '../../components/NewCallFAB';
@@ -39,20 +40,37 @@ const LeadDetailScreen = () => {
   
   const { getLead, updateLead, deleteLead, isLoading } = useLeads();
   const { getCallsByLead, isLoading: callsLoading } = useCalls();
+  const { getUserOrganizations } = useOrganizations();
   
   const [lead, setLead] = useState(null);
   const [calls, setCalls] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [sharingSettings, setSharingSettings] = useState({
+    isShared: false,
+    organizationId: null
+  });
+  const [isSavingSharing, setIsSavingSharing] = useState(false);
 
-  // Fetch lead details and call history
+  // Fetch lead details, call history, and organizations
   useEffect(() => {
     const fetchData = async () => {
       try {
         const leadData = await getLead(leadId);
         setLead(leadData);
         
+        // Initialize sharing settings from lead data
+        setSharingSettings({
+          isShared: leadData.isShared || false,
+          organizationId: leadData.organizationId || null
+        });
+        
         const callData = await getCallsByLead(leadId);
         setCalls(callData);
+        
+        // Fetch organizations for sharing options
+        const orgs = await getUserOrganizations();
+        setOrganizations(orgs || []);
       } catch (error) {
         console.error('Error fetching lead details:', error);
         toast.show({
@@ -71,6 +89,47 @@ const LeadDetailScreen = () => {
   // Handle edit lead
   const handleEditLead = () => {
     navigation.navigate('LeadForm', { leadId: lead.id });
+  };
+  
+  // Handle saving sharing settings
+  const handleSaveSharing = async () => {
+    if (sharingSettings.isShared && !sharingSettings.organizationId) {
+      toast.show({
+        title: "Organization Required",
+        description: "Please select an organization to share with",
+        status: "warning",
+      });
+      return;
+    }
+    
+    try {
+      setIsSavingSharing(true);
+      
+      // Update the lead with new sharing settings
+      const updatedLead = await updateLead({
+        leadId: lead.id,
+        leadData: {
+          ...lead,
+          isShared: sharingSettings.isShared,
+          organizationId: sharingSettings.isShared ? sharingSettings.organizationId : null,
+        }
+      });
+      
+      // Update local state
+      setLead(updatedLead);
+      toast.show({
+        title: sharingSettings.isShared ? "Lead shared with team" : "Lead set to personal",
+        status: "success",
+      });
+    } catch (error) {
+      console.error('Error saving contact sharing settings:', error);
+      toast.show({
+        title: "Failed to update sharing settings",
+        status: "error",
+      });
+    } finally {
+      setIsSavingSharing(false);
+    }
   };
 
   // Handle delete lead
@@ -318,6 +377,87 @@ const LeadDetailScreen = () => {
                   </HStack>
                 )}
               </VStack>
+            </Box>
+
+            <Divider my={1} bg="gray.200" />
+            
+            {/* Organization Sharing Section */}
+            <Box px={4} py={4} bg="white">
+              <Heading size="md" mb={4}>Team Sharing</Heading>
+              
+              {organizations.length > 0 ? (
+                <VStack space={4}>
+                  <HStack space={2} alignItems="center">
+                    <Checkbox
+                      value="isShared"
+                      isChecked={sharingSettings.isShared}
+                      onChange={(isSelected) => {
+                        setSharingSettings({
+                          ...sharingSettings,
+                          isShared: isSelected,
+                          // Reset organizationId if unsharing
+                          organizationId: isSelected ? sharingSettings.organizationId : null
+                        });
+                      }}
+                      colorScheme="primary"
+                    >
+                      <Text ml={2}>Share this contact with team</Text>
+                    </Checkbox>
+                  </HStack>
+                  
+                  {sharingSettings.isShared && (
+                    <VStack space={2}>
+                      <Text fontWeight="medium">Select Organization</Text>
+                      <Select
+                        selectedValue={sharingSettings.organizationId?.toString()}
+                        minWidth="200"
+                        placeholder="Select organization"
+                        onValueChange={(itemValue) => {
+                          setSharingSettings({
+                            ...sharingSettings,
+                            organizationId: itemValue ? parseInt(itemValue) : null
+                          });
+                        }}
+                        _selectedItem={{
+                          bg: "primary.100",
+                        }}
+                        mb={2}
+                      >
+                        {organizations.map(org => (
+                          <Select.Item 
+                            key={org.id} 
+                            label={org.name} 
+                            value={org.id.toString()} 
+                          />
+                        ))}
+                      </Select>
+                      
+                      <Button
+                        onPress={handleSaveSharing}
+                        colorScheme="primary"
+                        isLoading={isSavingSharing}
+                        leftIcon={<Icon as={Feather} name="share-2" size="sm" />}
+                        width="auto"
+                        alignSelf="flex-start"
+                      >
+                        Save Sharing Settings
+                      </Button>
+                    </VStack>
+                  )}
+                </VStack>
+              ) : (
+                <Box bg="gray.100" p={4} rounded="md">
+                  <HStack space={3} alignItems="center">
+                    <Icon as={Feather} name="info" size={5} color="gray.500" />
+                    <VStack flex={1}>
+                      <Text fontWeight="medium">No Organizations Available</Text>
+                      <Text color="gray.600" fontSize="sm">
+                        You need to create or join an organization to share contacts with team members.
+                      </Text>
+                    </VStack>
+                  </HStack>
+                </Box>
+              )}
             </Box>
 
             <Divider my={1} bg="gray.200" />
