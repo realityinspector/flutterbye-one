@@ -40,78 +40,26 @@ router.get('/', authenticateJWT, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid user ID' });
     }
     
-    let organizationIds = [];
-    
-    try {
-      // Get all organizations the user is a member of
-      const memberships = await db.select({
-        organizationId: organizationMembers.organizationId
-      })
-      .from(organizationMembers)
-      .where(eq(organizationMembers.userId, userId));
+    // Use a simpler approach to get leads
+    const rawLeads = await db.select()
+      .from(userLeads)
+      .where(eq(userLeads.userId, userId))
+      .orderBy(desc(userLeads.priority));
       
-      // Make sure we have valid organization IDs
-      if (memberships && Array.isArray(memberships) && memberships.length > 0) {
-        organizationIds = memberships
-          .map(m => m && m.organizationId)
-          .filter(id => id !== undefined && id !== null);
-      }
-    } catch (orgError) {
-      console.error('Error fetching organization memberships:', orgError);
-      // Continue with empty organization IDs
-    }
-    
-    // Get user's personal leads and shared leads from their organizations
-    let query = {};
-    
-    if (organizationIds.length > 0) {
-      query = or(
-        // Personal leads
-        and(eq(userLeads.userId, userId), isNull(userLeads.organizationId)),
-        // Team leads from organizations where user is a member
-        and(inArray(userLeads.organizationId, organizationIds), eq(userLeads.isShared, true))
-      );
-    } else {
-      // User has no organizations, only get personal leads
-      query = and(eq(userLeads.userId, userId), isNull(userLeads.organizationId));
-    }
-    
-    // Optional filtering
-    const { orgId, isShared } = req.query;
-    
-    if (orgId) {
-      // Filter by specific organization
-      const organizationId = parseInt(orgId);
-      if (isNaN(organizationId)) {
-        return res.status(400).json({ success: false, message: 'Invalid organization ID' });
-      }
-      
-      // Check if user is a member of this organization
-      const isMember = await isUserInOrganization(userId, organizationId);
-      if (!isMember) {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'You are not a member of this organization' 
+    // Get the global lead details for each lead
+    const leads = [];
+    for (const lead of rawLeads) {
+      const [globalLeadInfo] = await db.select()
+        .from(globalLeads)
+        .where(eq(globalLeads.id, lead.globalLeadId));
+        
+      if (globalLeadInfo) {
+        leads.push({
+          ...lead,
+          globalLead: globalLeadInfo
         });
       }
-      
-      query = and(eq(userLeads.organizationId, organizationId), eq(userLeads.isShared, true));
-    } else if (isShared === 'true') {
-      // Only show shared leads from all user's organizations
-      query = and(inArray(userLeads.organizationId, organizationIds), eq(userLeads.isShared, true));
-    } else if (isShared === 'false') {
-      // Only show personal leads
-      query = and(eq(userLeads.userId, userId), isNull(userLeads.organizationId));
     }
-    
-    const leads = await db.query.userLeads.findMany({
-      where: query,
-      with: {
-        globalLead: true,
-        organization: organizationIds.length > 0 ? true : undefined
-      },
-      orderBy: [desc(userLeads.priority)],
-    });
     
     res.json({ success: true, data: leads });
   } catch (error) {

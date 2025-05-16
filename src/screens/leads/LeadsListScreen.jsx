@@ -18,6 +18,7 @@ import {
   InputLeftAddon,
   useToast,
   Divider,
+  useBreakpointValue,
 } from 'native-base';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -36,9 +37,25 @@ const LeadsListScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('priority'); // 'priority', 'newest', 'oldest'
   const [teamFilter, setTeamFilter] = useState('all'); // 'all', 'team', 'personal'
+  
+  // Responsive layout for enhanced grid view on larger screens
+  const numColumns = useBreakpointValue({
+    base: 1,
+    md: 2,
+    lg: 3,
+  });
 
-  // Handle navigation to lead detail
+  // Handle navigation to lead detail with visual feedback
   const handleLeadPress = (lead) => {
+    // Show a brief toast notification when navigating to enhance the experience
+    toast.show({
+      title: "Opening lead details",
+      status: "info",
+      duration: 1000,
+      placement: "top"
+    });
+    
+    // Navigate to the lead detail screen with the lead ID
     navigation.navigate('LeadDetail', { leadId: lead.id });
   };
 
@@ -293,10 +310,16 @@ const LeadsListScreen = () => {
             data={filteredLeads}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <Pressable onPress={() => handleLeadPress(item)} mb={3}>
-                <LeadCard lead={item} showStatus={true} />
-              </Pressable>
+              <Box mb={3} mx={numColumns > 1 ? 1 : 0}>
+                <LeadCard 
+                  lead={item} 
+                  showStatus={true} 
+                  onPress={() => handleLeadPress(item)}
+                />
+              </Box>
             )}
+            numColumns={numColumns}
+            key={numColumns} // Force re-render when layout changes
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 80 }} /* Add padding for the FAB */
           />
