@@ -835,6 +835,46 @@
     </div>
   </div>
   
+  <!-- Create Organization Modal -->
+  <div id="createOrgModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-building"></i> Create Organization</h2>
+        <span class="close-modal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="createOrgForm">
+          <div class="form-group">
+            <label for="orgName">Organization Name*</label>
+            <input type="text" id="orgName" class="form-control" placeholder="Your Company Name" required>
+          </div>
+          <div class="form-group">
+            <label for="orgDescription">Description</label>
+            <textarea id="orgDescription" class="form-control" rows="3" placeholder="Brief description of your organization"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="orgIndustry">Industry</label>
+            <select id="orgIndustry" class="form-control">
+              <option value="">-- Select Industry --</option>
+              <option value="Technology">Technology</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Finance">Finance</option>
+              <option value="Education">Education</option>
+              <option value="Manufacturing">Manufacturing</option>
+              <option value="Retail">Retail</option>
+              <option value="Consulting">Consulting</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="cancelCreateOrgBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveCreateOrgBtn">Create Organization</button>
+      </div>
+    </div>
+  </div>
+  
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const currentUser = {
@@ -980,6 +1020,16 @@
         removeTeamMember(memberId);
       });
       
+      // Create organization modal events
+      document.getElementById('cancelCreateOrgBtn').addEventListener('click', function() {
+        closeModal('createOrgModal');
+        document.getElementById('createOrgForm').reset();
+      });
+      
+      document.getElementById('saveCreateOrgBtn').addEventListener('click', function() {
+        createOrganization();
+      });
+      
       // Profile form submission
       const profileForm = document.getElementById('profileForm');
       
@@ -1072,8 +1122,7 @@
               if (createOrgBtn) {
                 createOrgBtn.addEventListener('click', function() {
                   // Show create organization modal
-                  // For now, just create a default organization
-                  createDefaultOrganization();
+                  openModal('createOrgModal');
                 });
               }
             }
@@ -1127,9 +1176,96 @@
         });
       }
       
+      // Create a new organization
+      function createOrganization() {
+        const orgName = document.getElementById('orgName').value;
+        const orgDescription = document.getElementById('orgDescription').value;
+        const orgIndustry = document.getElementById('orgIndustry').value;
+        
+        if (!orgName) {
+          alert('Please enter an organization name.');
+          return;
+        }
+        
+        const orgData = {
+          name: orgName,
+          description: orgDescription,
+          industry: orgIndustry
+        };
+        
+        fetch('/api/organizations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify(orgData)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to create organization');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success && data.data) {
+            // Add new organization to list
+            if (!currentUser.organizations) {
+              currentUser.organizations = [];
+            }
+            
+            currentUser.organizations.push(data.data);
+            
+            // Set as current organization
+            currentOrganization = data.data;
+            
+            // Close the modal
+            closeModal('createOrgModal');
+            
+            // Clear form
+            document.getElementById('createOrgForm').reset();
+            
+            // Refresh team management section
+            const teamMembersList = document.getElementById('teamMembersList');
+            teamMembersList.innerHTML = '<div class="loading-status">Loading team members...</div>';
+            
+            // Update team members list
+            fetchTeamMembers(currentOrganization.id);
+            
+            // Show success message
+            alert('Organization created successfully!');
+          } else {
+            console.error('Invalid create organization response');
+            alert('Failed to create organization. Please try again.');
+          }
+        })
+        .catch(error => {
+          console.error('Error creating organization:', error);
+          alert('Failed to create organization. Please try again.');
+        });
+      }
+      
       // Fetch team members
       function fetchTeamMembers(organizationId) {
-        if (!organizationId) return;
+        if (!organizationId) {
+          const teamMembersList = document.getElementById('teamMembersList');
+          teamMembersList.innerHTML = `
+            <div class="no-data-message">
+              <p>You don't have any organizations yet. Create one to start adding team members.</p>
+              <button id="createOrgBtn" class="btn btn-primary" style="margin-top: 1rem;">
+                <i class="fas fa-plus"></i> Create Organization
+              </button>
+            </div>
+          `;
+          
+          const createOrgBtn = document.getElementById('createOrgBtn');
+          if (createOrgBtn) {
+            createOrgBtn.addEventListener('click', function() {
+              openModal('createOrgModal');
+            });
+          }
+          return;
+        }
         
         const teamMembersList = document.getElementById('teamMembersList');
         teamMembersList.innerHTML = '<div class="loading-status">Loading team members...</div>';
