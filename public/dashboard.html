@@ -9,7 +9,68 @@
     /* Mobile-only header */
     /* Define primary gradient */
     :root {
+      --primary: #0066ff;
+      --secondary: #e6f0ff;
+      --success: #28a745;
+      --warning: #ffc107;
+      --danger: #dc3545;
+      --dark: #343a40;
+      --light: #f8f9fa;
       --primary-gradient: linear-gradient(135deg, #0066ff 0%, #1a88ff 100%);
+    }
+    
+    /* Organization pill indicators */
+    .org-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 500;
+      border-radius: 50px;
+      background-color: #E3F2FD;
+      color: #1976D2;
+      margin-right: 0.25rem;
+      margin-bottom: 0.25rem;
+      border: 1px solid #BBDEFB;
+    }
+    
+    .org-pill.shared {
+      background-color: #E8F5E9;
+      color: #2E7D32;
+      border-color: #C8E6C9;
+    }
+    
+    .org-pill i {
+      margin-right: 0.25rem;
+      font-size: 0.7rem;
+    }
+    
+    .organization-sharing-section {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+    
+    .organization-sharing-title {
+      display: flex;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    
+    .organization-sharing-title i {
+      margin-right: 0.5rem;
+      color: var(--primary);
+    }
+    
+    .organization-sharing-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
     }
     
     .mobile-header {
@@ -3039,10 +3100,19 @@
             const tr = document.createElement('tr');
             // Add lead ID as a data attribute for action buttons
             tr.dataset.leadId = lead.id;
+            
+            // Check if this lead is shared with an organization
+            const isShared = lead.isShared || false;
+            const orgShareBadge = isShared ? 
+              `<div class="org-pill shared"><i class="fas fa-users"></i></div>` : '';
+            
             tr.innerHTML = `
-              <td>${lead.globalLead.companyName}</td>
-              <td>${lead.globalLead.contactName}</td>
-              <td>${lead.globalLead.phoneNumber}</td>
+              <td>
+                ${lead.globalLead.companyName}
+                ${orgShareBadge}
+              </td>
+              <td>${lead.globalLead.contactName || 'Unknown Contact'}</td>
+              <td>${lead.globalLead.phoneNumber || 'N/A'}</td>
               <td><span class="status ${lead.status}">${lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}</span></td>
               <td>
                 <div class="actions">
@@ -3931,28 +4001,59 @@
     
     // Function to view contact details
     function viewContactDetails(globalLead, leadId) {
-      // Create a modal to display contact details
-      const modal = document.createElement('div');
-      modal.id = 'contactViewModal';
-      modal.className = 'modal';
-      
-      // Format contact address
-      const address = [globalLead.street, globalLead.city, globalLead.state, globalLead.zip, globalLead.country]
-        .filter(Boolean)
-        .join(', ');
-      
-      modal.innerHTML = `
-        <div class="modal-content">
-          <div class="modal-header">
-            <h2><i class="fas fa-address-card"></i> Contact Details</h2>
-            <span class="close-modal">&times;</span>
-          </div>
-          <div class="modal-body">
-            <div class="contact-details">
-              <div class="contact-header">
-                <h3>${globalLead.contactName || 'Unknown Contact'}</h3>
-                <p class="company-name">${globalLead.companyName || 'Unknown Company'}</p>
-              </div>
+      // Fetch full lead data to get organization sharing information
+      fetch(`/api/leads/${leadId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success || !data.data) {
+          throw new Error('Failed to fetch lead details');
+        }
+        
+        const userLead = data.data;
+        const isShared = userLead.isShared || false;
+        const organizationId = userLead.organizationId;
+        
+        // Create a modal to display contact details
+        const modal = document.createElement('div');
+        modal.id = 'contactViewModal';
+        modal.className = 'modal';
+        
+        // Format contact address
+        const address = [globalLead.street, globalLead.city, globalLead.state, globalLead.zip, globalLead.country]
+          .filter(Boolean)
+          .join(', ');
+        
+        // Determine sharing status HTML
+        let sharingStatusHtml = '';
+        if (isShared && organizationId) {
+          sharingStatusHtml = `
+            <div class="org-pill shared">
+              <i class="fas fa-users"></i> Shared with team
+            </div>
+          `;
+        }
+        
+        modal.innerHTML = `
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2><i class="fas fa-address-card"></i> Contact Details</h2>
+              <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+              <div class="contact-details">
+                <div class="contact-header">
+                  <h3>${globalLead.contactName || 'Unknown Contact'}</h3>
+                  <p class="company-name">${globalLead.companyName || 'Unknown Company'}</p>
+                  <div class="contact-sharing-status">
+                    ${sharingStatusHtml}
+                  </div>
+                </div>
               
               <div class="contact-info-grid">
                 <div class="contact-info-item">
@@ -3997,6 +4098,22 @@
               </div>
             </div>
             
+            <div class="organization-sharing-section">
+              <div class="organization-sharing-title">
+                <i class="fas fa-users"></i> Team Sharing Settings
+              </div>
+              <p>Share this contact with your team members in the following organizations:</p>
+              <div id="organizationSharingList" class="organization-sharing-list">
+                <!-- Organizations will be populated here -->
+                <div class="loading-status">Loading your organizations...</div>
+              </div>
+              <div class="form-actions" style="margin-top: 0.75rem;">
+                <button class="btn btn-primary btn-sm" id="saveShareSettingsBtn">
+                  <i class="fas fa-save"></i> Save Sharing Settings
+                </button>
+              </div>
+            </div>
+            
             <div class="modal-actions">
               <button onclick="document.getElementById('contactViewModal').remove()" class="btn btn-outline">Close</button>
               <a href="/leads/${leadId}" class="btn btn-primary">View Full Lead</a>
@@ -4024,7 +4141,122 @@
         }
       });
       
+      // Load organizations for sharing
+      loadUserOrganizationsForSharing(leadId, organizationId);
+      
+      // Add event listener for save sharing settings button
+      const saveShareSettingsBtn = document.getElementById('saveShareSettingsBtn');
+      if (saveShareSettingsBtn) {
+        saveShareSettingsBtn.addEventListener('click', () => {
+          saveContactSharingSettings(leadId);
+        });
+      }
+      
       console.log("Displayed contact details for:", globalLead.contactName);
+      
+      })
+      .catch(error => {
+        console.error('Error displaying contact details:', error);
+        showErrorModal('Failed to load contact sharing information. Please try again.');
+      });
+    }
+    
+    // Function to load user organizations for sharing
+    function loadUserOrganizationsForSharing(leadId, currentOrgId) {
+      const organizationSharingList = document.getElementById('organizationSharingList');
+      if (!organizationSharingList) return;
+      
+      fetch('/api/organizations', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success || !data.data) {
+          throw new Error('Failed to load organizations');
+        }
+        
+        const organizations = data.data;
+        
+        if (organizations.length === 0) {
+          organizationSharingList.innerHTML = '<p>You are not a member of any organizations yet.</p>';
+          return;
+        }
+        
+        let html = '';
+        
+        organizations.forEach(org => {
+          const isChecked = currentOrgId && org.id === currentOrgId;
+          
+          html += `
+            <div class="organization-checkbox">
+              <input type="checkbox" id="org-${org.id}" data-org-id="${org.id}" ${isChecked ? 'checked' : ''}>
+              <label for="org-${org.id}">${org.name}</label>
+            </div>
+          `;
+        });
+        
+        organizationSharingList.innerHTML = html;
+      })
+      .catch(error => {
+        console.error('Error loading organizations for sharing:', error);
+        organizationSharingList.innerHTML = '<p>Failed to load your organizations. Please try again.</p>';
+      });
+    }
+    
+    // Function to save contact sharing settings
+    function saveContactSharingSettings(leadId) {
+      const organizationCheckboxes = document.querySelectorAll('#organizationSharingList input[type="checkbox"]');
+      const selectedOrgIds = Array.from(organizationCheckboxes)
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.dataset.orgId);
+      
+      // If no organizations are selected, unshare the contact
+      const isShared = selectedOrgIds.length > 0;
+      const organizationId = isShared ? selectedOrgIds[0] : null; // For now, only support sharing with one org
+      
+      const updateData = {
+        isShared,
+        organizationId
+      };
+      
+      fetch(`/api/leads/${leadId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(updateData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to save sharing settings');
+        }
+        
+        showSuccessModal('Contact sharing settings updated successfully.');
+        
+        // Update visual pill indicators
+        const sharingStatusElement = document.querySelector('.contact-sharing-status');
+        if (sharingStatusElement) {
+          if (isShared) {
+            sharingStatusElement.innerHTML = `
+              <div class="org-pill shared">
+                <i class="fas fa-users"></i> Shared with team
+              </div>
+            `;
+          } else {
+            sharingStatusElement.innerHTML = '';
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error saving contact sharing settings:', error);
+        showErrorModal('Failed to save sharing settings. Please try again.');
+      });
     }
     
     // Function to enhance contact information for a lead
