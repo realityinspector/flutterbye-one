@@ -7,6 +7,7 @@ import {
   Icon,
   Badge,
   Spacer,
+  Pressable,
 } from 'native-base';
 import { Feather } from '@expo/vector-icons';
 
@@ -18,12 +19,20 @@ import { Feather } from '@expo/vector-icons';
  * @param {Function} props.onPress Optional callback when card is pressed
  * @param {React.ReactNode} props.rightElement Optional element to render on the right side
  * @param {boolean} props.showStatus Whether to show the lead status
+ * @param {Function} props.onViewContact Optional callback when view contact button is pressed
+ * @param {Function} props.onCallLead Optional callback when call lead button is pressed 
+ * @param {Function} props.onEditLead Optional callback when edit lead button is pressed
+ * @param {Function} props.onDeleteLead Optional callback when delete lead button is pressed
  */
 const LeadCard = ({
   lead,
   onPress,
   rightElement,
   showStatus = false,
+  onViewContact,
+  onCallLead,
+  onEditLead,
+  onDeleteLead,
 }) => {
   // Get status badge color
   const getStatusColor = (status) => {
@@ -135,6 +144,55 @@ const LeadCard = ({
               )}
             </HStack>
           )}
+          
+          {/* Action buttons row */}
+          <HStack space={4} mt={3} justifyContent="flex-end" px={2}>
+            <Pressable
+              onPress={() => {
+                console.log("View contact card button clicked", lead?.globalLead?.companyName || "Unknown");
+                if (onViewContact) {
+                  onViewContact(lead);
+                } else if (onPress) {
+                  onPress();
+                }
+              }}
+            >
+              <Icon as={Feather} name="eye" size="sm" color="gray.600" />
+            </Pressable>
+            
+            <Pressable
+              onPress={() => {
+                console.log("Call lead button clicked", lead?.globalLead?.phoneNumber || "No phone");
+                if (onCallLead) {
+                  onCallLead(lead);
+                }
+              }}
+            >
+              <Icon as={Feather} name="phone" size="sm" color="gray.600" />
+            </Pressable>
+            
+            <Pressable
+              onPress={() => {
+                console.log("Edit lead button clicked", lead?.id);
+                if (onEditLead) {
+                  onEditLead(lead);
+                }
+              }}
+            >
+              <Icon as={Feather} name="edit-2" size="sm" color="gray.600" />
+            </Pressable>
+            
+            <Pressable
+              onPress={() => {
+                console.log("Delete lead button clicked", lead?.id);
+                if (onDeleteLead) {
+                  onDeleteLead(lead);
+                }
+              }}
+            >
+              <Icon as={Feather} name="trash-2" size="sm" color="gray.600" />
+            </Pressable>
+          </HStack>
         </VStack>
       </HStack>
     </Box>

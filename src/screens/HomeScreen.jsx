@@ -78,6 +78,50 @@ const HomeScreen = () => {
     return date.toLocaleDateString(undefined, options);
   };
 
+  // Handle view contact button press
+  const handleViewContact = (lead) => {
+    console.log("View contact details for lead", lead.id, lead.globalLead?.companyName);
+    navigation.navigate('LeadDetail', { leadId: lead.id, viewContactCard: true });
+  };
+
+  // Handle call lead button press
+  const handleCallLead = (lead) => {
+    console.log("Call lead", lead.id, lead.globalLead?.phoneNumber);
+    if (lead.globalLead?.phoneNumber) {
+      // Could implement actual call functionality here
+      toast.show({
+        title: "Calling " + (lead.globalLead?.contactName || lead.globalLead?.companyName),
+        description: lead.globalLead?.phoneNumber,
+        status: "info",
+        duration: 3000
+      });
+    } else {
+      toast.show({
+        title: "No phone number available",
+        status: "warning",
+        duration: 3000
+      });
+    }
+  };
+
+  // Handle edit lead button press
+  const handleEditLead = (lead) => {
+    console.log("Edit lead", lead.id, lead.globalLead?.companyName);
+    navigation.navigate('EditLead', { leadId: lead.id });
+  };
+
+  // Handle delete lead button press
+  const handleDeleteLead = (lead) => {
+    console.log("Delete lead", lead.id, lead.globalLead?.companyName);
+    // Could implement confirmation dialog here
+    toast.show({
+      title: "Delete functionality",
+      description: "Delete functionality would be implemented here",
+      status: "info",
+      duration: 3000
+    });
+  };
+
   // Get high priority leads
   const highPriorityLeads = React.useMemo(() => {
     if (!leads) return [];
@@ -85,6 +129,14 @@ const HomeScreen = () => {
       .filter(lead => lead.priority >= 8)
       .sort((a, b) => b.priority - a.priority)
       .slice(0, 3);
+  }, [leads]);
+  
+  // Get recent leads
+  const recentLeads = React.useMemo(() => {
+    if (!leads) return [];
+    return [...leads]
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .slice(0, 5);
   }, [leads]);
 
   // Get recent calls
@@ -202,6 +254,42 @@ const HomeScreen = () => {
           </HStack>
         </Box>
 
+        {/* Recent leads section */}
+        <Box bg="white" py={4} px={4} mb={6}>
+          <HStack justifyContent="space-between" alignItems="center" mb={3}>
+            <Heading size="md">Recent Leads</Heading>
+            <Pressable onPress={() => navigation.navigate('Leads')}>
+              <Text color="primary.500" fontWeight="medium">View All</Text>
+            </Pressable>
+          </HStack>
+
+          {recentLeads.length === 0 ? (
+            <Center py={6}>
+              <Icon as={Feather} name="users" size={12} color="gray.300" />
+              <Text mt={2} color="gray.500">No leads yet</Text>
+              <Button mt={4} onPress={() => navigation.navigate('AddLead')} variant="solid" colorScheme="primary">
+                Add Your First Lead
+              </Button>
+            </Center>
+          ) : (
+            <VStack space={3}>
+              {recentLeads.map(lead => (
+                <Box key={lead.id}>
+                  <LeadCard 
+                    lead={lead} 
+                    showStatus={true} 
+                    onPress={() => navigation.navigate('LeadDetail', { leadId: lead.id })}
+                    onViewContact={handleViewContact}
+                    onCallLead={handleCallLead}
+                    onEditLead={handleEditLead}
+                    onDeleteLead={handleDeleteLead}
+                  />
+                </Box>
+              ))}
+            </VStack>
+          )}
+        </Box>
+
         {/* High priority leads section */}
         <Box bg="white" py={4} px={4} mb={6}>
           <HStack justifyContent="space-between" alignItems="center" mb={3}>
@@ -219,12 +307,17 @@ const HomeScreen = () => {
           ) : (
             <VStack space={3}>
               {highPriorityLeads.map(lead => (
-                <Pressable 
-                  key={lead.id} 
-                  onPress={() => navigation.navigate('LeadDetail', { leadId: lead.id })}
-                >
-                  <LeadCard lead={lead} showStatus={true} />
-                </Pressable>
+                <Box key={lead.id}>
+                  <LeadCard 
+                    lead={lead} 
+                    showStatus={true} 
+                    onPress={() => navigation.navigate('LeadDetail', { leadId: lead.id })}
+                    onViewContact={handleViewContact}
+                    onCallLead={handleCallLead}
+                    onEditLead={handleEditLead}
+                    onDeleteLead={handleDeleteLead}
+                  />
+                </Box>
               ))}
             </VStack>
           )}
