@@ -34,15 +34,32 @@ async function isUserInOrganization(userId, organizationId) {
 router.get('/', authenticateJWT, async (req, res) => {
   try {
     const userId = req.user.id;
+
+    // Defensive check - make sure user ID is valid
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'Invalid user ID' });
+    }
     
-    // Get all organizations the user is a member of
-    const memberships = await db.select({
-      organizationId: organizationMembers.organizationId
-    })
-    .from(organizationMembers)
-    .where(eq(organizationMembers.userId, userId));
+    let organizationIds = [];
     
-    const organizationIds = memberships.map(m => m.organizationId);
+    try {
+      // Get all organizations the user is a member of
+      const memberships = await db.select({
+        organizationId: organizationMembers.organizationId
+      })
+      .from(organizationMembers)
+      .where(eq(organizationMembers.userId, userId));
+      
+      // Make sure we have valid organization IDs
+      if (memberships && Array.isArray(memberships) && memberships.length > 0) {
+        organizationIds = memberships
+          .map(m => m && m.organizationId)
+          .filter(id => id !== undefined && id !== null);
+      }
+    } catch (orgError) {
+      console.error('Error fetching organization memberships:', orgError);
+      // Continue with empty organization IDs
+    }
     
     // Get user's personal leads and shared leads from their organizations
     let query = {};
