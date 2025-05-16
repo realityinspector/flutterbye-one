@@ -7,6 +7,7 @@ import {
   Icon,
   Badge,
   Pressable,
+  Button,
   IPressableProps
 } from 'native-base';
 import { Feather } from '@expo/vector-icons';
@@ -200,7 +201,7 @@ const LeadCard: React.FC<LeadCardProps> = ({
     );
   }
 
-  // Otherwise, return the content in a normal Box
+  // Otherwise, return the content in a normal Box with a view button
   return (
     <Box 
       bg="white" 
@@ -210,7 +211,26 @@ const LeadCard: React.FC<LeadCardProps> = ({
       borderColor="gray.100"
       shadow={1}
     >
-      {cardContent}
+      <VStack space={3}>
+        {cardContent}
+        
+        {/* Add View Details button when onPress is provided */}
+        {!onPress ? null : (
+          <Pressable
+            onPress={onPress}
+            bg="primary.50"
+            py={2}
+            rounded="sm"
+            alignItems="center"
+            mt={2}
+          >
+            <HStack space={1} alignItems="center">
+              <Icon as={Feather} name="eye" size="xs" color="primary.600" />
+              <Text color="primary.600" fontWeight="medium" fontSize="sm">View Details</Text>
+            </HStack>
+          </Pressable>
+        )}
+      </VStack>
     </Box>
   );
 };
