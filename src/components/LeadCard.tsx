@@ -201,7 +201,7 @@ const LeadCard: React.FC<LeadCardProps> = ({
     );
   }
 
-  // Otherwise, return the content in a normal Box with a view button
+  // Otherwise, return the content in a normal Box with action buttons
   return (
     <Box 
       bg="white" 
@@ -214,22 +214,38 @@ const LeadCard: React.FC<LeadCardProps> = ({
       <VStack space={3}>
         {cardContent}
         
-        {/* Add View Details button when onPress is provided */}
-        {!onPress ? null : (
+        {/* Always show action buttons row */}
+        <HStack space={2} mt={3} justifyContent="flex-end">
           <Pressable
             onPress={onPress}
             bg="primary.50"
-            py={2}
+            p={2}
             rounded="sm"
             alignItems="center"
-            mt={2}
           >
-            <HStack space={1} alignItems="center">
-              <Icon as={Feather} name="eye" size="xs" color="primary.600" />
-              <Text color="primary.600" fontWeight="medium" fontSize="sm">View Details</Text>
-            </HStack>
+            <Icon as={Feather} name="eye" size="sm" color="primary.600" />
           </Pressable>
-        )}
+          
+          <Pressable
+            onPress={onPress}
+            bg="gray.50"
+            p={2}
+            rounded="sm"
+            alignItems="center"
+          >
+            <Icon as={Feather} name="phone" size="sm" color="green.600" />
+          </Pressable>
+          
+          <Pressable
+            onPress={onPress}
+            bg="gray.50"
+            p={2}
+            rounded="sm"
+            alignItems="center"
+          >
+            <Icon as={Feather} name="edit-2" size="sm" color="gray.600" />
+          </Pressable>
+        </HStack>
       </VStack>
     </Box>
   );
