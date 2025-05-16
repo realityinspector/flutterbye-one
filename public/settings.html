@@ -864,8 +864,15 @@
         <span class="close-modal">&times;</span>
       </div>
       <div class="modal-body">
-        <p class="modal-info-text">Inviting a team member to join <strong id="inviteOrgName">your organization</strong></p>
+        <p class="modal-info-text">Inviting a team member to join an organization</p>
         <form id="inviteForm">
+          <div class="form-group">
+            <label for="inviteOrganization">Organization*</label>
+            <select id="inviteOrganization" class="form-control" required>
+              <option value="">-- Select Organization --</option>
+              <!-- Organizations will be dynamically populated -->
+            </select>
+          </div>
           <div class="form-group">
             <label for="inviteEmail">Email Address*</label>
             <input type="email" id="inviteEmail" class="form-control" placeholder="colleague@example.com" required>
@@ -1132,6 +1139,8 @@
       const inviteForm = document.getElementById('inviteForm');
       
       inviteTeamMemberBtn.addEventListener('click', function() {
+        // Populate organization dropdown
+        populateOrganizationDropdown('inviteOrganization');
         openModal('inviteModal');
       });
       
@@ -1141,17 +1150,31 @@
       });
       
       sendInviteBtn.addEventListener('click', function() {
+        const organizationId = document.getElementById('inviteOrganization').value;
         const email = document.getElementById('inviteEmail').value;
         const role = document.getElementById('inviteRole').value;
         const message = document.getElementById('inviteMessage').value;
         
-        if (!email || !role) {
+        if (!organizationId || !email || !role) {
           alert('Please fill in all required fields.');
           return;
         }
         
-        // Send invitation
-        sendInvitation(email, role, message);
+        // Find the selected organization
+        const selectedOrg = currentUser.organizations.find(org => org.id.toString() === organizationId);
+        if (!selectedOrg) {
+          alert('Please select a valid organization.');
+          return;
+        }
+        
+        // Check if user has admin rights
+        if (selectedOrg.userRole !== 'admin') {
+          alert('You must be an admin to add members to this organization.');
+          return;
+        }
+        
+        // Send invitation to the selected organization
+        sendInvitation(email, role, message, organizationId);
       });
       
       // Cancel edit team member
@@ -1839,9 +1862,42 @@
         openModal('removeMemberModal');
       }
       
+      // Populate organization dropdown
+      function populateOrganizationDropdown(selectId) {
+        const selectElement = document.getElementById(selectId);
+        if (!selectElement) return;
+        
+        // Clear existing options except the first one
+        while (selectElement.options.length > 1) {
+          selectElement.remove(1);
+        }
+        
+        // Add organizations where user is an admin
+        if (currentUser && currentUser.organizations) {
+          currentUser.organizations.forEach(org => {
+            // Only add organizations where the user is an admin
+            if (org.userRole === 'admin') {
+              const option = document.createElement('option');
+              option.value = org.id;
+              option.text = org.name;
+              
+              // If this is the currently selected organization, select it by default
+              if (currentOrganization && org.id === currentOrganization.id) {
+                option.selected = true;
+              }
+              
+              selectElement.appendChild(option);
+            }
+          });
+        }
+      }
+      
       // Send invitation
-      function sendInvitation(email, role, message) {
-        if (!currentOrganization) {
+      function sendInvitation(email, role, message, organizationId) {
+        // Use the provided organizationId or fall back to currentOrganization
+        const orgId = organizationId || (currentOrganization ? currentOrganization.id : null);
+        
+        if (!orgId) {
           alert('No organization selected.');
           return;
         }
@@ -1852,7 +1908,7 @@
           message
         };
         
-        fetch(`/api/organizations/${currentOrganization.id}/members`, {
+        fetch(`/api/organizations/${orgId}/members`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -1872,8 +1928,10 @@
             closeModal('inviteModal');
             inviteForm.reset();
             
-            // Refresh team members
-            fetchTeamMembers(currentOrganization.id);
+            // If the invitation was for the current organization, refresh team members
+            if (currentOrganization && orgId === currentOrganization.id) {
+              fetchTeamMembers(currentOrganization.id);
+            }
           } else {
             alert(data.message || 'Failed to send invitation.');
           }
