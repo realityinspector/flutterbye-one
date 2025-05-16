@@ -1,0 +1,53 @@
+Serving static files from: /home/runner/workspace/public
+Registering all routes...
+Enhanced server running on port 5000
+Server address: { address: '0.0.0.0', family: 'IPv4', port: 5000 }
+Server is ready at http://0.0.0.0:5000
+No new users without demo data found.
+Completed check for new users to seed with demo data
+Dashboard check - Token present: true JWT_SECRET: flutt...
+Dashboard check - Token verified successfully - user: realityinspector
+Auth check - Token present: true JWT_SECRET: flutt...
+Token verified successfully - user: realityinspector
+Error fetching organization memberships: TypeError: Cannot read properties of undefined (reading 'organizationId')
+    at /home/runner/workspace/server/routes/leads.js:48:45
+    at Layer.handleRequest (/home/runner/workspace/node_modules/router/lib/layer.js:152:17)
+    at next (/home/runner/workspace/node_modules/router/lib/route.js:157:13)
+    at /home/runner/workspace/server/auth.js:52:7
+    at /home/runner/workspace/node_modules/jsonwebtoken/verify.js:261:12
+    at getSecret (/home/runner/workspace/node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (/home/runner/workspace/node_modules/jsonwebtoken/verify.js:101:10)
+    at authenticateJWT (/home/runner/workspace/server/auth.js:44:9)
+    at Layer.handleRequest (/home/runner/workspace/node_modules/router/lib/layer.js:152:17)
+    at next (/home/runner/workspace/node_modules/router/lib/route.js:157:13)
+Auth check - Token present: true JWT_SECRET: flutt...
+Token verified successfully - user: realityinspector
+Error fetching leads: error: syntax error at or near "null"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/runner/workspace/node_modules/drizzle-orm/node-postgres/session.cjs:148:22
+    at async /home/runner/workspace/server/routes/leads.js:107:19 {
+  length: 95,
+  severity: 'ERROR',
+  code: '42601',
+  detail: undefined,
+  hint: undefined,
+  position: '1072',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'scan.l',
+  line: '1244',
+  routine: 'scanner_yyerror'
+}
+Auth check - Token present: true JWT_SECRET: flutt...
+Token verified successfully - user: realityinspector
+User profile request
+Auth check - Token present: true JWT_SECRET: flutt...
+Token verified successfully - user: realityinspector
+Auth check - Token present: 
