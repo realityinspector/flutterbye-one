@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - FLUTTERBYE: The CRM Focused on Healthy Meetings</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <script src="/js/debug-response.js"></script>
   <script src="/js/api-interceptor.js"></script>
   <script src="/js/auth-fix.js"></script>
   <style>
@@ -2127,7 +2128,8 @@
       color: var(--primary);
     }
   </style>
-</head>
+  <script src="/js/safe-data-loader.js"></script>
+  </head>
 <body>
   <!-- Notification container -->
   <div class="notification-container" id="notification-container"></div>
@@ -3925,14 +3927,23 @@
             modal.remove();
           
             // Refresh the leads list to show updated status
-            fetch('/api/leads', {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              credentials: 'include'
-            })
-            .then(response => response.json())
+            fetch$1).then(response => {
+        if (!response.ok) {
+          throw new Error('API error: ' + response.status + ' ' + response.statusText);
+        }
+        return response.text().then(text => {
+          try {
+            if (!text || text.trim() === '') {
+              console.error('Empty response body');
+              return { success: false, data: [] };
+            }
+            return JSON.parse(text);
+          } catch (e) {
+            console.error('JSON parse error:', e.message);
+            return { success: false, data: [] };
+          }
+        });
+      })
             .then(response => {
               if (response.success && response.data) {
                 // Get the leads container and refresh it
@@ -5958,14 +5969,23 @@
       const organizationSharingList = document.getElementById('organizationSharingList');
       if (!organizationSharingList) return;
       
-      fetch('/api/organizations', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
+      fetch$1).then(response => {
+        if (!response.ok) {
+          throw new Error('API error: ' + response.status + ' ' + response.statusText);
+        }
+        return response.text().then(text => {
+          try {
+            if (!text || text.trim() === '') {
+              console.error('Empty response body');
+              return { success: false, data: [] };
+            }
+            return JSON.parse(text);
+          } catch (e) {
+            console.error('JSON parse error:', e.message);
+            return { success: false, data: [] };
+          }
+        });
       })
-      .then(response => response.json())
       .then(data => {
         if (!data.success || !data.data) {
           throw new Error('Failed to load organizations');
