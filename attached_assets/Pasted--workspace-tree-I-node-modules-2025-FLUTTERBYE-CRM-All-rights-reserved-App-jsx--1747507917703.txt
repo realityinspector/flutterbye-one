@@ -1,0 +1,198 @@
+~/workspace$ tree -I node_modules
+.
+├── © 2025 FLUTTERBYE CRM. All rights reserved.
+├── App.jsx
+├── attached_assets
+│   ├── image_1746073056528.png
+│   ├── image_1746112017162.png
+│   ├── image_1746120294305.png
+│   ├── image_1746133436288.png
+│   ├── image_1746139917216.png
+│   ├── image_1746139920646.png
+│   ├── image_1746143364035.png
+│   ├── image_1746143392117.png
+│   ├── image_1746209927001.png
+│   ├── image_1746209983907.png
+│   ├── image_1746211016194.png
+│   ├── image_1746211043350.png
+│   ├── image_1746211223912.png
+│   ├── image_1746211232126.png
+│   ├── image_1746211637563.png
+│   ├── image_1746213120812.png
+│   ├── image_1746228384809.png
+│   ├── image_1747243451165.png
+│   ├── image_1747243468155.png
+│   ├── image_1747420724010.png
+│   ├── image_1747421125028.png
+│   ├── image_1747421379291.png
+│   ├── image_1747421599171.png
+│   ├── image_1747421949072.png
+│   ├── image_1747422596592.png
+│   ├── image_1747425773290.png
+│   ├── image_1747426922846.png
+│   ├── image_1747427388185.png
+│   ├── image_1747427701688.png
+│   ├── image_1747430826847.png
+│   ├── OPENROUTER-INSTRUCTIONS.MD
+│   ├── Pasted--2025-05-01T04-04-25-493Z-GET-api-user-User-profile-request-2025-05-01T04-04-25-534Z-GET-api-us-1746072370439.txt
+│   ├── Pasted-Auth-check-Token-present-true-JWT-SECRET-flutt-Token-verified-successfully-user-realityins-1746135765376.txt
+│   ├── Pasted--Clarifying-OpenAI-use-in-React-Native-The-user-s-asking-about-using-OpenAI-in-a-React-Native-J-1746150269833.txt
+│   ├── Pasted-Enhanced-server-running-on-port-5000-Server-address-address-0-0-0-0-family-IPv4-port-500-1746130766638.txt
+│   ├── Pasted-Enhanced-server-running-on-port-5000-Server-address-address-0-0-0-0-family-IPv4-port-500-1747418794937.txt
+│   ├── Pasted-hanced-server-running-on-port-5000-Server-address-address-0-0-0-0-family-IPv4-port-5000--1746222972132.txt
+│   ├── Pasted-Schedule-and-Manage-Walk-and-Talk-Meetings-Allow-users-to-schedule-informal-walking-meetings-with-1746127271713.txt
+│   ├── Pasted-Serving-static-files-from-home-runner-workspace-public-Registering-all-routes-Enhanced-server-r-1747243489770.txt
+│   ├── Pasted-Serving-static-files-from-home-runner-workspace-public-Registering-all-routes-Enhanced-server-r-1747418993188.txt
+│   ├── Pasted-Thought-for-30-seconds-OpenAI-s-Chat-Completions-endpoint-treats-web-search-exactly-like-any-oth-1746149988428.txt
+│   ├── Pasted-tree-I-venv-git-node-modules-upm-2025-FLUTTERBYE-CRM-All-rights-reserved-App--1746213287115.txt
+│   ├── Pasted-We-ve-updated-our-Terms-of-Service-and-Privacy-Policy-By-continuing-to-use-the-service-you-agree-t-1746150312638.txt
+│   ├── Pasted-We-ve-updated-our-Terms-of-Service-and-Privacy-Policy-By-continuing-to-use-the-service-you-agree-t-1746150326742.txt
+│   ├── Pasted--workspace-tree-I-attached-assets-node-modules-2025-FLUTTERBYE-CRM-All-rights-reserved-1747354814641.txt
+│   └── Pasted--workspace-tree-I-node-modules-2025-FLUTTERBYE-CRM-All-rights-reserved-App-jsx--1747421420159.txt
+├── cookies.txt
+├── cookie.txt
+├── dashboard_screenshot.png
+├── DREAM-TEAM-PLAN.md
+├── export.py
+├── homepage.html
+├── hosted_separately
+│   ├── app.js
+│   ├── index.html
+│   ├── README.md
+│   └── style.css
+├── login_response.json
+├── package.json
+├── package-lock.json
+├── public
+│   ├── app.js
+│   ├── dashboard.html
+│   ├── dashboard.html.backup
+│   ├── dashboard.html-bak2
+│   ├── dashboard.html.working
+│   ├── images
+│   │   └── aot-labs-logo.png
+│   ├── index.html
+│   ├── privacy.html
+│   ├── settings.html
+│   ├── simple.html
+│   ├── terms.html
+│   └── test.html
+├── README.md
+├── scripts
+│   ├── admin-onboard.js
+│   ├── minimal-server.js
+│   ├── push-schema.js
+│   ├── seed-demo-data.js
+│   ├── start-server.js
+│   ├── test-more-leads.js
+│   └── test-openrouter.js
+├── server
+│   ├── analytics.js
+│   ├── auth.js
+│   ├── config.js
+│   ├── db.js
+│   ├── db.ts
+│   ├── index.js
+│   ├── routes
+│   │   ├── ai.js
+│   │   ├── index.js
+│   │   ├── leads.js
+│   │   ├── organization-members.js
+│   │   └── organizations.js
+│   ├── routes.js
+│   ├── services
+│   │   └── ai
+│   │       ├── aiStorage.js
+│   │       ├── aiStorage.ts
+│   │       ├── index.js
+│   │       ├── index.ts
+│   │       ├── leadPromptTemplate.js
+│   │       ├── openai.js
+│   │       ├── openRouter.js
+│   │       ├── openRouter.ts
+│   │       ├── webSearch.js
+│   │       └── webSearch.ts
+│   ├── storage.js
+│   └── storage.ts
+├── shared
+│   ├── db
+│   │   ├── index.ts
+│   │   ├── schema.js
+│   │   ├── schema.ts
+│   │   └── zod-schema.ts
+│   └── schema.js
+├── src
+│   ├── components
+│   │   ├── AdminSetupForm.jsx
+│   │   ├── Breadcrumbs.jsx
+│   │   ├── CallActions.jsx
+│   │   ├── CallItem.jsx
+│   │   ├── CallItem.tsx
+│   │   ├── Footer.jsx
+│   │   ├── LeadCard.jsx
+│   │   ├── LeadCard.tsx.bak
+│   │   ├── LeadForm.jsx
+│   │   ├── LeadGeneration
+│   │   │   ├── FindLeadsForm.jsx
+│   │   │   ├── FindNewLeadsScreen.jsx
+│   │   │   ├── LeadApprovalList.jsx
+│   │   │   ├── LeadGenerationProgress.jsx
+│   │   │   └── NoMoreLeadsModal.jsx
+│   │   ├── MobileHeader.jsx
+│   │   ├── NewCallFAB.tsx
+│   │   ├── SetupWizard.jsx
+│   │   ├── ShareCallRecap.tsx
+│   │   ├── TeamLeadFilterToggle.jsx
+│   │   ├── TeamLeadFilterToggle.tsx
+│   │   ├── TeamLeadOptions.jsx
+│   │   ├── TeamLeadOptions.tsx
+│   │   └── UserSetupForm.jsx
+│   ├── hooks
+│   │   ├── useAsync.ts
+│   │   ├── useAuth.js
+│   │   ├── useAuth.ts
+│   │   ├── useCalls.js
+│   │   ├── useCalls.ts
+│   │   ├── useLeads.js
+│   │   ├── useLeads.ts
+│   │   ├── useOrganizations.js
+│   │   └── useOrganizations.ts
+│   ├── navigation
+│   │   ├── index.jsx
+│   │   └── TeamStackNavigator.tsx
+│   ├── screens
+│   │   ├── AdminSetupScreen.jsx
+│   │   ├── analytics
+│   │   ├── AuthScreen.jsx
+│   │   ├── CallQueueScreen.jsx
+│   │   ├── calls
+│   │   │   ├── CallHistoryScreen.jsx
+│   │   │   ├── CallScreen.jsx
+│   │   │   └── CallsScreen.jsx
+│   │   ├── HomeScreen.jsx
+│   │   ├── HomeScreen.tsx
+│   │   ├── LeadFormScreen.jsx
+│   │   ├── leads
+│   │   │   ├── AddLeadScreen.jsx
+│   │   │   ├── LeadDetailScreen.jsx
+│   │   │   └── LeadsListScreen.jsx
+│   │   ├── OrganizationDetails.tsx
+│   │   ├── Organizations.tsx
+│   │   ├── settings
+│   │   │   └── ProfileScreen.jsx
+│   │   └── UserSetupScreen.jsx
+│   ├── services
+│   │   ├── CallHandler.ts
+│   │   ├── SqliteService.ts
+│   │   └── SyncService.ts
+│   ├── types
+│   │   └── index.ts
+│   ├── types.ts
+│   └── utils
+│       ├── permissions.js
+│       └── theme.js
+├── TEAM-PLAN.md
+├── token.txt
+└── tsconfig.json
+
+25 directories, 170 files
