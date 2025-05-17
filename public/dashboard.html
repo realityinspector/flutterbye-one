@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - FLUTTERBYE: The CRM Focused on Healthy Meetings</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <script src="/js/api-interceptor.js"></script>
+  <script src="/js/auth-fix.js"></script>
   <style>
     /* Notification system */
     .notification-container {
@@ -2295,6 +2297,7 @@
     </div>
   </footer>
   
+  <script src="/js/api-validator.js"></script>
   <script>
     // Notification System
     function showNotification(title, message, type = 'default', duration = 5000) {
@@ -4708,11 +4711,25 @@
           if (!response.ok) {
             throw new Error(`Failed to fetch leads: ${response.status} ${response.statusText}`);
           }
-          return response.json();
+          // Safely handle JSON parsing with error handling
+          return response.text().then(text => {
+            try {
+              // Only try to parse if we have content
+              if (!text || text.trim() === '') {
+                console.error('Empty response from /api/leads');
+                throw new Error('Empty response from server');
+              }
+              return JSON.parse(text);
+            } catch (err) {
+              console.error('JSON parse error:', err.message);
+              console.error('Response text:', text);
+              throw new Error(`Failed to parse JSON: ${err.message}`);
+            }
+          });
         })
         .then(response => {
           console.log('Leads response data:', response);
-          if (!response.success || !response.data) {
+          if (!response || !response.success || !response.data) {
             throw new Error('Invalid leads response format');
           }
           const leads = response.data;
@@ -4904,10 +4921,25 @@
           if (!response.ok) {
             throw new Error(`Failed to fetch calls: ${response.status} ${response.statusText}`);
           }
-          return response.json();
+          // Safely handle JSON parsing with error handling
+          return response.text().then(text => {
+            try {
+              // Only try to parse if we have content
+              if (!text || text.trim() === '') {
+                console.error('Empty response from /api/calls');
+                throw new Error('Empty response from server');
+              }
+              return JSON.parse(text);
+            } catch (err) {
+              console.error('JSON parse error:', err.message);
+              console.error('Response text:', text);
+              throw new Error(`Failed to parse JSON: ${err.message}`);
+            }
+          });
         })
         .then(response => {
-          if (!response.success || !response.data) {
+          console.log('Calls response data:', response);
+          if (!response || !response.success || !response.data) {
             throw new Error('Invalid calls response format');
           }
           const calls = response.data;
@@ -6198,6 +6230,7 @@
   </script>
   
   <!-- Lead Cards Display -->
+  <script src="/js/dashboard-debug.js"></script>
   <script src="/lead-cards-display.js"></script>
 </body>
 </html>
