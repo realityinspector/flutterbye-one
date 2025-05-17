@@ -2756,6 +2756,9 @@
       screenContainer.id = 'callInProgressScreen';
       screenContainer.className = 'call-screen-container';
       
+      // Set the global variable to track this screen
+      callInProgressScreen = screenContainer;
+      
       // Find the lead information
       fetch(`/api/leads/${leadId}`)
         .then(response => response.json())
@@ -2858,6 +2861,9 @@
       const formContainer = document.createElement('div');
       formContainer.id = 'callLogForm';
       formContainer.className = 'form-container call-log-form';
+      
+      // Set the global variable to track this form
+      callLogForm = formContainer;
       
       // Find the lead information
       fetch(`/api/leads/${leadId}`)
@@ -3504,10 +3510,32 @@
     // Function to start a call with a lead
     function startCall(leadId) {
       // Show notification when starting a call
-      showNotification('Starting Call', 'Redirecting to call page...', 'info');
+      showNotification('Starting Call', 'Preparing call screen...', 'info');
       
-      // Redirect to the call page
-      window.location.href = `/leads/${leadId}/call`;
+      // Fetch lead details first to get phone number and contact name
+      fetch(`/api/leads/${leadId}`)
+        .then(response => response.json())
+        .then(result => {
+          if (!result.success) {
+            throw new Error(result.message || 'Failed to load lead for call');
+          }
+          
+          const lead = result.data;
+          const globalLead = lead.globalLead;
+          
+          // Either show call modal or redirect to call-in-progress page based on if there's a phone number
+          if (globalLead.phoneNumber) {
+            // Redirect to the call-in-progress page which has the full call tracking feature
+            window.location.href = `/call-in-progress/${leadId}`;
+          } else {
+            // If no phone number, show the call modal which has the option to enhance contact info
+            showCallModal(globalLead.phoneNumber, globalLead.contactName, leadId);
+          }
+        })
+        .catch(error => {
+          console.error('Error starting call:', error);
+          showNotification('Error', `Failed to start call: ${error.message}`, 'error');
+        });
     }
     
     // Function to open edit form for a lead
@@ -4036,6 +4064,12 @@
       }
     }
     
+    // Global variables for screen storage
+    let callInProgressScreen = null;
+    let callLogForm = null;
+    let newLeadForm = null;
+    let editLeadForm = null;
+      
     document.addEventListener('DOMContentLoaded', function() {
       // Only run authentication check once per page load
       if (isPageLoaded) return;

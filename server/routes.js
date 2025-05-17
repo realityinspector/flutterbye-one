@@ -153,6 +153,11 @@ function registerRoutes(app) {
   app.get('/call-log/:id', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/dashboard.html'));
   });
+  
+  // Add the leads/:id/call route to redirect to call-in-progress page
+  app.get('/leads/:id/call', (req, res) => {
+    res.redirect(`/call-in-progress/${req.params.id}`);
+  });
 
   
   // Auth routes
