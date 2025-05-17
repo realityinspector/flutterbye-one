@@ -2826,8 +2826,19 @@
               clearInterval(timerInterval);
             }
             
-            // Navigate to call log form
-            window.location.href = `/call-log/${leadId}?duration=${callTime}`;
+            // Remove call screen and display the call log form
+            if (callInProgressScreen) {
+              callInProgressScreen.style.display = 'none';
+            }
+            
+            // Create the call log form directly
+            createCallLogForm(leadId, callTime);
+            
+            // Update URL without page reload
+            history.pushState({}, '', `/call-log/${leadId}?duration=${callTime}`);
+            
+            // Update current path for SPA navigation
+            currentPath = `/call-log/${leadId}?duration=${callTime}`;
           });
           
           // Start timer when call is initiated (clicking the call button)
@@ -2864,6 +2875,11 @@
       
       // Set the global variable to track this form
       callLogForm = formContainer;
+      
+      // Make form visible
+      document.querySelectorAll('.card-grid, #leadsTableBody, #callsTableBody, #leadsContainer, #leadsGrid').forEach(el => {
+        if (el) el.style.display = 'none';
+      });
       
       // Find the lead information
       fetch(`/api/leads/${leadId}`)
@@ -3024,7 +3040,23 @@
           
           // Cancel button
           document.getElementById('cancelCallLogForm').addEventListener('click', () => {
-            window.location.href = '/calls';
+            // Hide the call log form
+            if (callLogForm) {
+              callLogForm.style.display = 'none';
+            }
+            
+            // Show leads view and reset navigation
+            document.querySelector('.page-title').textContent = 'Leads';
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            document.querySelector('.menu-item a[href="/leads"]').parentElement.classList.add('active');
+            
+            // Show lead containers
+            document.getElementById('leadsContainer').style.display = 'block';
+            document.getElementById('leadsGrid').style.display = 'grid';
+            
+            // Update URL without page reload
+            history.pushState({}, '', '/leads');
+            currentPath = '/leads';
           });
           
           // Form submission
@@ -3509,39 +3541,509 @@
     
     // Function to start a call with a lead
     function startCall(leadId) {
-      // Show notification when starting a call
+      // Show notification
       showNotification('Starting Call', 'Preparing call screen...', 'info');
       
-      // Hide all cards, tables, and other content first
-      document.querySelectorAll('.card-grid, #leadsTableBody, #callsTableBody').forEach(el => {
-        if (el) el.style.display = 'none';
+      // Fetch lead details first to get phone number and contact name
+      fetch(`/api/leads/${leadId}`)
+        .then(response => response.json())
+        .then(result => {
+          if (!result.success) {
+            throw new Error(result.message || 'Failed to load lead for call');
+          }
+          
+          const lead = result.data;
+          const globalLead = lead.globalLead;
+          
+          // Create a modal dialog for the call screen
+          const modalContainer = document.createElement('div');
+          modalContainer.className = 'modal-overlay active';
+          modalContainer.id = 'callScreenModal';
+          
+          // Create the call screen content
+          modalContainer.innerHTML = `
+            <div class="modal-content call-screen-modal">
+              <div class="call-header">
+                <div class="call-status">
+                  <i class="fas fa-phone-alt call-icon"></i>
+                  <span>Call in Progress</span>
+                </div>
+                <div class="caller-info">
+                  <div class="caller-name">${globalLead.contactName || 'Unknown Contact'}</div>
+                  <div class="caller-company">${globalLead.companyName}</div>
+                  <div class="caller-number">${globalLead.phoneNumber || 'No Phone Number'}</div>
+                </div>
+              </div>
+              
+              <div class="call-body">
+                <div class="call-timer" id="callTimer">00:00</div>
+                <div class="call-actions">
+                  ${globalLead.phoneNumber ? 
+                    `<a href="tel:${globalLead.phoneNumber.replace(/\D/g, '')}" class="call-action-btn" id="startCallBtn">
+                      <i class="fas fa-phone-alt"></i>
+                      <span>Dial Number</span>
+                    </a>` : 
+                    `<button class="call-action-btn disabled">
+                      <i class="fas fa-phone-alt"></i>
+                      <span>No Phone Number</span>
+                    </button>`
+                  }
+                  <button id="callEndedBtn" class="call-action-btn call-end-btn">
+                    <i class="fas fa-phone-slash"></i>
+                    <span>Call Ended</span>
+                  </button>
+                </div>
+                
+                <div class="call-info">
+                  <div class="call-info-item">
+                    <span class="call-info-label">Lead Status:</span>
+                    <span class="call-info-value">${lead.status}</span>
+                  </div>
+                  <div class="call-info-item">
+                    <span class="call-info-label">Last Contact:</span>
+                    <span class="call-info-value">${lead.lastContactedAt ? new Date(lead.lastContactedAt).toLocaleDateString() : 'Never contacted'}</span>
+                  </div>
+                  <div class="call-info-item">
+                    <span class="call-info-label">Notes:</span>
+                    <div class="call-info-text">${lead.notes || 'No notes available'}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          document.body.appendChild(modalContainer);
+          
+          // Set up call timer
+          let callTime = 0;
+          let timerInterval;
+          const callTimerEl = document.getElementById('callTimer');
+          
+          // Start timer when call is initiated (clicking the call button)
+          document.getElementById('startCallBtn').addEventListener('click', () => {
+            // Start the timer
+            timerInterval = setInterval(() => {
+              callTime++;
+              const minutes = Math.floor(callTime / 60);
+              const seconds = callTime % 60;
+              callTimerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+          });
+          
+          // Handle call ended button
+          document.getElementById('callEndedBtn').addEventListener('click', () => {
+            // Stop the timer
+            if (timerInterval) {
+              clearInterval(timerInterval);
+            }
+            
+            // Remove call screen modal
+            modalContainer.remove();
+            
+            // Show the call log modal
+            showCallLogModal(leadId, callTime, lead, globalLead);
+          });
+          
+        })
+        .catch(error => {
+          console.error('Error starting call:', error);
+          showNotification('Error', `Failed to start call: ${error.message}`, 'error');
+        });
+    }
+    
+    // Function to show call log modal
+    function showCallLogModal(leadId, duration, lead, globalLead) {
+      // Create modal for call log
+      const modalContainer = document.createElement('div');
+      modalContainer.className = 'modal-overlay active';
+      modalContainer.id = 'callLogModal';
+      
+      // Format the duration
+      const durationMinutes = Math.floor(duration / 60);
+      const durationSeconds = duration % 60;
+      const formattedDuration = `${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`;
+      
+      // Create modal content with call log form
+      modalContainer.innerHTML = `
+        <div class="modal-content call-log-modal">
+          <div class="modal-header">
+            <h2>Call Log: ${globalLead.companyName}</h2>
+            <span class="call-duration">Duration: ${formattedDuration}</span>
+          </div>
+          
+          <form id="callLogFormElement" class="call-log-form">
+            <input type="hidden" id="callDuration" name="duration" value="${duration}">
+            <input type="hidden" id="callOutcome" name="outcome" value="attempted">
+            
+            <div class="form-section">
+              <h3>Call Outcome</h3>
+              <div class="outcome-selector">
+                <button type="button" class="outcome-btn" data-outcome="connected">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Connected</span>
+                </button>
+                <button type="button" class="outcome-btn" data-outcome="left_vm">
+                  <i class="fas fa-voicemail"></i>
+                  <span>Left VM</span>
+                </button>
+                <button type="button" class="outcome-btn" data-outcome="call_back">
+                  <i class="fas fa-calendar"></i>
+                  <span>Call Back</span>
+                </button>
+                <button type="button" class="outcome-btn" data-outcome="no_answer">
+                  <i class="fas fa-phone-slash"></i>
+                  <span>No Answer</span>
+                </button>
+                <button type="button" class="outcome-btn" data-outcome="wrong_number">
+                  <i class="fas fa-exclamation-circle"></i>
+                  <span>Wrong #</span>
+                </button>
+              </div>
+            </div>
+            
+            <div class="form-section">
+              <h3>Lead Status Update</h3>
+              <div class="status-selector">
+                <select id="leadStatus" name="leadStatus" class="mobile-select">
+                  <option value="new" ${lead.status === 'new' ? 'selected' : ''}>New</option>
+                  <option value="contacted" ${lead.status === 'contacted' ? 'selected' : ''}>Contacted</option>
+                  <option value="qualified" ${lead.status === 'qualified' ? 'selected' : ''}>Qualified</option>
+                  <option value="proposal" ${lead.status === 'proposal' ? 'selected' : ''}>Proposal</option>
+                  <option value="negotiation" ${lead.status === 'negotiation' ? 'selected' : ''}>Negotiation</option>
+                  <option value="closed_won">Closed Won</option>
+                  <option value="closed_lost">Closed Lost</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-section" id="callbackSection" style="display: none;">
+              <h3>Schedule Follow-up</h3>
+              <div class="date-time-picker">
+                <div class="form-group">
+                  <label for="reminderDate">Date</label>
+                  <input type="date" id="reminderDate" name="reminderDate" class="mobile-input">
+                </div>
+                <div class="form-group">
+                  <label for="reminderTime">Time</label>
+                  <input type="time" id="reminderTime" name="reminderTime" class="mobile-input">
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-section">
+              <h3>Notes</h3>
+              <div class="quick-notes">
+                <button type="button" class="quick-note-btn" data-note="Left voicemail introducing our services">Left VM</button>
+                <button type="button" class="quick-note-btn" data-note="Customer requested more information via email">Info via email</button>
+                <button type="button" class="quick-note-btn" data-note="Discussed pricing and features">Pricing</button>
+                <button type="button" class="quick-note-btn" data-note="Call back next week">Call next week</button>
+              </div>
+              <div class="form-group full-width">
+                <textarea id="callNotes" name="notes" rows="4" class="mobile-input" placeholder="Enter call notes here..."></textarea>
+              </div>
+            </div>
+            
+            <div class="form-actions mobile-actions">
+              <button type="button" id="cancelCallLogForm" class="btn btn-outline">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Call Log</button>
+            </div>
+          </form>
+        </div>
+      `;
+      
+      document.body.appendChild(modalContainer);
+      
+      // Set up event listeners
+      // Outcome buttons
+      document.querySelectorAll('.outcome-btn').forEach(button => {
+        button.addEventListener('click', () => {
+          // Remove active class from all buttons
+          document.querySelectorAll('.outcome-btn').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          
+          // Add active class to clicked button
+          button.classList.add('active');
+          
+          // Set hidden input value
+          document.getElementById('callOutcome').value = button.dataset.outcome;
+          
+          // Show/hide callback section based on outcome
+          if (button.dataset.outcome === 'call_back') {
+            document.getElementById('callbackSection').style.display = 'block';
+          } else {
+            document.getElementById('callbackSection').style.display = 'none';
+          }
+        });
       });
       
-      // Hide leads container explicitly
-      document.querySelectorAll('#leadsContainer, #leadsGrid').forEach(el => {
-        if (el) el.style.display = 'none';
+      // Quick note buttons
+      document.querySelectorAll('.quick-note-btn').forEach(button => {
+        button.addEventListener('click', () => {
+          const notesField = document.getElementById('callNotes');
+          const currentNotes = notesField.value;
+          const newNote = button.dataset.note;
+          
+          // Add the new note, with a line break if there are already notes
+          notesField.value = currentNotes ? `${currentNotes}\n${newNote}` : newNote;
+          
+          // Highlight the button to show it was clicked
+          button.classList.add('active');
+          setTimeout(() => {
+            button.classList.remove('active');
+          }, 500);
+        });
       });
       
-      // Clear any existing call screens
-      if (callInProgressScreen) {
-        callInProgressScreen.remove();
-        callInProgressScreen = null;
-      }
+      // Cancel button
+      document.getElementById('cancelCallLogForm').addEventListener('click', () => {
+        modalContainer.remove();
+      });
       
-      // Update page title and menu selection
-      document.querySelector('.page-title').textContent = 'Call In Progress';
-      document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-      const callsMenuItem = document.querySelector('.menu-item a[href="/calls"]');
-      if (callsMenuItem) callsMenuItem.parentElement.classList.add('active');
-      
-      // Create the call in progress screen directly - this is the core fix
-      createCallInProgressScreen(leadId);
-      
-      // Update URL without causing a page reload (for better back button behavior)
-      history.pushState({}, '', `/call-in-progress/${leadId}`);
-      
-      // Add this to global state for navigation handling
-      currentPath = `/call-in-progress/${leadId}`;
+      // Form submission
+      document.getElementById('callLogFormElement').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        // Get form data
+        const formData = new FormData(this);
+        const callData = {
+          leadId: leadId,
+          duration: parseInt(formData.get('duration')),
+          outcome: formData.get('outcome'),
+          notes: formData.get('notes'),
+        };
+        
+        // Get reminder date/time if present
+        if (formData.get('reminderDate') && formData.get('reminderTime')) {
+          callData.reminderDate = `${formData.get('reminderDate')}T${formData.get('reminderTime')}:00`;
+        }
+        
+        // Get lead status update
+        const leadStatus = formData.get('leadStatus');
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        submitBtn.disabled = true;
+        
+        // First, create the call record
+        fetch('/api/calls', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify(callData)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to save call log');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (!data.success) {
+            throw new Error(data.message || 'Failed to save call log');
+          }
+          
+          // Then update the lead status if changed
+          return fetch(`/api/leads/${leadId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              status: leadStatus,
+              notes: callData.notes ? `${lead.notes || ''}\n\n${new Date().toLocaleDateString()}: ${callData.notes}` : lead.notes,
+              reminderDate: callData.reminderDate || null
+            })
+          });
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to update lead status');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (!data.success) {
+            throw new Error(data.message || 'Failed to update lead status');
+          }
+          
+          // Show success notification
+          showNotification('Success', 'Call log saved and lead updated', 'success');
+          
+          // Close the modal
+          modalContainer.remove();
+          
+          // Refresh the leads list to show updated status
+          fetch('/api/leads', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+          })
+          .then(response => response.json())
+          .then(response => {
+            if (response.success && response.data) {
+              // Get the leads container and refresh it
+              const leadsGrid = document.getElementById('leadsGrid');
+              if (leadsGrid) {
+                // Clear existing grid
+                leadsGrid.innerHTML = '';
+                
+                // Repopulate the grid with the new data
+                response.data.forEach(lead => {
+                  // Create lead card (inline method until we refactor fully)
+                  const leadCard = document.createElement('div');
+                  leadCard.className = 'lead-card';
+                  leadCard.dataset.leadId = lead.id;
+                  
+                  // Determine priority class based on lead data
+                  let priorityClass = 'priority-medium';
+                  if (lead.status === 'qualified') {
+                    priorityClass = 'priority-high';
+                  } else if (lead.status === 'unqualified') {
+                    priorityClass = 'priority-low';
+                  }
+                  
+                  // Check if this lead is shared with an organization
+                  const isShared = lead.isShared || false;
+                  const orgName = lead.organization ? lead.organization.name : 'Team';
+                  
+                  // Format date if available
+                  const updatedDate = lead.updatedAt ? new Date(lead.updatedAt).toLocaleDateString() : 'N/A';
+                  
+                  // Create abbreviated notes if available
+                  const notes = lead.notes ? 
+                    (lead.notes.length > 100 ? lead.notes.substring(0, 100) + '...' : lead.notes) : 
+                    null;
+                  
+                  leadCard.innerHTML = `
+                    <div class="lead-status-row">
+                      <div class="lead-status-pill ${lead.status}">
+                        <i class="fas fa-circle"></i>
+                        ${lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                      </div>
+                      <div class="lead-status-pill ${priorityClass}">
+                        <i class="fas fa-flag"></i>
+                        ${priorityClass.replace('priority-', '').charAt(0).toUpperCase() + priorityClass.replace('priority-', '').slice(1)} Priority
+                      </div>
+                      ${isShared ? 
+                        `<div class="lead-status-pill organization-pill">
+                          <i class="fas fa-building"></i> 
+                          ${orgName}
+                        </div>` : ''}
+                    </div>
+                    
+                    <div class="lead-content">
+                      <div class="lead-header">
+                        <h3 class="lead-company">${lead.globalLead.companyName}</h3>
+                        <span class="lead-updated">Updated: ${updatedDate}</span>
+                      </div>
+                      
+                      <div class="lead-contact-info">
+                        <div class="lead-contact-item">
+                          <i class="fas fa-user"></i>
+                          ${lead.globalLead.contactName || 'Unknown Contact'}
+                        </div>
+                        <div class="lead-contact-item">
+                          <i class="fas fa-phone"></i>
+                          ${lead.globalLead.phoneNumber || 'N/A'}
+                        </div>
+                        ${lead.globalLead.email ? `
+                        <div class="lead-contact-item">
+                          <i class="fas fa-envelope"></i>
+                          ${lead.globalLead.email}
+                        </div>
+                        ` : ''}
+                      </div>
+                      
+                      ${notes ? `
+                      <div class="lead-notes">
+                        <div class="lead-notes-label">Notes:</div>
+                        ${notes}
+                      </div>
+                      ` : ''}
+                    </div>
+                    
+                    <div class="lead-actions">
+                      <button class="lead-action-btn view" title="View Contact">
+                        <i class="fas fa-eye"></i>
+                        <span>View</span>
+                      </button>
+                      <button class="lead-action-btn call" title="Call Lead">
+                        <i class="fas fa-phone"></i>
+                        <span>Call</span>
+                      </button>
+                      <button class="lead-action-btn edit" title="Edit Lead">
+                        <i class="fas fa-edit"></i>
+                        <span>Edit</span>
+                      </button>
+                      <button class="lead-action-btn delete" title="Delete Lead">
+                        <i class="fas fa-trash"></i>
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  `;
+                  
+                  // Assign action button event listeners with proper functionality
+                  const viewBtn = leadCard.querySelector('.lead-action-btn.view');
+                  viewBtn.addEventListener('click', () => viewLead(lead.id));
+                  
+                  const callBtn = leadCard.querySelector('.lead-action-btn.call');
+                  callBtn.addEventListener('click', () => startCall(lead.id));
+                  
+                  const editBtn = leadCard.querySelector('.lead-action-btn.edit');
+                  editBtn.addEventListener('click', () => editLead(lead.id));
+                  
+                  const deleteBtn = leadCard.querySelector('.lead-action-btn.delete');
+                  deleteBtn.addEventListener('click', () => deleteLead(lead.id));
+                  
+                  // Make phone number and email clickable
+                  const phoneElement = leadCard.querySelector('.lead-contact-item:nth-child(2)');
+                  if (phoneElement && lead.globalLead.phoneNumber) {
+                    phoneElement.style.cursor = 'pointer';
+                    phoneElement.title = 'Click to call';
+                    phoneElement.addEventListener('click', () => {
+                      if (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)) {
+                        window.location.href = `tel:${lead.globalLead.phoneNumber.replace(/\D/g, '')}`;
+                      } else {
+                        startCall(lead.id);
+                      }
+                    });
+                  }
+                  
+                  const emailElement = leadCard.querySelector('.lead-contact-item:nth-child(3)');
+                  if (emailElement && lead.globalLead.email) {
+                    emailElement.style.cursor = 'pointer';
+                    emailElement.title = 'Click to email';
+                    emailElement.addEventListener('click', () => {
+                      window.location.href = `mailto:${lead.globalLead.email}`;
+                    });
+                  }
+                  
+                  leadsGrid.appendChild(leadCard);
+                });
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Error refreshing leads:', error);
+          });
+        })
+        .catch(error => {
+          console.error('Error saving call log:', error);
+          showNotification('Error', `Failed to save call log: ${error.message}`, 'error');
+          
+          // Reset button
+          submitBtn.innerHTML = originalBtnText;
+          submitBtn.disabled = false;
+        });
+      });
     }
     
     // Function to open edit form for a lead
