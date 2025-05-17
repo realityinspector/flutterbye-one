@@ -8,114 +8,123 @@
 const fs = require('fs');
 const path = require('path');
 
-// Read the dashboard HTML file
+// Path to the dashboard HTML file
 const dashboardPath = path.join(__dirname, '../public/dashboard.html');
-const dashboardHtml = fs.readFileSync(dashboardPath, 'utf8');
 
-console.log('Fixing template strings in dashboard.html...');
+// Read the dashboard HTML file
+console.log('Reading dashboard.html...');
+let dashboardHtml = fs.readFileSync(dashboardPath, 'utf8');
 
-// Split the file by script tags to isolate the problematic script
-const scriptRegex = /<script[^>]*>([\s\S]*?)<\/script>/g;
-let match;
-let updatedHtml = dashboardHtml;
-let fixes = 0;
+// Identify and fix template literal issues in JavaScript
+console.log('Fixing template literal issues...');
 
-while ((match = scriptRegex.exec(dashboardHtml)) !== null) {
-  // Skip scripts with src attribute
-  if (match[0].includes('src=')) {
-    continue;
+// 1. Replace the problematic notification HTML template
+let fixedHtml = dashboardHtml.replace(
+  /notification\.innerHTML\s*=\s*`\s*<div class="notification-icon">/g,
+  'notification.innerHTML = renderNotificationTemplate(title, message, icon, type);'
+);
+
+// 2. Fix template strings containing HTML by adding a helper function at the top of the file
+const safeTemplateHelper = `
+<script>
+// Helper function for safe HTML templates
+function safeHTML(strings, ...values) {
+  return strings.reduce((result, string, i) => {
+    return result + string + (values[i] !== undefined ? values[i] : '');
+  }, '');
+}
+
+// Helper for notification templates
+function renderNotificationTemplate(title, message, icon, type = 'default') {
+  return '<div class="notification-icon">' +
+         '<i class="fas fa-' + icon + '"></i>' +
+         '</div>' +
+         '<div class="notification-content">' +
+         '<div class="notification-title">' + title + '</div>' +
+         '<p class="notification-message">' + message + '</p>' +
+         '</div>' +
+         '<button class="notification-close">' +
+         '<i class="fas fa-times"></i>' +
+         '</button>';
+}
+</script>
+`;
+
+// Insert the helper function right after the opening <body> tag
+const bodyTagIndex = fixedHtml.indexOf('<body>') + '<body>'.length;
+fixedHtml = fixedHtml.slice(0, bodyTagIndex) + safeTemplateHelper + fixedHtml.slice(bodyTagIndex);
+
+// 3. Fix other template strings with HTML
+const problematicPatterns = [
+  { 
+    pattern: /innerHTML\s*=\s*`\s*<([^`]*)\$\{([^}]*)\}([^`]*)`/g,
+    replacement: (match, before, variable, after) => {
+      return `innerHTML = '<${before}' + ${variable} + '${after}'`;
+    }
+  },
+  {
+    pattern: /=\s*`\s*<([a-zA-Z][^>]*)>([^`]*)<\/([a-zA-Z][^>]*)>`/g,
+    replacement: (match, openTag, content, closeTag) => {
+      return `= '<${openTag}>${content}</${closeTag}>'`;
+    }
   }
+];
+
+// Apply each fix pattern
+problematicPatterns.forEach(({ pattern, replacement }) => {
+  fixedHtml = fixedHtml.replace(pattern, replacement);
+});
+
+// Replace any specific problematic script blocks
+// Finding the specific script #13 mentioned in the error
+const scriptTags = fixedHtml.match(/<script(?!\s+src=)[^>]*>([\s\S]*?)<\/script>/g) || [];
+console.log(`Found ${scriptTags.length} script blocks`);
+
+if (scriptTags.length >= 13) {
+  const problematicScript = scriptTags[12]; // 0-indexed, so script #13 is at index 12
+  console.log(`Examining script #13 (${problematicScript.length} chars)`);
   
-  const scriptContent = match[1];
-  const scriptStartPos = match.index + match[0].indexOf('>') + 1;
-  const scriptEndPos = scriptStartPos + scriptContent.length;
-  
-  // Check if this script has template strings with HTML
-  if (scriptContent.includes('`') && scriptContent.includes('<div')) {
-    console.log('Found a script with potential template string issues');
+  // Replace the entire problematic script with a safer version
+  // First, we need to extract its content
+  const scriptContentMatch = /<script[^>]*>([\s\S]*?)<\/script>/g.exec(problematicScript);
+  if (scriptContentMatch && scriptContentMatch[1]) {
+    const scriptContent = scriptContentMatch[1];
     
-    // Extract the problematic script
-    let updatedScript = scriptContent;
-    
-    // Fix 1: Check for unclosed template strings
-    let inBacktick = false;
-    let unclosedPos = -1;
-    
-    for (let i = 0; i < updatedScript.length; i++) {
-      if (updatedScript[i] === '`' && (i === 0 || updatedScript[i-1] !== '\\')) {
-        if (inBacktick) {
-          inBacktick = false;
-          unclosedPos = -1;
-        } else {
-          inBacktick = true;
-          unclosedPos = i;
+    // Look for template literals with HTML in them
+    const templateStart = scriptContent.indexOf('`');
+    if (templateStart !== -1) {
+      const templateEnd = scriptContent.indexOf('`', templateStart + 1);
+      if (templateEnd !== -1) {
+        console.log(`Found template string from ${templateStart} to ${templateEnd}`);
+        
+        // Get the template content
+        const templateContent = scriptContent.substring(templateStart + 1, templateEnd);
+        
+        // Check if it contains HTML tags
+        if (/<[a-zA-Z][^>]*>/g.test(templateContent)) {
+          console.log('Template contains HTML - fixing');
+          
+          // Replace backticks with quotes and fix variable interpolation
+          const fixedContent = templateContent
+            .replace(/\$\{([^}]*)\}/g, "' + $1 + '")
+            .replace(/"/g, '\\"');
+          
+          // Create fixed script content
+          const fixedScriptContent = 
+            scriptContent.substring(0, templateStart) + 
+            "'" + fixedContent + "'" + 
+            scriptContent.substring(templateEnd + 1);
+          
+          // Replace in the full HTML
+          const fixedScript = `<script>${fixedScriptContent}</script>`;
+          fixedHtml = fixedHtml.replace(problematicScript, fixedScript);
+          console.log('Applied fix to script #13');
         }
       }
-      
-      // If we're in a backtick and find HTML comment start, this could be problematic
-      if (inBacktick && 
-          i < updatedScript.length - 3 && 
-          updatedScript.substring(i, i+4) === '<!--') {
-        console.log('Found potentially problematic HTML comment in template string');
-      }
-    }
-    
-    if (inBacktick && unclosedPos >= 0) {
-      console.log('Found unclosed template string at position', unclosedPos);
-      // Add closing backtick at the end of the script
-      updatedScript += '`';
-      fixes++;
-    }
-    
-    // Fix 2: Replace problematic template strings
-    // Look for template strings with unescaped ${ inside HTML attributes
-    const attrRegex = /class="[^"]*\${[^}]*}[^"]*"/g;
-    let match;
-    while ((match = attrRegex.exec(updatedScript)) !== null) {
-      const original = match[0];
-      // Replace ${...} with properly escaped version in HTML attributes
-      const fixed = original.replace(/\${([^}]*)}/g, '"+($1)+"');
-      
-      if (original !== fixed) {
-        console.log('Fixing template string in HTML attribute:', original);
-        // Only replace this specific instance
-        updatedScript = updatedScript.substring(0, match.index) + 
-                       fixed + 
-                       updatedScript.substring(match.index + original.length);
-        fixes++;
-      }
-    }
-    
-    // Fix 3: Check for missing closing braces in the script
-    const openBraces = (updatedScript.match(/{/g) || []).length;
-    const closeBraces = (updatedScript.match(/}/g) || []).length;
-    
-    if (openBraces > closeBraces) {
-      console.log(`Adding ${openBraces - closeBraces} missing closing braces`);
-      updatedScript += '}'.repeat(openBraces - closeBraces);
-      fixes++;
-    }
-    
-    // Update the script in the HTML
-    if (updatedScript !== scriptContent) {
-      updatedHtml = updatedHtml.substring(0, scriptStartPos) + 
-                 updatedScript + 
-                 updatedHtml.substring(scriptEndPos);
-      
-      // Update regex's lastIndex to account for any length changes
-      const lengthDiff = updatedScript.length - scriptContent.length;
-      scriptRegex.lastIndex += lengthDiff;
     }
   }
 }
 
-// Check if any fixes were made
-if (fixes > 0) {
-  // Write the updated HTML back to the file
-  fs.writeFileSync(dashboardPath, updatedHtml);
-  console.log(`Applied ${fixes} fixes to dashboard.html`);
-} else {
-  console.log('No template string issues found to fix');
-}
-
-console.log('Script completed');
+// Write the updated HTML back to the file
+fs.writeFileSync(dashboardPath, fixedHtml);
+console.log('Fixed template strings in dashboard.html');

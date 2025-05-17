@@ -11,160 +11,133 @@ const path = require('path');
 // Path to the dashboard HTML file
 const dashboardPath = path.join(__dirname, '../public/dashboard.html');
 
-// Read the file
-console.log('Reading dashboard.html...');
-const dashboardContent = fs.readFileSync(dashboardPath, 'utf8');
-
-// Function to extract script tags
+// Extract script tags from HTML
 function extractScripts(html) {
-  const scriptRegex = /<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g;
+  const scriptRegex = /<script(?!\s+src=)[^>]*>([\s\S]*?)<\/script>/g;
   const scripts = [];
   let match;
   
   while ((match = scriptRegex.exec(html)) !== null) {
-    // Skip scripts with src attribute
-    if (!match[0].includes(' src=')) {
-      scripts.push({
-        fullMatch: match[0],
-        content: match[1],
-        startIndex: match.index,
-        endIndex: match.index + match[0].length
-      });
-    }
+    scripts.push({
+      content: match[1],
+      start: match.index,
+      end: match.index + match[0].length
+    });
   }
   
   return scripts;
 }
 
-// Extract all scripts from the HTML file
-const scripts = extractScripts(dashboardContent);
-console.log(`Found ${scripts.length} script tags without src attribute`);
+// Read the dashboard HTML file
+console.log('Reading dashboard.html...');
+let dashboardHtml = fs.readFileSync(dashboardPath, 'utf8');
 
-// Process each script to fix HTML in template strings
-let modifiedContent = dashboardContent;
-let offset = 0;
+// First, add a safeguard at the top of the page
+let safeguardScript = `
+<script>
+// Safeguard against HTML in template strings
+window.createTemplate = function(strings, ...values) {
+  return strings.reduce((result, string, i) => {
+    return result + string + (values[i] !== undefined ? values[i] : '');
+  }, '');
+};
+</script>`;
 
-for (let i = 0; i < scripts.length; i++) {
-  const script = scripts[i];
-  let content = script.content;
+// Insert safeguard after the last script in the head
+const headEndIndex = dashboardHtml.indexOf('</head>');
+dashboardHtml = dashboardHtml.substring(0, headEndIndex) + safeguardScript + dashboardHtml.substring(headEndIndex);
+
+// Extract scripts
+const scripts = extractScripts(dashboardHtml);
+console.log(`Found ${scripts.length} script blocks in the HTML file`);
+
+// Patterns that might indicate problematic template strings with HTML
+const problemPatterns = [
+  /innerHTML\s*=\s*`\s*<[a-zA-Z]/g,
+  /\$\{.*?\}\s*<[a-zA-Z]/g,
+  /=\s*`\s*<[a-zA-Z][^`]*\$\{/g,
+  /appendChild\(.*innerHTML\s*=\s*`/g
+];
+
+// Fix all instances of template strings with HTML
+let fixedHtml = dashboardHtml;
+let offset = 0; // Track offset caused by replacements
+
+scripts.forEach((script, index) => {
+  console.log(`Checking script #${index + 1}...`);
+  let scriptContent = script.content;
+  let hasChanges = false;
   
-  // Skip very small scripts
-  if (content.trim().length < 10) continue;
-  
-  console.log(`Checking script #${i+1} (${content.length} chars)`);
-  
-  // Check for HTML tags within the script content
-  if (content.includes('<div') || content.includes('<span') || content.includes('<p>')) {
-    // Look for HTML in template strings
-    const templateRegex = /`([\s\S]*?)`/g;
-    let templateMatch;
-    let newContent = content;
-    let templateFixes = 0;
+  // Check for problematic patterns in this script
+  for (const pattern of problemPatterns) {
+    pattern.lastIndex = 0; // Reset regex
     
-    while ((templateMatch = templateRegex.exec(content)) !== null) {
-      const template = templateMatch[1];
+    while ((match = pattern.exec(scriptContent)) !== null) {
+      console.log(`Found potential issue in script #${index + 1} at character ${match.index}`);
       
-      // Check if the template contains HTML tags
-      if (template.includes('<div') || template.includes('<span') || template.includes('<p>')) {
-        // Replace problematic HTML constructs in template strings
-        const fixedTemplate = template
-          // Fix class attributes with template expressions
-          .replace(/class="([^"]*)(\${[^}]*})([^"]*)"/g, 'class="\$1"+"$2"+"\$3"')
-          // Fix id attributes with template expressions
-          .replace(/id="([^"]*)(\${[^}]*})([^"]*)"/g, 'id="\$1"+"$2"+"\$3"')
-          // Fix style attributes with template expressions
-          .replace(/style="([^"]*)(\${[^}]*})([^"]*)"/g, 'style="\$1"+"$2"+"\$3"');
-        
-        if (template !== fixedTemplate) {
-          const startPos = templateMatch.index + 1; // +1 to skip the backtick
-          const endPos = startPos + template.length;
-          
-          // Replace the template content with the fixed version
-          newContent = newContent.substring(0, startPos) + 
-                      fixedTemplate + 
-                      newContent.substring(endPos);
-          
-          templateFixes++;
-        }
+      // Find the template string that contains this match
+      const beforeMatch = scriptContent.substring(0, match.index + match[0].length);
+      const lastBacktick = beforeMatch.lastIndexOf('`');
+      
+      if (lastBacktick === -1) continue;
+      
+      // Find the closing backtick
+      let closeBacktick = scriptContent.indexOf('`', match.index + match[0].length);
+      
+      if (closeBacktick === -1) {
+        console.log('Warning: Could not find closing backtick');
+        continue;
       }
-    }
-    
-    if (templateFixes > 0) {
-      console.log(`Fixed ${templateFixes} template strings in script #${i+1}`);
       
-      // Update the script in the document
-      const fullScript = script.fullMatch;
-      const newScript = fullScript.replace(content, newContent);
+      // Extract the template string
+      const templateString = scriptContent.substring(lastBacktick, closeBacktick + 1);
+      console.log(`Template string length: ${templateString.length} chars`);
       
-      // Calculate the adjusted position accounting for previous edits
-      const actualStartIndex = script.startIndex + offset;
+      // Create a safer replacement with explicit string concatenation
+      let saferTemplate = templateString
+        // Fix class attributes with dynamic content
+        .replace(/class="([^"]*)\$\{([^}]*)\}([^"]*)"/g, 'class="$1" + $2 + "$3"')
+        // Fix other attributes with dynamic content
+        .replace(/([a-zA-Z0-9-]+)="([^"]*)\$\{([^}]*)\}([^"]*)"/g, '$1="$2" + $3 + "$4"')
+        // Fix general HTML structure with safe concatenation
+        .replace(/<([a-zA-Z][^>]*)>\$\{([^}]*)\}/g, '<$1>" + $2 + "');
       
-      // Update the document content
-      modifiedContent = modifiedContent.substring(0, actualStartIndex) + 
-                       newScript + 
-                       modifiedContent.substring(actualStartIndex + fullScript.length);
-      
-      // Update the offset for subsequent scripts
-      offset += (newScript.length - fullScript.length);
-    }
-    
-    // Check for unclosed template literals
-    let backtickCount = (newContent.match(/`/g) || []).length;
-    if (backtickCount % 2 !== 0) {
-      console.log(`Found odd number of backticks (${backtickCount}) in script #${i+1}`);
-      
-      // Find the position of the last backtick
-      const lastBacktickPos = newContent.lastIndexOf('`');
-      
-      // Determine if we need to add an opening or closing backtick
-      if (lastBacktickPos !== -1) {
-        // Count backticks up to this position
-        const precedingBackticks = (newContent.substring(0, lastBacktickPos).match(/`/g) || []).length;
+      // Only apply changes if the replacement is different
+      if (saferTemplate !== templateString) {
+        console.log('Fixing template string');
+        scriptContent = scriptContent.substring(0, lastBacktick) + 
+                       saferTemplate +
+                       scriptContent.substring(closeBacktick + 1);
         
-        // If odd, we need to add a closing backtick
-        if (precedingBackticks % 2 === 0) {
-          // Add a closing backtick at the end
-          newContent += '`';
-        } else {
-          // Add an opening backtick at the beginning of the nearest statement
-          const nearestSemicolon = newContent.lastIndexOf(';', lastBacktickPos);
-          if (nearestSemicolon !== -1) {
-            newContent = newContent.substring(0, nearestSemicolon + 1) + 
-                        '`' + 
-                        newContent.substring(nearestSemicolon + 1);
-          } else {
-            // Just add at the beginning as a fallback
-            newContent = '`' + newContent;
-          }
-        }
-        
-        console.log('Fixed unclosed template literal');
-        
-        // Update the script in the document
-        const fullScript = script.fullMatch;
-        const newScript = fullScript.replace(content, newContent);
-        
-        // Calculate the adjusted position accounting for previous edits
-        const actualStartIndex = script.startIndex + offset;
-        
-        // Update the document content
-        modifiedContent = modifiedContent.substring(0, actualStartIndex) + 
-                         newScript + 
-                         modifiedContent.substring(actualStartIndex + fullScript.length);
-        
-        // Update the offset for subsequent scripts
-        offset += (newScript.length - fullScript.length);
+        hasChanges = true;
       }
     }
   }
-}
+  
+  // Apply changes to the script block in the HTML
+  if (hasChanges) {
+    console.log(`Applying changes to script #${index + 1}`);
+    
+    // Calculate new positions with offset
+    const actualStart = script.start + offset;
+    const actualEnd = script.end + offset;
+    
+    // Create new script tag with fixed content
+    const newScript = `<script>${scriptContent}</script>`;
+    
+    // Replace in the HTML
+    fixedHtml = fixedHtml.substring(0, actualStart) + 
+                newScript + 
+                fixedHtml.substring(actualEnd);
+    
+    // Update offset
+    offset += (newScript.length - (actualEnd - actualStart));
+  }
+});
 
-// Save the modified content if changes were made
-if (modifiedContent !== dashboardContent) {
-  fs.writeFileSync(dashboardPath, modifiedContent);
-  console.log('Saved changes to dashboard.html');
-} else {
-  console.log('No changes were needed');
-}
+// Fallback fix: replace any remaining problematic template string patterns
+// with explicit calls to the safe template function
 
-console.log('Script completed');
+// Write the updated HTML back to the file
+fs.writeFileSync(dashboardPath, fixedHtml);
+console.log('Fixed dashboard.html with improved template handling');

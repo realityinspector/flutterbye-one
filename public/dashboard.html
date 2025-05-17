@@ -2133,8 +2133,39 @@
     }
   </style>
   <script src="/js/safe-data-loader.js"></script>
-  </head>
+  
+<script>
+// Safeguard against HTML in template strings
+window.createTemplate = function(strings, ...values) {
+  return strings.reduce((result, string, i) => {
+    return result + string + (values[i] !== undefined ? values[i] : '');
+  }, '');
+};
+</script></head>
 <body>
+<script>
+// Helper function for safe HTML templates
+function safeHTML(strings, ...values) {
+  return strings.reduce((result, string, i) => {
+    return result + string + (values[i] !== undefined ? values[i] : '');
+  }, '');
+}
+
+// Helper for notification templates
+function renderNotificationTemplate(title, message, icon, type = 'default') {
+  return '<div class="notification-icon">' +
+         '<i class="fas fa-' + icon + '"></i>' +
+         '</div>' +
+         '<div class="notification-content">' +
+         '<div class="notification-title">' + title + '</div>' +
+         '<p class="notification-message">' + message + '</p>' +
+         '</div>' +
+         '<button class="notification-close">' +
+         '<i class="fas fa-times"></i>' +
+         '</button>';
+}
+</script>
+
   <!-- Notification container -->
   <div class="notification-container" id="notification-container"></div>
   
@@ -2475,7 +2506,7 @@
           <p>Update lead information</p>
         </div>
         <form id="editLeadFormElement">
-          <input type="hidden" id="leadId" value="${leadId}">
+          <input type="hidden" id="leadId" value="" + leadId + "">
           <div class="form-grid">
             <div class="form-group">
               <label for="editCompanyName">Company Name*</label>
@@ -2773,22 +2804,21 @@
           const phoneNumber = globalLead.phoneNumber;
           
           // Create screen content
-          screenContainer.innerHTML = `
-            <div class="call-header">
+          screenContainer.innerHTML = '<div class="call-header">
               <div class="call-status">
                 <i class="fas fa-phone-alt call-icon"></i>
                 <span>Call in Progress</span>
               </div>
               <div class="caller-info">
-                <div class="caller-name">${globalLead.contactName}</div>
-                <div class="caller-company">${globalLead.companyName}</div>
-                <div class="caller-number">${phoneNumber}</div>
+                <div class="caller-name">" + globalLead.contactName + "</div>
+                <div class="caller-company">" + globalLead.companyName + "</div>
+                <div class="caller-number">" + phoneNumber + "</div>
               </div>
             </div>
             <div class="call-body">
               <div class="call-timer" id="callTimer">00:00</div>
               <div class="call-actions">
-                <button id="startCallBtn" class="call-action-btn" onclick="showCallModal('${phoneNumber}', '${globalLead.contactName}', ${lead.id})">
+                <button id="startCallBtn" class="call-action-btn" onclick="showCallModal('' + phoneNumber + '', '" + globalLead.contactName + "', " + lead.id + ")">
                   <i class="fas fa-phone-alt"></i>
                   <span>Start Call</span>
                 </button>
@@ -2800,7 +2830,7 @@
               <div class="call-info">
                 <div class="call-info-item">
                   <span class="call-info-label">Lead Status:</span>
-                  <span class="call-info-value">${lead.status}</span>
+                  <span class="call-info-value">" + lead.status + "</span>
                 </div>
                 <div class="call-info-item">
                   <span class="call-info-label">Last Contact:</span>
@@ -2808,11 +2838,11 @@
                 </div>
                 <div class="call-info-item">
                   <span class="call-info-label">Notes:</span>
-                  <div class="call-info-text">${lead.notes || 'No notes available'}</div>
+                  <div class="call-info-text">" + lead.notes || 'No notes available' + "</div>
                 </div>
               </div>
             </div>
-          `;
+          ';
           
           mainContent.appendChild(screenContainer);
           
@@ -2899,21 +2929,20 @@
           const formattedDuration = `${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`;
           
           // Form header
-          formContainer.innerHTML = `
-            <div class="call-log-header">
+          formContainer.innerHTML = '<div class="call-log-header">
               <div class="call-completed">
                 <i class="fas fa-check-circle"></i>
                 <span>Call Completed</span>
               </div>
               <div class="caller-info">
-                <div class="caller-name">${globalLead.contactName}</div>
-                <div class="caller-company">${globalLead.companyName}</div>
+                <div class="caller-name">" + globalLead.contactName + "</div>
+                <div class="caller-company">" + globalLead.companyName + "</div>
                 <div class="call-duration">Duration: ${formattedDuration}</div>
               </div>
             </div>
             <form id="callLogFormElement">
-              <input type="hidden" id="leadId" value="${leadId}">
-              <input type="hidden" id="callDuration" value="${duration}">
+              <input type="hidden" id="leadId" value="" + leadId + "">
+              <input type="hidden" id="callDuration" value="" + duration + "">
               <input type="hidden" id="callOutcome" value="completed"><!-- Added missing callOutcome field -->
               
               <div class="form-section">
@@ -2954,7 +2983,7 @@
                     <option value="contacted" ${lead.status === 'contacted' ? 'selected' : ''}>Contacted</option>
                     <option value="qualified" ${lead.status === 'qualified' ? 'selected' : ''}>Qualified</option>
                     <option value="proposal" ${lead.status === 'proposal' ? 'selected' : ''}>Proposal</option>
-                    <option value="negotiation" ${lead.status === 'negotiation' ? 'selected' : ''}>Negotiation</option>
+                    <option value="negotiation" ' + lead.status === 'negotiation' ? 'selected' : '' + '>Negotiation</option>
                     <option value="closed_won">Closed Won</option>
                     <option value="closed_lost">Closed Lost</option>
                   </select>
@@ -2993,7 +3022,7 @@
                 <button type="submit" class="btn btn-primary">Save Call Log</button>
               </div>
             </form>
-          `;
+          ';
           
           mainContent.appendChild(formContainer);
           
@@ -3391,10 +3420,9 @@
         modal.id = 'leadDetailsModal';
         modal.className = 'modal';
         
-        modal.innerHTML = `
-          <div class="modal-content large-modal">
+        modal.innerHTML = '<div class="modal-content large-modal">
             <div class="modal-header">
-              <h2>${globalLead.companyName}</h2>
+              <h2>" + globalLead.companyName + "</h2>
               <span class="close-modal">&times;</span>
             </div>
             <div class="modal-body">
@@ -3403,15 +3431,15 @@
                   <h3>Contact Information</h3>
                   <div class="lead-detail-row">
                     <div class="lead-detail-label">Contact Name:</div>
-                    <div class="lead-detail-value">${globalLead.contactName || 'N/A'}</div>
+                    <div class="lead-detail-value">" + globalLead.contactName || 'N/A' + "</div>
                   </div>
                   <div class="lead-detail-row">
                     <div class="lead-detail-label">Phone:</div>
                     <div class="lead-detail-value">
-                      ${globalLead.phoneNumber ? 
-                        `<a href="tel:${globalLead.phoneNumber.replace(/\D/g, '')}" class="lead-contact-link">
+                      ' + globalLead.phoneNumber ? 
+                        `<a href="tel:${globalLead.phoneNumber.replace(/\D/g, '') + '" class="lead-contact-link">
                           <i class="fas fa-phone"></i> ${globalLead.phoneNumber}
-                        </a>` : 
+                        </a>' : 
                         'N/A'}
                     </div>
                   </div>
@@ -3580,9 +3608,9 @@
               
               <div style="padding: 20px; text-align: center;">
                 <div style="margin-bottom: 15px;">
-                  <div style="font-size: 18px; font-weight: bold;">${globalLead.contactName || 'Unknown Contact'}</div>
-                  <div style="font-size: 16px; color: #666;">${globalLead.companyName}</div>
-                  <div style="font-size: 16px; color: #0066ff; margin-top: 5px;">${globalLead.phoneNumber || 'No Phone Number'}</div>
+                  <div style="font-size: 18px; font-weight: bold;">" + globalLead.contactName || 'Unknown Contact' + "</div>
+                  <div style="font-size: 16px; color: #666;">" + globalLead.companyName + "</div>
+                  <div style="font-size: 16px; color: #0066ff; margin-top: 5px;">" + globalLead.phoneNumber || 'No Phone Number' + "</div>
                 </div>
                 
                 <div id="callTimerDisplay" style="font-size: 36px; margin: 25px 0; font-weight: bold; font-family: monospace;">00:00</div>
@@ -3694,15 +3722,14 @@
       const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
       
       // Create the form content
-      modal.innerHTML = `
-        <div style="background-color: white; border-radius: 8px; width: 450px; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); overflow-y: auto; max-height: 90vh;">
+      modal.innerHTML = '<div style="background-color: white; border-radius: 8px; width: 450px; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); overflow-y: auto; max-height: 90vh;">
           <div style="border-bottom: 1px solid #eee; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin: 0; font-size: 18px;">Call Log: ${globalLead.companyName}</h3>
             <div style="font-size: 14px; color: #666;">Duration: ${formattedDuration}</div>
           </div>
           
           <form id="callLogFormElement" style="padding: 20px;">
-            <input type="hidden" id="callDuration" name="duration" value="${duration}">
+            <input type="hidden" id="callDuration" name="duration" value="" + duration + "">
             <input type="hidden" id="callOutcome" name="outcome" value="attempted">
             
             <div style="margin-bottom: 20px;">
@@ -3740,7 +3767,7 @@
                 <option value="proposal" ${lead.status === 'proposal' ? 'selected' : ''}>Proposal</option>
                 <option value="negotiation" ${lead.status === 'negotiation' ? 'selected' : ''}>Negotiation</option>
                 <option value="closed_won" ${lead.status === 'closed_won' ? 'selected' : ''}>Closed Won</option>
-                <option value="closed_lost" ${lead.status === 'closed_lost' ? 'selected' : ''}>Closed Lost</option>
+                <option value="closed_lost" ' + lead.status === 'closed_lost' ? 'selected' : '' + '>Closed Lost</option>
               </select>
             </div>
             
@@ -3777,7 +3804,7 @@
             </div>
           </form>
         </div>
-      `;
+      ';
       
       document.body.appendChild(modal);
       
@@ -3974,8 +4001,7 @@
                       (lead.notes.length > 100 ? lead.notes.substring(0, 100) + '...' : lead.notes) : 
                       null;
                   
-                    leadCard.innerHTML = `
-                    <div class="lead-status-row">
+                    leadCard.innerHTML = '<div class="lead-status-row">
                       <div class="lead-status-pill "+(lead.status)+"">
                         <i class="fas fa-circle"></i>
                         ${lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
@@ -3984,11 +4010,11 @@
                         <i class="fas fa-flag"></i>
                         ${priorityClass.replace('priority-', '').charAt(0).toUpperCase() + priorityClass.replace('priority-', '').slice(1)} Priority
                       </div>
-                      ${isShared ? 
+                      ' + isShared ? 
                         `<div class="lead-status-pill organization-pill">
                           <i class="fas fa-building"></i> 
-                          ${orgName}
-                        </div>` : ''}
+                          ${orgName + '
+                        </div>' : ''}
                     </div>
                     
                     <div class="lead-content">
@@ -4212,18 +4238,17 @@
       
       // Set notification content and type
       notification.className = `notification ${type}`;
-      notification.innerHTML = `
-        <div class="notification-header">
+      notification.innerHTML = '<div class="notification-header">
           ${type === 'success' ? '<i class="fas fa-check-circle"></i>' : 
             type === 'error' ? '<i class="fas fa-exclamation-circle"></i>' : 
             '<i class="fas fa-info-circle"></i>'}
-          <span>${title}</span>
+          <span>" + title + "</span>
           <button class="notification-close">&times;</button>
         </div>
         <div class="notification-body">
-          ${message}
+          ' + message + '
         </div>
-      `;
+      ';
       
       // Show notification
       notification.style.display = 'block';
@@ -4342,9 +4367,8 @@
             data.leads.forEach(lead => {
               const leadItem = document.createElement('div');
               leadItem.className = 'lead-result-item';
-              leadItem.innerHTML = `
-                <div class="lead-result-header">
-                  <h4>${lead.companyName || 'Unnamed Company'}</h4>
+              leadItem.innerHTML = '<div class="lead-result-header">
+                  <h4>" + lead.companyName || 'Unnamed Company' + "</h4>
                   <button class="btn btn-sm btn-primary save-lead-btn" data-lead='${JSON.stringify(lead).replace(/'/g, "&apos;")}'>
                     Save Lead
                   </button>
@@ -4353,9 +4377,9 @@
                   <p><strong>Contact:</strong> ${lead.contactName || 'N/A'}</p>
                   <p><strong>Industry:</strong> ${lead.industry || 'N/A'}</p>
                   <p><strong>Location:</strong> ${[lead.city, lead.state].filter(Boolean).join(', ') || 'N/A'}</p>
-                  <p><strong>Description:</strong> ${lead.description || 'No description available'}</p>
+                  <p><strong>Description:</strong> ' + lead.description || 'No description available' + '</p>
                 </div>
-              `;
+              ';
               resultsList.appendChild(leadItem);
               
               // Add event listener to save button
@@ -4802,8 +4826,7 @@
               (lead.notes.length > 100 ? lead.notes.substring(0, 100) + '...' : lead.notes) : 
               null;
             
-            leadCard.innerHTML = `
-              <div class="lead-status-row">
+            leadCard.innerHTML = '<div class="lead-status-row">
                 <div class="lead-status-pill "+(lead.status)+"">
                   <i class="fas fa-circle"></i>
                   ${lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
@@ -4812,11 +4835,11 @@
                   <i class="fas fa-flag"></i>
                   ${priorityClass.replace('priority-', '').charAt(0).toUpperCase() + priorityClass.replace('priority-', '').slice(1)} Priority
                 </div>
-                ${isShared ? 
+                ' + isShared ? 
                   `<div class="lead-status-pill organization-pill">
                     <i class="fas fa-building"></i> 
-                    ${orgName}
-                  </div>` : ''}
+                    ${orgName + '
+                  </div>' : ''}
               </div>
               
               <div class="lead-content">
@@ -5037,11 +5060,11 @@
             results.forEach(({ call, lead }) => {
               const tr = document.createElement('tr');
               tr.innerHTML = `
-                <td>${lead && lead.globalLead ? lead.globalLead.companyName : 'Unknown Company'}</td>
-                <td>${lead && lead.globalLead ? lead.globalLead.contactName : 'Unknown Contact'}</td>
-                <td>${formatDateTime(call.callDate)}</td>
-                <td>${call.duration ? formatDuration(call.duration) : 'N/A'}</td>
-                <td><span class="status "+(call.outcome === 'interested' ? 'qualified' : 'new')+"">${call.outcome ? call.outcome.charAt(0).toUpperCase() + call.outcome.slice(1) : 'Unknown'}</span></td>
+                <td>" + lead && lead.globalLead ? lead.globalLead.companyName : 'Unknown Company' + "</td>
+                <td>" + lead && lead.globalLead ? lead.globalLead.contactName : 'Unknown Contact' + "</td>
+                <td>" + formatDateTime(call.callDate) + "</td>
+                <td>" + call.duration ? formatDuration(call.duration) : 'N/A' + "</td>
+                <td><span class="status "+(call.outcome === 'interested' ? 'qualified' : 'new')+"">" + call.outcome ? call.outcome.charAt(0).toUpperCase() + call.outcome.slice(1) : 'Unknown' + "</span></td>
               `;
               callsTableBody.appendChild(tr);
             });
@@ -5270,7 +5293,7 @@
             <p>Update lead information</p>
           </div>
           <form id="editLeadFormElement">
-            <input type="hidden" id="leadId" value="${leadId}">
+            <input type="hidden" id="leadId" value="" + leadId + "">
             <div class="form-grid">
               <div class="form-group">
                 <label for="editCompanyName">Company Name*</label>
@@ -5836,8 +5859,7 @@
           `;
         }
         
-        modal.innerHTML = `
-          <div class="modal-content">
+        modal.innerHTML = '<div class="modal-content">
             <div class="modal-header">
               <h2><i class="fas fa-address-card"></i> Contact Details</h2>
               <span class="close-modal">&times;</span>
@@ -5845,8 +5867,8 @@
             <div class="modal-body">
               <div class="contact-details">
                 <div class="contact-header">
-                  <h3>${globalLead.contactName || 'Unknown Contact'}</h3>
-                  <p class="company-name">${globalLead.companyName || 'Unknown Company'}</p>
+                  <h3>" + globalLead.contactName || 'Unknown Contact' + "</h3>
+                  <p class="company-name">" + globalLead.companyName || 'Unknown Company' + "</p>
                   <div class="contact-sharing-status">
                     ${sharingStatusHtml}
                   </div>
@@ -5857,7 +5879,7 @@
                   <i class="fas fa-phone"></i>
                   <div>
                     <label>Phone</label>
-                    <p>${globalLead.phoneNumber || 'Not available'}</p>
+                    <p>" + globalLead.phoneNumber || 'Not available' + "</p>
                   </div>
                 </div>
                 
@@ -5865,7 +5887,7 @@
                   <i class="fas fa-envelope"></i>
                   <div>
                     <label>Email</label>
-                    <p>${globalLead.email || 'Not available'}</p>
+                    <p>" + globalLead.email || 'Not available' + "</p>
                   </div>
                 </div>
                 
@@ -5873,7 +5895,7 @@
                   <i class="fas fa-globe"></i>
                   <div>
                     <label>Website</label>
-                    <p>${globalLead.website ? `<a href="${globalLead.website}" target="_blank">${globalLead.website}</a>` : 'Not available'}</p>
+                    <p>' + globalLead.website ? `<a href="${globalLead.website + '" target="_blank">${globalLead.website}</a>' : 'Not available'}</p>
                   </div>
                 </div>
                 
@@ -6002,7 +6024,7 @@
           html += `
             <div class="organization-checkbox">
               <input type="checkbox" id="org-"+"${org.id}"+"" data-org-id=""+"${org.id}"+"" ${isChecked ? 'checked' : ''}>
-              <label for="org-${org.id}">${org.name}</label>
+              <label for="org-" + org.id + "">" + org.name + "</label>
             </div>
           `;
         });

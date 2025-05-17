@@ -147,46 +147,51 @@ function registerRoutes(app) {
   });
   
   // API documentation route
-  app.get('/api-docs', (req, res) => {
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>FLUTTERBYE API Documentation</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }
-            h1 { color: #4a5568; }
-            .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-            .card { background-color: #f9f9f9; border-radius: 8px; padding: 20px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            .endpoints { text-align: left; }
-            code { background-color: #edf2f7; padding: 2px 5px; border-radius: 4px; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>FLUTTERBYE API</h1>
-            <div class="card">
-              <p>The API server is running successfully!</p>
-              <p>Current time: ${new Date().toLocaleString()}</p>
+  app.get('/api-docs', async (req, res) => {
+    try {
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>FLUTTERBYE API Documentation</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }
+              h1 { color: #4a5568; }
+              .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+              .card { background-color: #f9f9f9; border-radius: 8px; padding: 20px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+              .endpoints { text-align: left; }
+              code { background-color: #edf2f7; padding: 2px 5px; border-radius: 4px; font-size: 14px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>FLUTTERBYE API</h1>
+              <div class="card">
+                <p>The API server is running successfully!</p>
+                <p>Current time: ${new Date().toLocaleString()}</p>
+              </div>
+              <div class="card endpoints">
+                <h3>Available Endpoints:</h3>
+                <ul>
+                  <li><code>GET /api/user</code> - Get current user</li>
+                  <li><code>POST /api/register</code> - Register new user</li>
+                  <li><code>POST /api/login</code> - Login</li>
+                  <li><code>POST /api/logout</code> - Logout</li>
+                  <li><code>GET /api/leads</code> - Get all leads</li>
+                  <li><code>GET /api/calls</code> - Get all calls</li>
+                  <li><code>GET /api/analytics/dashboard</code> - Get dashboard metrics</li>
+                  <li><code>GET /api/analytics/user-performance</code> - Get user performance (admin only)</li>
+                  <li><code>GET /api/analytics/call-outcomes</code> - Get call outcome distribution</li>
+                </ul>
+              </div>
             </div>
-            <div class="card endpoints">
-              <h3>Available Endpoints:</h3>
-              <ul>
-                <li><code>GET /api/user</code> - Get current user</li>
-                <li><code>POST /api/register</code> - Register new user</li>
-                <li><code>POST /api/login</code> - Login</li>
-                <li><code>POST /api/logout</code> - Logout</li>
-                <li><code>GET /api/leads</code> - Get all leads</li>
-                <li><code>GET /api/calls</code> - Get all calls</li>
-                <li><code>GET /api/analytics/dashboard</code> - Get dashboard metrics</li>
-                <li><code>GET /api/analytics/user-performance</code> - Get user performance (admin only)</li>
-                <li><code>GET /api/analytics/call-outcomes</code> - Get call outcome distribution</li>
-              </ul>
-            </div>
-          </div>
-        </body>
-      </html>
-    `);
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error(`Error in /api-docs route: ${error.message}`);
+      res.status(500).json({ error: "Server error", message: error.message });
+    }
   });
   
   // The root route is already defined above
