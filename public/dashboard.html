@@ -3626,17 +3626,24 @@
             });
           }
           
-          // End call button
-          document.getElementById('endCallBtn').addEventListener('click', function() {
+          // End call button with improved error handling
+        const endCallBtn = document.getElementById('endCallBtn');
+        if (endCallBtn) {
+          endCallBtn.addEventListener('click', function() {
+            console.log('End call button clicked');
             // Stop timer
             clearInterval(timerInterval);
             
             // Close call modal
             modal.remove();
             
-            // Show call log modal
-            showCallLogModal(leadId, callSeconds, lead, globalLead);
+            // Show a simple notification
+            showNotification('Call Ended', 'Opening call log form...', 'info');
+            
+            // Create the call log form directly here
+            showAfterCallForm(leadId, callSeconds, lead, globalLead);
           });
+        }
           
           // Close modal button
           document.getElementById('closeCallModalBtn').addEventListener('click', function() {
@@ -3651,7 +3658,7 @@
         });
     }
     
-    // We only need one call log function - removed duplicate showCallLogForm
+    // Complete implementation of showCallLogModal function with proper styling and functionality
 
     // Handle errors in call functionality
     function handleCallError(error) {
@@ -3659,69 +3666,81 @@
       showNotification('Error', `Call failed: ${error.message}`, 'error');
     }
     
-    // Function to show call log modal
-    function showCallLogModal(leadId, duration, lead, globalLead) {
-      // Create modal for call log
-      const modalContainer = document.createElement('div');
-      modalContainer.className = 'modal-overlay active';
-      modalContainer.id = 'callLogModal';
+    // Function to show after-call form for logging call outcomes
+    function showAfterCallForm(leadId, duration, lead, globalLead) {
+      console.log('Showing call log form for lead:', leadId);
       
-      // Format the duration
-      const durationMinutes = Math.floor(duration / 60);
-      const durationSeconds = duration % 60;
-      const formattedDuration = `${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`;
+      // Create a simple toast notification
+      showNotification('Call Ended', 'Recording call details...', 'info');
       
-      // Create modal content with call log form
-      modalContainer.innerHTML = `
-        <div class="modal-content call-log-modal">
-          <div class="modal-header">
-            <h2>Call Log: ${globalLead.companyName}</h2>
-            <span class="call-duration">Duration: ${formattedDuration}</span>
+      // Create a fixed-position modal overlay with distinct styling
+      const modal = document.createElement('div');
+      modal.id = 'callLogFormModal'; // Use a distinct ID
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.left = '0';
+      modal.style.width = '100%';
+      modal.style.height = '100%';
+      modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+      modal.style.display = 'flex';
+      modal.style.justifyContent = 'center';
+      modal.style.alignItems = 'center';
+      modal.style.zIndex = '9999';
+      
+      // Format duration for display
+      const minutes = Math.floor(duration / 60);
+      const seconds = duration % 60;
+      const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      // Create the form content
+      modal.innerHTML = `
+        <div style="background-color: white; border-radius: 8px; width: 450px; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); overflow-y: auto; max-height: 90vh;">
+          <div style="border-bottom: 1px solid #eee; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 18px;">Call Log: ${globalLead.companyName}</h3>
+            <div style="font-size: 14px; color: #666;">Duration: ${formattedDuration}</div>
           </div>
           
-          <form id="callLogFormElement" class="call-log-form">
+          <form id="callLogFormElement" style="padding: 20px;">
             <input type="hidden" id="callDuration" name="duration" value="${duration}">
             <input type="hidden" id="callOutcome" name="outcome" value="attempted">
             
-            <div class="form-section">
-              <h3>Call Outcome</h3>
-              <div class="outcome-selector">
-                <button type="button" class="outcome-btn" data-outcome="connected">
-                  <i class="fas fa-check-circle"></i>
+            <div style="margin-bottom: 20px;">
+              <h4 style="margin: 0 0 10px 0; color: #333;">Call Outcome</h4>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <button type="button" class="outcome-btn" data-outcome="connected" style="flex: 1; min-width: 90px; background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; padding: 10px; text-align: center; cursor: pointer;">
+                  <i class="fas fa-check-circle" style="display: block; margin-bottom: 5px; color: #28a745;"></i>
                   <span>Connected</span>
                 </button>
-                <button type="button" class="outcome-btn" data-outcome="left_vm">
-                  <i class="fas fa-voicemail"></i>
+                <button type="button" class="outcome-btn" data-outcome="left_vm" style="flex: 1; min-width: 90px; background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; padding: 10px; text-align: center; cursor: pointer;">
+                  <i class="fas fa-voicemail" style="display: block; margin-bottom: 5px; color: #17a2b8;"></i>
                   <span>Left VM</span>
                 </button>
-                <button type="button" class="outcome-btn" data-outcome="call_back">
-                  <i class="fas fa-calendar"></i>
+                <button type="button" class="outcome-btn" data-outcome="call_back" style="flex: 1; min-width: 90px; background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; padding: 10px; text-align: center; cursor: pointer;">
+                  <i class="fas fa-calendar" style="display: block; margin-bottom: 5px; color: #6f42c1;"></i>
                   <span>Call Back</span>
                 </button>
-                <button type="button" class="outcome-btn" data-outcome="no_answer">
-                  <i class="fas fa-phone-slash"></i>
+                <button type="button" class="outcome-btn" data-outcome="no_answer" style="flex: 1; min-width: 90px; background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; padding: 10px; text-align: center; cursor: pointer;">
+                  <i class="fas fa-phone-slash" style="display: block; margin-bottom: 5px; color: #fd7e14;"></i>
                   <span>No Answer</span>
                 </button>
-                <button type="button" class="outcome-btn" data-outcome="wrong_number">
-                  <i class="fas fa-exclamation-circle"></i>
+                <button type="button" class="outcome-btn" data-outcome="wrong_number" style="flex: 1; min-width: 90px; background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; padding: 10px; text-align: center; cursor: pointer;">
+                  <i class="fas fa-exclamation-circle" style="display: block; margin-bottom: 5px; color: #dc3545;"></i>
                   <span>Wrong #</span>
                 </button>
               </div>
             </div>
             
-            <div class="form-section">
-              <h3>Lead Status Update</h3>
-              <div class="status-selector">
-                <select id="leadStatus" name="leadStatus" class="mobile-select">
-                  <option value="new" ${lead.status === 'new' ? 'selected' : ''}>New</option>
-                  <option value="contacted" ${lead.status === 'contacted' ? 'selected' : ''}>Contacted</option>
-                  <option value="qualified" ${lead.status === 'qualified' ? 'selected' : ''}>Qualified</option>
-                  <option value="proposal" ${lead.status === 'proposal' ? 'selected' : ''}>Proposal</option>
-                  <option value="negotiation" ${lead.status === 'negotiation' ? 'selected' : ''}>Negotiation</option>
-                  <option value="closed_won">Closed Won</option>
-                  <option value="closed_lost">Closed Lost</option>
-                </select>
-              </div>
+            <div style="margin-bottom: 20px;">
+              <h4 style="margin: 0 0 10px 0; color: #333;">Update Lead Status</h4>
+              <select id="leadStatus" name="leadStatus" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                <option value="new" ${lead.status === 'new' ? 'selected' : ''}>New</option>
+                <option value="contacted" ${lead.status === 'contacted' ? 'selected' : ''}>Contacted</option>
+                <option value="qualified" ${lead.status === 'qualified' ? 'selected' : ''}>Qualified</option>
+                <option value="proposal" ${lead.status === 'proposal' ? 'selected' : ''}>Proposal</option>
+                <option value="negotiation" ${lead.status === 'negotiation' ? 'selected' : ''}>Negotiation</option>
+                <option value="closed_won" ${lead.status === 'closed_won' ? 'selected' : ''}>Closed Won</option>
+                <option value="closed_lost" ${lead.status === 'closed_lost' ? 'selected' : ''}>Closed Lost</option>
+              </select>
             </div>
             
             <div class="form-section" id="callbackSection" style="display: none;">
@@ -3759,36 +3778,44 @@
         </div>
       `;
       
-      document.body.appendChild(modalContainer);
+      document.body.appendChild(modal);
       
       // Set up event listeners
-      // Outcome buttons
-      document.querySelectorAll('.outcome-btn').forEach(button => {
+      // Outcome buttons - use modal to ensure we're selecting elements within this specific modal
+      modal.querySelectorAll('.outcome-btn').forEach(button => {
         button.addEventListener('click', () => {
           // Remove active class from all buttons
-          document.querySelectorAll('.outcome-btn').forEach(btn => {
-            btn.classList.remove('active');
+          modal.querySelectorAll('.outcome-btn').forEach(btn => {
+            btn.style.backgroundColor = '#f8f9fa';
           });
           
-          // Add active class to clicked button
-          button.classList.add('active');
+          // Highlight the clicked button
+          button.style.backgroundColor = '#e2e6ea';
           
-          // Set hidden input value
-          document.getElementById('callOutcome').value = button.dataset.outcome;
+          // Set hidden input value - first find the element within this modal
+          const outcomeField = modal.querySelector('#callOutcome');
+          if (outcomeField) {
+            outcomeField.value = button.dataset.outcome;
+          }
           
           // Show/hide callback section based on outcome
-          if (button.dataset.outcome === 'call_back') {
-            document.getElementById('callbackSection').style.display = 'block';
-          } else {
-            document.getElementById('callbackSection').style.display = 'none';
+          const callbackSection = modal.querySelector('#callbackSection');
+          if (callbackSection) {
+            if (button.dataset.outcome === 'call_back') {
+              callbackSection.style.display = 'block';
+            } else {
+              callbackSection.style.display = 'none';
+            }
           }
         });
       });
       
       // Quick note buttons
-      document.querySelectorAll('.quick-note-btn').forEach(button => {
+      modal.querySelectorAll('.quick-note-btn').forEach(button => {
         button.addEventListener('click', () => {
-          const notesField = document.getElementById('callNotes');
+          const notesField = modal.querySelector('#callNotes');
+          if (!notesField) return;
+          
           const currentNotes = notesField.value;
           const newNote = button.dataset.note;
           
@@ -3804,133 +3831,138 @@
       });
       
       // Cancel button
-      document.getElementById('cancelCallLogForm').addEventListener('click', () => {
-        modalContainer.remove();
-      });
+      const cancelButton = modal.querySelector('#cancelCallLogForm');
+      if (cancelButton) {
+        cancelButton.addEventListener('click', () => {
+          modal.remove();
+        });
+      }
       
       // Form submission
-      document.getElementById('callLogFormElement').addEventListener('submit', function(event) {
-        event.preventDefault();
-        
-        // Get form data
-        const formData = new FormData(this);
-        const callData = {
-          leadId: leadId,
-          duration: parseInt(formData.get('duration')),
-          outcome: formData.get('outcome'),
-          notes: formData.get('notes'),
-        };
-        
-        // Get reminder date/time if present
-        if (formData.get('reminderDate') && formData.get('reminderTime')) {
-          callData.reminderDate = `${formData.get('reminderDate')}T${formData.get('reminderTime')}:00`;
-        }
-        
-        // Get lead status update
-        const leadStatus = formData.get('leadStatus');
-        
-        // Show loading state
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalBtnText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        submitBtn.disabled = true;
-        
-        // First, create the call record
-        fetch('/api/calls', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify(callData)
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to save call log');
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (!data.success) {
-            throw new Error(data.message || 'Failed to save call log');
+      const formElement = modal.querySelector('#callLogFormElement');
+      if (formElement) {
+        formElement.addEventListener('submit', function(event) {
+          event.preventDefault();
+          
+          // Get form data
+          const formData = new FormData(this);
+          const callData = {
+            leadId: leadId,
+            duration: parseInt(formData.get('duration')),
+            outcome: formData.get('outcome'),
+            notes: formData.get('notes'),
+          };
+          
+          // Get reminder date/time if present
+          if (formData.get('reminderDate') && formData.get('reminderTime')) {
+            callData.reminderDate = `${formData.get('reminderDate')}T${formData.get('reminderTime')}:00`;
           }
           
-          // Then update the lead status if changed
-          return fetch(`/api/leads/${leadId}`, {
-            method: 'PUT',
+          // Get lead status update
+          const leadStatus = formData.get('leadStatus');
+        
+          // Show loading state
+          const submitBtn = this.querySelector('button[type="submit"]');
+          const originalBtnText = submitBtn.innerHTML;
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+          submitBtn.disabled = true;
+        
+          // First, create the call record
+          fetch('/api/calls', {
+            method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
             credentials: 'include',
-            body: JSON.stringify({
-              status: leadStatus,
-              notes: callData.notes ? `${lead.notes || ''}\n\n${new Date().toLocaleDateString()}: ${callData.notes}` : lead.notes,
-              reminderDate: callData.reminderDate || null
-            })
-          });
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to update lead status');
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (!data.success) {
-            throw new Error(data.message || 'Failed to update lead status');
-          }
-          
-          // Show success notification
-          showNotification('Success', 'Call log saved and lead updated', 'success');
-          
-          // Close the modal
-          modalContainer.remove();
-          
-          // Refresh the leads list to show updated status
-          fetch('/api/leads', {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            credentials: 'include'
+            body: JSON.stringify(callData)
           })
-          .then(response => response.json())
           .then(response => {
-            if (response.success && response.data) {
-              // Get the leads container and refresh it
-              const leadsGrid = document.getElementById('leadsGrid');
-              if (leadsGrid) {
-                // Clear existing grid
-                leadsGrid.innerHTML = '';
+            if (!response.ok) {
+              throw new Error('Failed to save call log');
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (!data.success) {
+              throw new Error(data.message || 'Failed to save call log');
+            }
+            
+            // Then update the lead status if changed
+            return fetch(`/api/leads/${leadId}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              credentials: 'include',
+              body: JSON.stringify({
+                status: leadStatus,
+                notes: callData.notes ? `${lead.notes || ''}\n\n${new Date().toLocaleDateString()}: ${callData.notes}` : lead.notes,
+                reminderDate: callData.reminderDate || null
+              })
+            });
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to update lead status');
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (!data.success) {
+              throw new Error(data.message || 'Failed to update lead status');
+            }
+            
+            // Show success notification
+            showNotification('Success', 'Call log saved and lead updated', 'success');
+            
+            // Close the modal
+            modal.remove();
+          
+            // Refresh the leads list to show updated status
+            fetch('/api/leads', {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(response => {
+              if (response.success && response.data) {
+                // Get the leads container and refresh it
+                const leadsGrid = document.getElementById('leadsGrid');
+                if (leadsGrid) {
+                  // Clear existing grid
+                  leadsGrid.innerHTML = '';
                 
-                // Repopulate the grid with the new data
-                response.data.forEach(lead => {
-                  // Create lead card (inline method until we refactor fully)
-                  const leadCard = document.createElement('div');
-                  leadCard.className = 'lead-card';
-                  leadCard.dataset.leadId = lead.id;
+                  // Repopulate the grid with the new data
+                  response.data.forEach(lead => {
+                    // Create lead card (inline method until we refactor fully)
+                    const leadCard = document.createElement('div');
+                    leadCard.className = 'lead-card';
+                    leadCard.dataset.leadId = lead.id;
+                    
+                    // Determine priority class based on lead data
+                    let priorityClass = 'priority-medium';
+                    if (lead.status === 'qualified') {
+                      priorityClass = 'priority-high';
+                    } else if (lead.status === 'unqualified') {
+                      priorityClass = 'priority-low';
+                    }
+                    
+                    // Check if this lead is shared with an organization
+                    const isShared = lead.isShared || false;
+                    const orgName = lead.organization ? lead.organization.name : 'Team';
                   
-                  // Determine priority class based on lead data
-                  let priorityClass = 'priority-medium';
-                  if (lead.status === 'qualified') {
-                    priorityClass = 'priority-high';
-                  } else if (lead.status === 'unqualified') {
-                    priorityClass = 'priority-low';
-                  }
+                    // Format date if available
+                    const updatedDate = lead.updatedAt ? new Date(lead.updatedAt).toLocaleDateString() : 'N/A';
                   
-                  // Check if this lead is shared with an organization
-                  const isShared = lead.isShared || false;
-                  const orgName = lead.organization ? lead.organization.name : 'Team';
+                    // Create abbreviated notes if available
+                    const notes = lead.notes ? 
+                      (lead.notes.length > 100 ? lead.notes.substring(0, 100) + '...' : lead.notes) : 
+                      null;
                   
-                  // Format date if available
-                  const updatedDate = lead.updatedAt ? new Date(lead.updatedAt).toLocaleDateString() : 'N/A';
-                  
-                  // Create abbreviated notes if available
-                  const notes = lead.notes ? 
-                    (lead.notes.length > 100 ? lead.notes.substring(0, 100) + '...' : lead.notes) : 
-                    null;
-                  
-                  leadCard.innerHTML = `
+                    leadCard.innerHTML = `
                     <div class="lead-status-row">
                       <div class="lead-status-pill ${lead.status}">
                         <i class="fas fa-circle"></i>
@@ -4039,18 +4071,18 @@
               }
             }
           })
+            .catch(error => {
+              console.error('Error refreshing leads:', error);
+            });
+          })
           .catch(error => {
-            console.error('Error refreshing leads:', error);
+            console.error('Error saving call log:', error);
+            showNotification('Error', `Failed to save call log: ${error.message}`, 'error');
+            
+            // Reset button
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
           });
-        })
-        .catch(error => {
-          console.error('Error saving call log:', error);
-          showNotification('Error', `Failed to save call log: ${error.message}`, 'error');
-          
-          // Reset button
-          submitBtn.innerHTML = originalBtnText;
-          submitBtn.disabled = false;
-        });
       });
     }
     
