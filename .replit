@@ -28,6 +28,10 @@ args = "DemoSeeder"
 task = "workflow.run"
 args = "Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "ServerDebug"
+
 [[workflows.workflow]]
 name = "DBSetup"
 author = "agent"
@@ -54,6 +58,15 @@ args = "node scripts/seed-demo-data.js"
 
 [[workflows.workflow]]
 name = "Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server/index.js"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "ServerDebug"
 author = "agent"
 
 [[workflows.workflow.tasks]]
