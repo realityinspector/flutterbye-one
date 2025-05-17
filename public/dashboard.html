@@ -3512,30 +3512,36 @@
       // Show notification when starting a call
       showNotification('Starting Call', 'Preparing call screen...', 'info');
       
-      // Fetch lead details first to get phone number and contact name
-      fetch(`/api/leads/${leadId}`)
-        .then(response => response.json())
-        .then(result => {
-          if (!result.success) {
-            throw new Error(result.message || 'Failed to load lead for call');
-          }
-          
-          const lead = result.data;
-          const globalLead = lead.globalLead;
-          
-          // Either show call modal or redirect to call-in-progress page based on if there's a phone number
-          if (globalLead.phoneNumber) {
-            // Redirect to the call-in-progress page which has the full call tracking feature
-            window.location.href = `/call-in-progress/${leadId}`;
-          } else {
-            // If no phone number, show the call modal which has the option to enhance contact info
-            showCallModal(globalLead.phoneNumber, globalLead.contactName, leadId);
-          }
-        })
-        .catch(error => {
-          console.error('Error starting call:', error);
-          showNotification('Error', `Failed to start call: ${error.message}`, 'error');
-        });
+      // Hide all cards, tables, and other content first
+      document.querySelectorAll('.card-grid, #leadsTableBody, #callsTableBody').forEach(el => {
+        if (el) el.style.display = 'none';
+      });
+      
+      // Hide leads container explicitly
+      document.querySelectorAll('#leadsContainer, #leadsGrid').forEach(el => {
+        if (el) el.style.display = 'none';
+      });
+      
+      // Clear any existing call screens
+      if (callInProgressScreen) {
+        callInProgressScreen.remove();
+        callInProgressScreen = null;
+      }
+      
+      // Update page title and menu selection
+      document.querySelector('.page-title').textContent = 'Call In Progress';
+      document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+      const callsMenuItem = document.querySelector('.menu-item a[href="/calls"]');
+      if (callsMenuItem) callsMenuItem.parentElement.classList.add('active');
+      
+      // Create the call in progress screen directly - this is the core fix
+      createCallInProgressScreen(leadId);
+      
+      // Update URL without causing a page reload (for better back button behavior)
+      history.pushState({}, '', `/call-in-progress/${leadId}`);
+      
+      // Add this to global state for navigation handling
+      currentPath = `/call-in-progress/${leadId}`;
     }
     
     // Function to open edit form for a lead
