@@ -3927,23 +3927,25 @@
             modal.remove();
           
             // Refresh the leads list to show updated status
-            fetch$1).then(response => {
-        if (!response.ok) {
-          throw new Error('API error: ' + response.status + ' ' + response.statusText);
-        }
-        return response.text().then(text => {
-          try {
-            if (!text || text.trim() === '') {
-              console.error('Empty response body');
-              return { success: false, data: [] };
-            }
-            return JSON.parse(text);
-          } catch (e) {
-            console.error('JSON parse error:', e.message);
-            return { success: false, data: [] };
-          }
-        });
-      })
+            fetch('/api/leads', {
+              credentials: 'include'
+            }).then(response => {
+              if (!response.ok) {
+                throw new Error('API error: ' + response.status + ' ' + response.statusText);
+              }
+              return response.text().then(text => {
+                try {
+                  if (!text || text.trim() === '') {
+                    console.error('Empty response body');
+                    return { success: false, data: [] };
+                  }
+                  return JSON.parse(text);
+                } catch (e) {
+                  console.error('JSON parse error:', e.message);
+                  return { success: false, data: [] };
+                }
+              });
+            })
             .then(response => {
               if (response.success && response.data) {
                 // Get the leads container and refresh it
@@ -5969,7 +5971,9 @@
       const organizationSharingList = document.getElementById('organizationSharingList');
       if (!organizationSharingList) return;
       
-      fetch$1).then(response => {
+      fetch('/api/organizations', {
+        credentials: 'include'
+      }).then(response => {
         if (!response.ok) {
           throw new Error('API error: ' + response.status + ' ' + response.statusText);
         }

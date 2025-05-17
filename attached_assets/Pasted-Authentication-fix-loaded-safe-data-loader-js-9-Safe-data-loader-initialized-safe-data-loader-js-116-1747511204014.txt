@@ -1,0 +1,38 @@
+Authentication fix loaded
+safe-data-loader.js:9 Safe data loader initialized
+safe-data-loader.js:116 Safe data loader ready
+api-validator.js:49 API validator initialized - improved JSON error handling
+dashboard:3930 Uncaught SyntaxError: Unexpected token ')'Understand this error
+dashboard:5972 Uncaught SyntaxError: Unexpected token ')'Understand this error
+dashboard-debug.js:9 Dashboard debug helper loaded
+dashboard-debug.js:87 Dashboard debug helper: Enhanced fetch logging enabled
+dashboard-debug.js:17 API Request: /dashboard-check Object
+safe-data-loader.js:50 Intercepting API request to /dashboard-check
+api-interceptor.js:20 Intercepting API request to: /dashboard-check
+debug-response.js:67 [2025-05-17T19:46:30.881Z] 🌐 API Request: /dashboard-check
+debug-response.js:72 [2025-05-17T19:46:31.043Z] ✅ API Response (162ms): /dashboard-check - Status: 200
+api-interceptor.js:31 Response from /dashboard-check: 200
+api-interceptor.js:73 Successfully parsed JSON response from /dashboard-check
+safe-data-loader.js:58 Received response from /dashboard-check Status: 200
+debug-response.js:79 [2025-05-17T19:46:31.046Z] 📄 Response text for /dashboard-check:
+debug-response.js:80 ---START RESPONSE---
+debug-response.js:81 {"authenticated":true,"user":{"id":2,"username":"realityinspector","email":"sm@allonething.xyz","fullName":"Sean McDonald","companyName":null,"role":"admin","hasCompletedSetup":false,"createdAt":"2025-05-01T20:17:19.429Z","updatedAt":"2025-05-01T20:17:19.429Z"}}
+debug-response.js:82 ---END RESPONSE---
+debug-response.js:88 [2025-05-17T19:46:31.046Z] ✓ Valid JSON response for /dashboard-check: {
+  "authenticated": true,
+  "user": {
+    "id": 2,
+    "username": "realityinspector",
+    "email": "sm@allonething.xyz",
+    "fullName": "Sean McDonald",
+    "companyName": null,
+    "role": "admin",
+    "hasCompletedSetup": false,
+    "createdAt": "2025-05-01T20:17:19.429Z",
+    "updatedAt": "2025-05-01T20:17:19.429Z"
+  }
+}
+safe-data-loader.js:89 Successfully parsed JSON from /dashboard-check
+dashboard-debug.js:22 API Response status for /dashboard-check: 200
+dashboard-debug.js:38 API Response for /dashboard-check (first 100 chars): {"authenticated":true,"user":{"id":2,"username":"realityinspector","email":"sm@allonething.xyz","ful...
+dashboard-debug.js:49 Successfully parsed JSON from /dashboard-check undefined
