@@ -1,0 +1,169 @@
+/* FLUTTERBYE CRM - Lead Cards CSS */
+
+/* Card Container */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+}
+
+/* Lead Card */
+.lead-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.lead-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Card Header */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Status Area */
+.status-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Status Pill */
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.status-new {
+  background-color: #17a2b8;
+}
+
+.status-contacted {
+  background-color: #0066ff;
+}
+
+.status-qualified {
+  background-color: #28a745;
+}
+
+.status-unqualified {
+  background-color: #dc3545;
+}
+
+/* Priority Badge */
+.priority-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.priority-high {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.priority-medium {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.priority-low {
+  background-color: #999;
+  color: white;
+}
+
+/* Organization Pill */
+.org-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  background: linear-gradient(90deg, #7a5cf1, #9b75f0);
+  color: white;
+}
+
+/* Card Actions */
+.card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.card-btn {
+  background: none;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #555;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.card-btn:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+.view-btn:hover {
+  color: #0066ff;
+}
+
+.call-btn:hover {
+  color: #28a745;
+}
+
+.edit-btn:hover {
+  color: #ffc107;
+}
+
+.delete-btn:hover {
+  color: #dc3545;
+}
+
+/* Card Body */
+.card-body {
+  padding: 15px;
+}
+
+.company-name {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #555;
+  font-size: 14px;
+}
+
+.contact-item i {
+  color: #777;
+  width: 16px;
+}
