@@ -17,6 +17,43 @@ const { JWT_SECRET } = config;
 const { registerApiRoutes } = require('./routes/index');
 
 function registerRoutes(app) {
+  // JSON Response Debug Middleware
+  app.use((req, res, next) => {
+    // Store the original res.json function
+    const originalJson = res.json;
+    
+    // Override json method to add logging and validation
+    res.json = function(data) {
+      try {
+        // Validate by stringifying the data first
+        const jsonString = JSON.stringify(data);
+        
+        // Confirm it's valid JSON by parsing it back
+        JSON.parse(jsonString);
+        
+        // Log debug info
+        console.log(`API Response to ${req.method} ${req.url}: Valid JSON sent, content length ${jsonString.length}`);
+        
+        // Call the original json method with the data
+        return originalJson.call(this, data);
+      } catch (error) {
+        // Log error and send a safe response instead
+        console.error(`JSON serialization error in response to ${req.method} ${req.url}:, ${error.message}`);
+        console.error('Data that caused the error:', data);
+        
+        // Send a safe response
+        return originalJson.call(this, { 
+          success: false, 
+          message: 'An error occurred while processing the response',
+          error: process.env.NODE_ENV === 'production' ? undefined : error.message
+        });
+      }
+    };
+    
+    next();
+  });
+
+
   // Serve static files from the public directory - changed from earlier position
   // app.use(express.static('public')); // Will be moved to proper position
   
@@ -46,26 +83,31 @@ function registerRoutes(app) {
   
   // Dashboard authentication check
   app.get('/dashboard-check', (req, res) => {
-    // Get token from cookies
-    const token = req.cookies && req.cookies.auth_token;
-    
-    console.log('Dashboard check - Token present:', !!token, 'JWT_SECRET:', JWT_SECRET.substring(0, 5) + '...');
-    
-    if (!token) {
-      return res.json({ authenticated: false });
-    }
-    
-    // Verify the token
-    jwt.verify(token, JWT_SECRET, (err, decoded) => {
-      if (err) {
-        console.error('Token verification failed in routes.js:', err.message);
+    try {
+      // Get token from cookies
+      const token = req.cookies && req.cookies.auth_token;
+      
+      console.log('Dashboard check - Token present:', !!token, 'JWT_SECRET:', JWT_SECRET.substring(0, 5) + '...');
+      
+      if (!token) {
         return res.json({ authenticated: false });
       }
       
-      // Token is valid
-      console.log('Dashboard check - Token verified successfully - user:', decoded.user.username);
-      return res.json({ authenticated: true, user: decoded.user });
-    });
+      // Verify the token
+      jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) {
+          console.error('Token verification failed in routes.js:', err.message);
+          return res.json({ authenticated: false });
+        }
+        
+        // Token is valid
+        console.log('Dashboard check - Token verified successfully - user:', decoded.user.username);
+        return res.json({ authenticated: true, user: decoded.user });
+      });
+    } catch (error) {
+      console.error(`Error in /dashboard-check:`, error);
+      res.status(500).json({ success: false, message: "Internal server error" });
+    }
   });
   
   // Default route for SPA
@@ -75,23 +117,33 @@ function registerRoutes(app) {
   
   // Health check route
   app.get('/health', (req, res) => {
-    res.json({
-      status: "healthy",
-      timestamp: new Date().toISOString(),
-      message: "FLUTTERBYE API is running"
-    });
+    try {
+      res.json({
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        message: "FLUTTERBYE API is running"
+      });
+    } catch (error) {
+      console.error(`Error in /health:`, error);
+      res.status(500).json({ success: false, message: "Internal server error" });
+    }
   });
   
   // Special reset route for testing
   app.get('/reset-auth', (req, res) => {
-    // Clear auth cookie
-    console.log('Resetting auth state - clearing cookies');
-    res.clearCookie('auth_token');
-    res.json({
-      success: true,
-      message: 'Authentication reset successful',
-      timestamp: new Date().toISOString()
-    });
+    try {
+      // Clear auth cookie
+      console.log('Resetting auth state - clearing cookies');
+      res.clearCookie('auth_token');
+      res.json({
+        success: true,
+        message: 'Authentication reset successful',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error(`Error in /reset-auth:`, error);
+      res.status(500).json({ success: false, message: "Internal server error" });
+    }
   });
   
   // API documentation route
