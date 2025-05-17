@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lead Cards Demo - FLUTTERBYE CRM</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <style>
+    /* Basic Styles */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+    }
+    
+    h1 {
+      color: #0066ff;
+      margin-bottom: 20px;
+    }
+    
+    /* Card Container */
+    .lead-cards-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    /* Lead Card */
+    .lead-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .lead-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* Card Header */
+    .lead-header {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .lead-status-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    /* Status Pills */
+    .status-pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .status-new {
+      background-color: #17a2b8;
+      color: white;
+    }
+    
+    .status-contacted {
+      background-color: #0066ff;
+      color: white;
+    }
+    
+    .status-qualified {
+      background-color: #28a745;
+      color: white;
+    }
+    
+    .status-unqualified {
+      background-color: #dc3545;
+      color: white;
+    }
+    
+    /* Priority Badges */
+    .priority-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    
+    .priority-high {
+      background-color: #ffc107;
+      color: #333;
+    }
+    
+    .priority-medium {
+      background-color: #17a2b8;
+      color: white;
+    }
+    
+    .priority-low {
+      background-color: #999;
+      color: white;
+    }
+    
+    /* Organization Pill */
+    .org-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      background: linear-gradient(90deg, #7a5cf1, #9b75f0);
+      color: white;
+    }
+    
+    /* Card Actions */
+    .lead-actions {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .action-btn {
+      background: none;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #555;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    
+    .action-btn:hover {
+      background-color: rgba(0,0,0,0.05);
+    }
+    
+    .view-btn:hover {
+      color: #0066ff;
+    }
+    
+    .call-btn:hover {
+      color: #28a745;
+    }
+    
+    .edit-btn:hover {
+      color: #ffc107;
+    }
+    
+    .delete-btn:hover {
+      color: #dc3545;
+    }
+    
+    /* Card Body */
+    .lead-body {
+      padding: 16px;
+    }
+    
+    .company-name {
+      margin: 0 0 12px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .contact-name, .contact-phone {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #555;
+      font-size: 14px;
+    }
+    
+    .contact-name i, .contact-phone i {
+      color: #777;
+      width: 16px;
+    }
+    
+    /* Call Tracking Modal */
+    .call-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    
+    .call-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .call-container {
+      background: white;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      overflow: hidden;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .call-header {
+      background: linear-gradient(90deg, #0066ff, #5c9bff);
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .call-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    .call-timer {
+      font-size: 18px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .call-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .call-contact {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .contact-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #e1e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0066ff;
+      font-size: 24px;
+    }
+    
+    .contact-info-call {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .contact-name-call {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .contact-company {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .contact-phone-call {
+      font-size: 14px;
+      color: #0066ff;
+    }
+    
+    .call-notes {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .call-notes-label {
+      font-weight: 600;
+      color: #555;
+    }
+    
+    .call-notes-textarea {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 12px;
+      min-height: 120px;
+      resize: vertical;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    
+    .call-actions {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #eee;
+    }
+    
+    .call-button {
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    
+    .call-button:active {
+      transform: scale(0.98);
+    }
+    
+    .end-call-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+    
+    .end-call-btn:hover {
+      background-color: #c82333;
+    }
+    
+    .hold-call-btn {
+      background-color: #ffc107;
+      color: #333;
+    }
+    
+    .hold-call-btn:hover {
+      background-color: #e0a800;
+    }
+    
+    .mute-call-btn {
+      background-color: #6c757d;
+      color: white;
+    }
+    
+    .mute-call-btn:hover {
+      background-color: #5a6268;
+    }
+    
+    /* After Call Form */
+    .after-call-form {
+      padding: 20px;
+      display: none;
+    }
+    
+    .after-call-form.active {
+      display: block;
+    }
+    
+    .form-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin: 0 0 16px 0;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #555;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    
+    .form-select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+      background-color: white;
+    }
+    
+    .form-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .btn-primary {
+      background-color: #0066ff;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0052cc;
+    }
+    
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #5a6268;
+    }
+    
+    .status-highlight {
+      border: 2px solid transparent;
+      border-radius: 4px;
+      padding: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-block;
+      margin: 0 5px 5px 0;
+    }
+    
+    .status-highlight.active {
+      background-color: #f0f8ff;
+      border-color: #0066ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>FLUTTERBYE CRM - Lead Cards</h1>
+  
+  <!-- Lead Cards Container -->
+  <div class="lead-cards-container">
+    <!-- Lead Card - New Status -->
+    <div class="lead-card" data-id="lead-1">
+      <div class="lead-header">
+        <div class="lead-status-container">
+          <span class="status-pill status-new">New</span>
+          <span class="priority-badge priority-high">High</span>
+          <div class="org-pill"><i class="fas fa-building"></i> Sales Team</div>
+        </div>
+        <div class="lead-actions">
+          <button class="action-btn view-btn" title="View Details"><i class="fas fa-eye"></i></button>
+          <button class="action-btn call-btn" title="Call Lead"><i class="fas fa-phone"></i></button>
+          <button class="action-btn edit-btn" title="Edit Lead"><i class="fas fa-edit"></i></button>
+          <button class="action-btn delete-btn" title="Delete Lead"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+      <div class="lead-body">
+        <h3 class="company-name">Acme Corporation</h3>
+        <div class="contact-info">
+          <div class="contact-name">
+            <i class="fas fa-user"></i>
+            <span>John Smith</span>
+          </div>
+          <div class="contact-phone">
+            <i class="fas fa-phone"></i>
+            <span>(555) 123-4567</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Lead Card - Contacted Status -->
+    <div class="lead-card" data-id="lead-2">
+      <div class="lead-header">
+        <div class="lead-status-container">
+          <span class="status-pill status-contacted">Contacted</span>
+          <span class="priority-badge priority-medium">Medium</span>
+        </div>
+        <div class="lead-actions">
+          <button class="action-btn view-btn" title="View Details"><i class="fas fa-eye"></i></button>
+          <button class="action-btn call-btn" title="Call Lead"><i class="fas fa-phone"></i></button>
+          <button class="action-btn edit-btn" title="Edit Lead"><i class="fas fa-edit"></i></button>
+          <button class="action-btn delete-btn" title="Delete Lead"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+      <div class="lead-body">
+        <h3 class="company-name">TechSolutions Inc.</h3>
+        <div class="contact-info">
+          <div class="contact-name">
+            <i class="fas fa-user"></i>
+            <span>Sarah Johnson</span>
+          </div>
+          <div class="contact-phone">
+            <i class="fas fa-phone"></i>
+            <span>(555) 987-6543</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Lead Card - Qualified Status -->
+    <div class="lead-card" data-id="lead-3">
+      <div class="lead-header">
+        <div class="lead-status-container">
+          <span class="status-pill status-qualified">Qualified</span>
+          <span class="priority-badge priority-high">High</span>
+          <div class="org-pill"><i class="fas fa-building"></i> Enterprise Team</div>
+        </div>
+        <div class="lead-actions">
+          <button class="action-btn view-btn" title="View Details"><i class="fas fa-eye"></i></button>
+          <button class="action-btn call-btn" title="Call Lead"><i class="fas fa-phone"></i></button>
+          <button class="action-btn edit-btn" title="Edit Lead"><i class="fas fa-edit"></i></button>
+          <button class="action-btn delete-btn" title="Delete Lead"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+      <div class="lead-body">
+        <h3 class="company-name">Global Industries</h3>
+        <div class="contact-info">
+          <div class="contact-name">
+            <i class="fas fa-user"></i>
+            <span>Michael Brown</span>
+          </div>
+          <div class="contact-phone">
+            <i class="fas fa-phone"></i>
+            <span>(555) 456-7890</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Lead Card - Unqualified Status -->
+    <div class="lead-card" data-id="lead-4">
+      <div class="lead-header">
+        <div class="lead-status-container">
+          <span class="status-pill status-unqualified">Unqualified</span>
+          <span class="priority-badge priority-low">Low</span>
+        </div>
+        <div class="lead-actions">
+          <button class="action-btn view-btn" title="View Details"><i class="fas fa-eye"></i></button>
+          <button class="action-btn call-btn" title="Call Lead"><i class="fas fa-phone"></i></button>
+          <button class="action-btn edit-btn" title="Edit Lead"><i class="fas fa-edit"></i></button>
+          <button class="action-btn delete-btn" title="Delete Lead"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+      <div class="lead-body">
+        <h3 class="company-name">Local Business LLC</h3>
+        <div class="contact-info">
+          <div class="contact-name">
+            <i class="fas fa-user"></i>
+            <span>Jessica Wilson</span>
+          </div>
+          <div class="contact-phone">
+            <i class="fas fa-phone"></i>
+            <span>(555) 234-5678</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Call Tracking Modal -->
+  <div class="call-overlay" id="callOverlay">
+    <div class="call-container">
+      <div class="call-header">
+        <h3 class="call-title">Call in Progress</h3>
+        <div class="call-timer" id="callTimer">00:00</div>
+      </div>
+      <div class="call-body">
+        <div class="call-contact">
+          <div class="contact-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="contact-info-call">
+            <div class="contact-name-call" id="callContactName">John Smith</div>
+            <div class="contact-company" id="callCompanyName">Acme Corporation</div>
+            <div class="contact-phone-call" id="callContactPhone">(555) 123-4567</div>
+          </div>
+        </div>
+        <div class="call-notes">
+          <div class="call-notes-label">Call Notes</div>
+          <textarea class="call-notes-textarea" placeholder="Take notes during your call..."></textarea>
+        </div>
+      </div>
+      <div class="call-actions">
+        <button class="call-button mute-call-btn">
+          <i class="fas fa-microphone-slash"></i>
+          <span>Mute</span>
+        </button>
+        <button class="call-button hold-call-btn">
+          <i class="fas fa-pause"></i>
+          <span>Hold</span>
+        </button>
+        <button class="call-button end-call-btn">
+          <i class="fas fa-phone-slash"></i>
+          <span>End Call</span>
+        </button>
+      </div>
+      
+      <!-- After Call Form -->
+      <div class="after-call-form" id="afterCallForm">
+        <h4 class="form-title">Call Summary</h4>
+        <div class="form-group">
+          <label class="form-label">Call Duration</label>
+          <input type="text" class="form-control" id="callDuration" value="05:23" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Call Outcome</label>
+          <select class="form-select" id="callOutcome">
+            <option value="successful">Successful</option>
+            <option value="callback">Callback Needed</option>
+            <option value="voicemail">Left Voicemail</option>
+            <option value="not-interested">Not Interested</option>
+            <option value="wrong-number">Wrong Number</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lead Status Update</label>
+          <div class="status-options">
+            <div class="status-highlight" data-status="new">New</div>
+            <div class="status-highlight active" data-status="contacted">Contacted</div>
+            <div class="status-highlight" data-status="qualified">Qualified</div>
+            <div class="status-highlight" data-status="unqualified">Unqualified</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea class="form-control" id="afterCallNotes" rows="4">Customer is interested in our premium plan. Scheduled a demo for next week. Need to prepare custom pricing.</textarea>
+        </div>
+        <div class="form-buttons">
+          <button class="btn-secondary" id="cancelAfterCall">Cancel</button>
+          <button class="btn-primary" id="saveCallData">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Call button functionality
+    document.querySelectorAll('.call-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const card = this.closest('.lead-card');
+        const leadId = card.getAttribute('data-id');
+        const contactName = card.querySelector('.contact-name span').textContent;
+        const companyName = card.querySelector('.company-name').textContent;
+        const contactPhone = card.querySelector('.contact-phone span').textContent;
+        
+        // Update call modal with lead info
+        document.getElementById('callContactName').textContent = contactName;
+        document.getElementById('callCompanyName').textContent = companyName;
+        document.getElementById('callContactPhone').textContent = contactPhone;
+        
+        // Show call overlay
+        document.getElementById('callOverlay').classList.add('active');
+        
+        // Start call timer
+        startCallTimer();
+      });
+    });
+    
+    // End call button
+    document.querySelector('.end-call-btn').addEventListener('click', function() {
+      // Stop timer
+      clearInterval(window.callTimerInterval);
+      
+      // Hide call UI and show after-call form
+      document.querySelector('.call-body').style.display = 'none';
+      document.querySelector('.call-actions').style.display = 'none';
+      document.getElementById('afterCallForm').classList.add('active');
+      
+      // Update call title
+      document.querySelector('.call-title').textContent = 'Call Summary';
+      
+      // Set call duration
+      document.getElementById('callDuration').value = document.getElementById('callTimer').textContent;
+    });
+    
+    // Status highlight selection
+    document.querySelectorAll('.status-highlight').forEach(highlight => {
+      highlight.addEventListener('click', function() {
+        // Remove active class from all highlights
+        document.querySelectorAll('.status-highlight').forEach(h => {
+          h.classList.remove('active');
+        });
+        
+        // Add active class to clicked highlight
+        this.classList.add('active');
+      });
+    });
+    
+    // Save call data
+    document.getElementById('saveCallData').addEventListener('click', function() {
+      // Hide call overlay
+      document.getElementById('callOverlay').classList.remove('active');
+      
+      // Reset form
+      setTimeout(() => {
+        document.querySelector('.call-body').style.display = 'flex';
+        document.querySelector('.call-actions').style.display = 'flex';
+        document.getElementById('afterCallForm').classList.remove('active');
+        document.querySelector('.call-title').textContent = 'Call in Progress';
+        document.getElementById('callTimer').textContent = '00:00';
+      }, 300);
+    });
+    
+    // Cancel after-call form
+    document.getElementById('cancelAfterCall').addEventListener('click', function() {
+      // Hide call overlay
+      document.getElementById('callOverlay').classList.remove('active');
+      
+      // Reset form
+      setTimeout(() => {
+        document.querySelector('.call-body').style.display = 'flex';
+        document.querySelector('.call-actions').style.display = 'flex';
+        document.getElementById('afterCallForm').classList.remove('active');
+        document.querySelector('.call-title').textContent = 'Call in Progress';
+        document.getElementById('callTimer').textContent = '00:00';
+      }, 300);
+    });
+    
+    // Call timer functionality
+    function startCallTimer() {
+      let seconds = 0;
+      let minutes = 0;
+      document.getElementById('callTimer').textContent = '00:00';
+      
+      clearInterval(window.callTimerInterval);
+      window.callTimerInterval = setInterval(function() {
+        seconds++;
+        if (seconds >= 60) {
+          seconds = 0;
+          minutes++;
+        }
+        
+        const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
+        const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+        
+        document.getElementById('callTimer').textContent = `${formattedMinutes}:${formattedSeconds}`;
+      }, 1000);
+    }
+    
+    // Mute button functionality
+    document.querySelector('.mute-call-btn').addEventListener('click', function() {
+      const muteText = this.querySelector('span');
+      const muteIcon = this.querySelector('i');
+      
+      if (muteText.textContent === 'Mute') {
+        muteText.textContent = 'Unmute';
+        muteIcon.className = 'fas fa-microphone';
+      } else {
+        muteText.textContent = 'Mute';
+        muteIcon.className = 'fas fa-microphone-slash';
+      }
+    });
+    
+    // Hold button functionality
+    document.querySelector('.hold-call-btn').addEventListener('click', function() {
+      const holdText = this.querySelector('span');
+      const holdIcon = this.querySelector('i');
+      
+      if (holdText.textContent === 'Hold') {
+        holdText.textContent = 'Resume';
+        holdIcon.className = 'fas fa-play';
+      } else {
+        holdText.textContent = 'Hold';
+        holdIcon.className = 'fas fa-pause';
+      }
+    });
+  </script>
+</body>
+</html>
