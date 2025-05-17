@@ -3539,116 +3539,124 @@
       });
     }
     
-    // Function to start a call with a lead
+    // Simple function to initiate a call with a lead
     function startCall(leadId) {
-      // Show notification
-      showNotification('Starting Call', 'Preparing call screen...', 'info');
+      // Show loading notification
+      showNotification('Preparing Call', 'Loading call screen...', 'info');
       
-      // Fetch lead details first to get phone number and contact name
+      // Get the lead data
       fetch(`/api/leads/${leadId}`)
         .then(response => response.json())
         .then(result => {
           if (!result.success) {
-            throw new Error(result.message || 'Failed to load lead for call');
+            throw new Error('Failed to load lead information');
           }
           
           const lead = result.data;
           const globalLead = lead.globalLead;
           
-          // Create a modal dialog for the call screen
-          const modalContainer = document.createElement('div');
-          modalContainer.className = 'modal-overlay active';
-          modalContainer.id = 'callScreenModal';
+          // Create call modal
+          const modal = document.createElement('div');
+          modal.className = 'modal-overlay';
+          modal.style.position = 'fixed';
+          modal.style.top = '0';
+          modal.style.left = '0';
+          modal.style.width = '100%';
+          modal.style.height = '100%';
+          modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+          modal.style.display = 'flex';
+          modal.style.justifyContent = 'center';
+          modal.style.alignItems = 'center';
+          modal.style.zIndex = '9999';
           
-          // Create the call screen content
-          modalContainer.innerHTML = `
-            <div class="modal-content call-screen-modal">
-              <div class="call-header">
-                <div class="call-status">
-                  <i class="fas fa-phone-alt call-icon"></i>
-                  <span>Call in Progress</span>
-                </div>
-                <div class="caller-info">
-                  <div class="caller-name">${globalLead.contactName || 'Unknown Contact'}</div>
-                  <div class="caller-company">${globalLead.companyName}</div>
-                  <div class="caller-number">${globalLead.phoneNumber || 'No Phone Number'}</div>
-                </div>
+          // Call modal content
+          let callContent = `
+            <div style="background-color: white; border-radius: 8px; width: 350px; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+              <div style="border-bottom: 1px solid #eee; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 18px;">Call in Progress</h3>
+                <button id="closeCallModalBtn" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
               </div>
               
-              <div class="call-body">
-                <div class="call-timer" id="callTimer">00:00</div>
-                <div class="call-actions">
-                  ${globalLead.phoneNumber ? 
-                    `<a href="tel:${globalLead.phoneNumber.replace(/\D/g, '')}" class="call-action-btn" id="startCallBtn">
-                      <i class="fas fa-phone-alt"></i>
-                      <span>Dial Number</span>
-                    </a>` : 
-                    `<button class="call-action-btn disabled">
-                      <i class="fas fa-phone-alt"></i>
-                      <span>No Phone Number</span>
-                    </button>`
-                  }
-                  <button id="callEndedBtn" class="call-action-btn call-end-btn">
-                    <i class="fas fa-phone-slash"></i>
-                    <span>Call Ended</span>
-                  </button>
+              <div style="padding: 20px; text-align: center;">
+                <div style="margin-bottom: 15px;">
+                  <div style="font-size: 18px; font-weight: bold;">${globalLead.contactName || 'Unknown Contact'}</div>
+                  <div style="font-size: 16px; color: #666;">${globalLead.companyName}</div>
+                  <div style="font-size: 16px; color: #0066ff; margin-top: 5px;">${globalLead.phoneNumber || 'No Phone Number'}</div>
                 </div>
                 
-                <div class="call-info">
-                  <div class="call-info-item">
-                    <span class="call-info-label">Lead Status:</span>
-                    <span class="call-info-value">${lead.status}</span>
-                  </div>
-                  <div class="call-info-item">
-                    <span class="call-info-label">Last Contact:</span>
-                    <span class="call-info-value">${lead.lastContactedAt ? new Date(lead.lastContactedAt).toLocaleDateString() : 'Never contacted'}</span>
-                  </div>
-                  <div class="call-info-item">
-                    <span class="call-info-label">Notes:</span>
-                    <div class="call-info-text">${lead.notes || 'No notes available'}</div>
-                  </div>
+                <div id="callTimerDisplay" style="font-size: 36px; margin: 25px 0; font-weight: bold; font-family: monospace;">00:00</div>
+                
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                  ${globalLead.phoneNumber ? 
+                    `<a href="tel:${globalLead.phoneNumber.replace(/\D/g, '')}" id="dialBtn" style="background-color: #28a745; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; display: inline-flex; align-items: center;">
+                      <i class="fas fa-phone-alt" style="margin-right: 8px;"></i> Dial
+                    </a>` : 
+                    `<button disabled style="background-color: #ccc; color: #666; padding: 10px 20px; border-radius: 4px; display: inline-flex; align-items: center; opacity: 0.7;">
+                      <i class="fas fa-phone-alt" style="margin-right: 8px;"></i> No Number
+                    </button>`
+                  }
+                  <button id="endCallBtn" style="background-color: #dc3545; color: white; padding: 10px 20px; border-radius: 4px; border: none; display: inline-flex; align-items: center; cursor: pointer;">
+                    <i class="fas fa-phone-slash" style="margin-right: 8px;"></i> End Call
+                  </button>
                 </div>
               </div>
             </div>
           `;
           
-          document.body.appendChild(modalContainer);
+          modal.innerHTML = callContent;
+          document.body.appendChild(modal);
           
-          // Set up call timer
-          let callTime = 0;
+          // Setup timer
+          let callSeconds = 0;
           let timerInterval;
-          const callTimerEl = document.getElementById('callTimer');
           
-          // Start timer when call is initiated (clicking the call button)
-          document.getElementById('startCallBtn').addEventListener('click', () => {
-            // Start the timer
-            timerInterval = setInterval(() => {
-              callTime++;
-              const minutes = Math.floor(callTime / 60);
-              const seconds = callTime % 60;
-              callTimerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
+          // Start the timer when dial button is clicked
+          const dialBtn = document.getElementById('dialBtn');
+          if (dialBtn) {
+            dialBtn.addEventListener('click', function() {
+              if (!timerInterval) {
+                timerInterval = setInterval(function() {
+                  callSeconds++;
+                  const mins = Math.floor(callSeconds / 60);
+                  const secs = callSeconds % 60;
+                  document.getElementById('callTimerDisplay').textContent = 
+                    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                }, 1000);
+              }
+            });
+          }
+          
+          // End call button
+          document.getElementById('endCallBtn').addEventListener('click', function() {
+            // Stop timer
+            clearInterval(timerInterval);
+            
+            // Close call modal
+            modal.remove();
+            
+            // Show call log modal
+            showCallLogModal(leadId, callSeconds, lead, globalLead);
           });
           
-          // Handle call ended button
-          document.getElementById('callEndedBtn').addEventListener('click', () => {
-            // Stop the timer
-            if (timerInterval) {
-              clearInterval(timerInterval);
-            }
-            
-            // Remove call screen modal
-            modalContainer.remove();
-            
-            // Show the call log modal
-            showCallLogModal(leadId, callTime, lead, globalLead);
+          // Close modal button
+          document.getElementById('closeCallModalBtn').addEventListener('click', function() {
+            clearInterval(timerInterval);
+            modal.remove();
           });
           
         })
         .catch(error => {
           console.error('Error starting call:', error);
-          showNotification('Error', `Failed to start call: ${error.message}`, 'error');
+          showNotification('Error', 'Failed to start call: ' + error.message, 'error');
         });
+    }
+    
+    // We only need one call log function - removed duplicate showCallLogForm
+
+    // Handle errors in call functionality
+    function handleCallError(error) {
+      console.error('Error in call functionality:', error);
+      showNotification('Error', `Call failed: ${error.message}`, 'error');
     }
     
     // Function to show call log modal
