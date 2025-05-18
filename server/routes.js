@@ -60,7 +60,13 @@ function registerRoutes(app) {
   console.log('Registering all routes...');
   
   // SPA route for dashboard (protected)
-  app.get('/dashboard', (req, res) => {
+  
+  // Leads display route
+  app.get('/leads-display', authenticateJWT, (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/leads-display.html'));
+  });
+
+app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/dashboard.html'));
   });
   

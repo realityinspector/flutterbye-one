@@ -3,398 +3,227 @@
  * This script adds a simple card-based layout for leads display
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-  console.log("Lead cards fix script loaded");
+// Run immediately when loaded
+(function() {
+  // Add the necessary styles
+  addCardStyles();
   
-  // Add card styles
-  const style = document.createElement('style');
-  style.textContent = `
-    /* Lead Cards Container */
-    .lead-cards-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 15px;
-      margin: 20px 0;
-    }
+  // Set up DOM loaded event
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Lead cards fix loaded');
     
-    /* Lead Card */
-    .lead-card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
+    // Find or create the leads container
+    const mainContent = document.querySelector('main') || document.querySelector('.content') || document.body;
     
-    .lead-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    
-    /* Card Header */
-    .lead-header {
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      border-bottom: 1px solid #eee;
-    }
-    
-    .lead-status-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-    
-    /* Status Pills */
-    .status-pill {
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    
-    .status-new {
-      background-color: #17a2b8;
-      color: white;
-    }
-    
-    .status-contacted {
-      background-color: #0066ff;
-      color: white;
-    }
-    
-    .status-qualified {
-      background-color: #28a745;
-      color: white;
-    }
-    
-    .status-unqualified {
-      background-color: #dc3545;
-      color: white;
-    }
-    
-    /* Priority Badges */
-    .priority-badge {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 10px;
-    }
-    
-    .priority-high {
-      background-color: #ffc107;
-      color: #333;
-    }
-    
-    .priority-medium {
-      background-color: #17a2b8;
-      color: white;
-    }
-    
-    .priority-low {
-      background-color: #999;
-      color: white;
-    }
-    
-    /* Organization Pill */
-    .org-pill {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-      background: linear-gradient(90deg, #7a5cf1, #9b75f0);
-      color: white;
-    }
-    
-    /* Card Actions */
-    .lead-actions {
-      display: flex;
-      gap: 6px;
-    }
-    
-    .action-btn {
-      background: none;
-      border: none;
-      width: 28px;
-      height: 28px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: #555;
-      transition: background-color 0.2s, color 0.2s;
-    }
-    
-    .action-btn:hover {
-      background-color: rgba(0,0,0,0.05);
-    }
-    
-    .view-btn:hover {
-      color: #0066ff;
-    }
-    
-    .call-btn:hover {
-      color: #28a745;
-    }
-    
-    .edit-btn:hover {
-      color: #ffc107;
-    }
-    
-    .delete-btn:hover {
-      color: #dc3545;
-    }
-    
-    /* Card Body */
-    .lead-body {
-      padding: 16px;
-    }
-    
-    .company-name {
-      margin: 0 0 12px 0;
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-    }
-    
-    .contact-info {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .contact-name, .contact-phone {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #555;
-      font-size: 14px;
-    }
-    
-    .contact-name i, .contact-phone i {
-      color: #777;
-      width: 16px;
-    }
-  `;
-  document.head.appendChild(style);
-  
-  // Function to convert leads table to cards
-  function convertLeadsTableToCards() {
-    console.log("Converting leads table to cards");
-    
-    // Find all tables
-    const tables = document.querySelectorAll('table');
-    tables.forEach(table => {
-      // Check if this table is likely a leads table
-      const headerTexts = Array.from(table.querySelectorAll('thead th'))
-        .map(th => th.textContent.trim().toLowerCase());
+    if (!document.querySelector('.recent-leads-container')) {
+      const leadsContainer = document.createElement('div');
+      leadsContainer.className = 'container recent-leads-container mt-4';
+      leadsContainer.innerHTML = `
+        <div class="row">
+          <div class="col-md-12">
+            <h3 class="section-title">Recent Leads</h3>
+            <div class="recent-leads-list">
+              <div class="loading-indicator">Loading leads...</div>
+            </div>
+          </div>
+        </div>
+      `;
       
-      if (headerTexts.includes('company') || headerTexts.includes('contact') || 
-          headerTexts.includes('status') || headerTexts.includes('lead')) {
-        
-        console.log("Found leads table:", headerTexts);
-        
-        // Create cards container
-        const cardsContainer = document.createElement('div');
-        cardsContainer.className = 'lead-cards-container';
-        
-        // Process rows
-        const rows = table.querySelectorAll('tbody tr');
-        rows.forEach(row => {
-          const cells = row.querySelectorAll('td');
-          if (cells.length < 3) return;
-          
-          // Find data in cells based on header text
-          const companyIdx = headerTexts.findIndex(text => text.includes('company'));
-          const contactIdx = headerTexts.findIndex(text => text.includes('contact') || text.includes('name'));
-          const phoneIdx = headerTexts.findIndex(text => text.includes('phone'));
-          const statusIdx = headerTexts.findIndex(text => text.includes('status'));
-          
-          // Extract data, fallback to index-based if headers not found
-          const companyName = (companyIdx !== -1) ? cells[companyIdx].textContent.trim() : 
-                              (cells[0] ? cells[0].textContent.trim() : 'Unknown Company');
-          
-          const contactName = (contactIdx !== -1) ? cells[contactIdx].textContent.trim() : 
-                              (cells[1] ? cells[1].textContent.trim() : 'Unknown Contact');
-          
-          const contactPhone = (phoneIdx !== -1) ? cells[phoneIdx].textContent.trim() : 
-                              (cells[2] ? cells[2].textContent.trim() : 'No Phone');
-          
-          const status = (statusIdx !== -1) ? cells[statusIdx].textContent.trim().toLowerCase() : 'new';
-          
-          // Determine shared state
-          const isShared = row.classList.contains('shared-lead') || 
-                          row.getAttribute('data-shared') === 'true' ||
-                          row.innerHTML.includes('fa-building');
-          
-          const orgName = row.getAttribute('data-org-name') || 'Team';
-          
-          // Get lead ID
-          const leadId = row.getAttribute('data-id') || row.getAttribute('data-lead-id') || 
-                        row.id || `lead-${Math.random().toString(36).substring(2, 9)}`;
-          
-          // Determine priority
-          let priority = 'medium';
-          if (row.classList.contains('priority-high') || row.getAttribute('data-priority') === 'high') {
-            priority = 'high';
-          } else if (row.classList.contains('priority-low') || row.getAttribute('data-priority') === 'low') {
-            priority = 'low';
-          }
-          
-          // Create card
+      // Add it to the page
+      mainContent.appendChild(leadsContainer);
+    }
+    
+    // Try to fetch leads data
+    setTimeout(convertLeadsTableToCards, 200);
+  });
+  
+  function addCardStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+      .lead-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 16px;
+        margin-bottom: 12px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+      }
+      
+      .lead-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      
+      .lead-company {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 6px;
+        color: #333;
+      }
+      
+      .lead-contact, .lead-phone {
+        font-size: 14px;
+        margin-bottom: 4px;
+        color: #666;
+      }
+      
+      .lead-status {
+        display: inline-block;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 12px;
+        background-color: #f0f0f0;
+        color: #666;
+        margin: 6px 0;
+      }
+      
+      .lead-card.high-priority {
+        border-left: 4px solid #f44336;
+      }
+      
+      .lead-card.medium-priority {
+        border-left: 4px solid #ff9800;
+      }
+      
+      .lead-card.low-priority {
+        border-left: 4px solid #4caf50;
+      }
+      
+      .lead-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      
+      .lead-actions .btn {
+        font-size: 12px;
+        padding: 4px 10px;
+      }
+      
+      .recent-leads-container {
+        margin-top: 20px;
+      }
+      
+      .section-title {
+        margin-bottom: 16px;
+        border-bottom: 1px solid #eaeaea;
+        padding-bottom: 8px;
+      }
+      
+      .loading-indicator {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+      }
+      
+      .no-data {
+        text-align: center;
+        padding: 24px;
+        color: #666;
+        background-color: #f9f9f9;
+        border-radius: 4px;
+        font-style: italic;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  function convertLeadsTableToCards() {
+    console.log('Converting leads table to cards');
+    
+    // Find the leads container
+    const leadsContainer = document.querySelector('.recent-leads-list');
+    if (!leadsContainer) {
+      console.log('No leads container found');
+      return;
+    }
+    
+    // Fetch leads from API
+    fetch('/api/analytics/dashboard', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      },
+      credentials: 'include'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch leads');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Fetched leads data:', data);
+      
+      // Clear loading indicator
+      leadsContainer.innerHTML = '';
+      
+      if (data && data.data && data.data.recentLeads && data.data.recentLeads.length > 0) {
+        // Create lead cards
+        data.data.recentLeads.forEach(lead => {
+          // Create card element
           const card = document.createElement('div');
           card.className = 'lead-card';
-          card.setAttribute('data-id', leadId);
+          card.dataset.leadId = lead.id;
           
-          // Determine status and priority classes
-          let statusClass = 'status-new';
-          if (status.includes('contact')) statusClass = 'status-contacted';
-          if (status.includes('qualif') && !status.includes('unqualif')) statusClass = 'status-qualified';
-          if (status.includes('unqualif')) statusClass = 'status-unqualified';
+          // Add priority class
+          if (lead.priority >= 4) {
+            card.classList.add('high-priority');
+          } else if (lead.priority >= 2) {
+            card.classList.add('medium-priority');
+          } else {
+            card.classList.add('low-priority');
+          }
           
-          let priorityClass = 'priority-medium';
-          if (priority === 'high') priorityClass = 'priority-high';
-          if (priority === 'low') priorityClass = 'priority-low';
-          
-          // Build card HTML
+          // Set card content
           card.innerHTML = `
-            <div class="lead-header">
-              <div class="lead-status-container">
-                <span class="status-pill ${statusClass}">${status || 'New'}</span>
-                <span class="priority-badge ${priorityClass}">${priority}</span>
-                ${isShared ? `<div class="org-pill"><i class="fas fa-building"></i> ${orgName}</div>` : ''}
-              </div>
-              <div class="lead-actions">
-                <button class="action-btn view-btn" title="View Details"><i class="fas fa-eye"></i></button>
-                <button class="action-btn call-btn" title="Call Lead"><i class="fas fa-phone"></i></button>
-                <button class="action-btn edit-btn" title="Edit Lead"><i class="fas fa-edit"></i></button>
-                <button class="action-btn delete-btn" title="Delete Lead"><i class="fas fa-trash"></i></button>
-              </div>
-            </div>
-            <div class="lead-body">
-              <h3 class="company-name">${companyName}</h3>
-              <div class="contact-info">
-                <div class="contact-name">
-                  <i class="fas fa-user"></i>
-                  <span>${contactName}</span>
-                </div>
-                <div class="contact-phone">
-                  <i class="fas fa-phone"></i>
-                  <span>${contactPhone}</span>
-                </div>
-              </div>
+            <div class="lead-company">${lead.companyName || 'Unnamed Company'}</div>
+            <div class="lead-contact">${lead.contactName || 'No contact name'}</div>
+            <div class="lead-phone">${lead.phoneNumber || 'No phone number'}</div>
+            <div class="lead-status">${lead.status || 'new'}</div>
+            <div class="lead-actions">
+              <button class="btn btn-sm btn-primary btn-call" data-lead-id="${lead.id}">
+                <i class="fas fa-phone"></i> Call
+              </button>
+              <button class="btn btn-sm btn-outline-secondary btn-view" data-lead-id="${lead.id}">
+                <i class="fas fa-eye"></i> View
+              </button>
             </div>
           `;
           
-          // Attach action handlers
-          setupCardActions(card, row, leadId, contactName, companyName, contactPhone);
-          
           // Add card to container
-          cardsContainer.appendChild(card);
+          leadsContainer.appendChild(card);
+          
+          // Set up card actions
+          setupCardActions(card, null, lead.id, lead.contactName, lead.companyName, lead.phoneNumber);
         });
-        
-        // Insert cards container after table
-        if (cardsContainer.children.length > 0) {
-          const parent = table.parentNode;
-          // Hide original table and add cards
-          table.style.display = 'none';
-          parent.insertBefore(cardsContainer, table.nextSibling);
-          console.log(`Converted ${cardsContainer.children.length} leads to cards`);
-        }
+      } else {
+        // Show no data message
+        leadsContainer.innerHTML = '<div class="no-data">No leads available</div>';
       }
+    })
+    .catch(error => {
+      console.error('Error fetching leads:', error);
+      leadsContainer.innerHTML = '<div class="no-data">Error loading leads. Please refresh the page.</div>';
     });
   }
   
-  // Setup card action handlers
   function setupCardActions(card, originalRow, leadId, contactName, companyName, contactPhone) {
-    // View action
-    card.querySelector('.view-btn')?.addEventListener('click', () => {
-      // Try to find original view button
-      const viewBtn = originalRow.querySelector('.btn-view, .view-btn, [data-action="view"], button:has(.fa-eye)');
-      if (viewBtn) {
-        viewBtn.click();
-      } else {
-        console.log(`View lead: ${leadId}`);
-        // Fallback
-        window.location.href = `/leads/${leadId}`;
-      }
-    });
-    
-    // Call action
-    card.querySelector('.call-btn')?.addEventListener('click', () => {
-      // Use call tracking system if available
-      if (typeof window.startCall === 'function') {
-        window.startCall(leadId, contactName, companyName, contactPhone);
-      } else {
-        // Try to find original call button
-        const callBtn = originalRow.querySelector('.btn-call, .call-btn, [data-action="call"], button:has(.fa-phone)');
-        if (callBtn) {
-          callBtn.click();
-        } else {
-          console.log(`Call lead: ${leadId}`);
-          alert(`Calling ${contactName} at ${contactPhone}`);
-        }
-      }
-    });
-    
-    // Edit action
-    card.querySelector('.edit-btn')?.addEventListener('click', () => {
-      // Try to find original edit button
-      const editBtn = originalRow.querySelector('.btn-edit, .edit-btn, [data-action="edit"], button:has(.fa-edit)');
-      if (editBtn) {
-        editBtn.click();
-      } else {
-        console.log(`Edit lead: ${leadId}`);
-        // Fallback
-        window.location.href = `/leads/${leadId}/edit`;
-      }
-    });
-    
-    // Delete action
-    card.querySelector('.delete-btn')?.addEventListener('click', () => {
-      // Try to find original delete button
-      const deleteBtn = originalRow.querySelector('.btn-delete, .delete-btn, [data-action="delete"], button:has(.fa-trash)');
-      if (deleteBtn) {
-        deleteBtn.click();
-      } else {
-        console.log(`Delete lead: ${leadId}`);
-        if (confirm(`Are you sure you want to delete ${companyName}?`)) {
-          fetch(`/api/leads/${leadId}`, { method: 'DELETE' })
-            .then(response => {
-              if (response.ok) {
-                card.remove();
-                originalRow.remove();
-              }
-            });
-        }
-      }
-    });
-  }
-  
-  // Initial conversion after a delay to let page load fully
-  setTimeout(convertLeadsTableToCards, 1000);
-  
-  // Re-run conversion when content changes
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.type === 'childList' && 
-          (mutation.target.matches('.table-container') || 
-           mutation.target.closest('.table-container'))) {
-        setTimeout(convertLeadsTableToCards, 500);
-      }
-    });
-  });
-  
-  // Observe the document body for changes
-  observer.observe(document.body, { childList: true, subtree: true });
-  
-  // Also watch for tab switching
-  document.addEventListener('click', (e) => {
-    if (e.target.matches('.nav-link') || e.target.closest('.nav-link')) {
-      setTimeout(convertLeadsTableToCards, 500);
+    // Call button
+    const callBtn = card.querySelector('.btn-call');
+    if (callBtn) {
+      callBtn.addEventListener('click', function() {
+        window.location.href = `/call-in-progress/${leadId}`;
+      });
     }
-  });
-});
+    
+    // View button
+    const viewBtn = card.querySelector('.btn-view');
+    if (viewBtn) {
+      viewBtn.addEventListener('click', function() {
+        window.location.href = `/leads/${leadId}`;
+      });
+    }
+  }
+})();

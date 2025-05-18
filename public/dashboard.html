@@ -2131,7 +2131,208 @@
     .lead-contact-item[title]:hover {
       color: var(--primary);
     }
-  </style>
+  
+  /* Lead card styles */
+  .lead-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .lead-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  
+  .lead-company {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+  }
+  
+  .lead-contact, .lead-phone {
+    margin-bottom: 3px;
+    color: #555;
+  }
+  
+  .lead-status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    margin: 5px 0;
+    background-color: #e0e0e0;
+  }
+  
+  .lead-card.high-priority {
+    border-left: 4px solid #f44336;
+  }
+  
+  .lead-card.medium-priority {
+    border-left: 4px solid #ff9800;
+  }
+  
+  .lead-card.low-priority {
+    border-left: 4px solid #4caf50;
+  }
+  
+  .lead-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+  }
+  
+  /* Empty state styling */
+  .empty-state {
+    text-align: center;
+    padding: 30px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+  
+  .empty-state-icon {
+    font-size: 2.5em;
+    color: #ccc;
+    margin-bottom: 10px;
+  }
+  
+  .empty-state-message {
+    color: #666;
+    margin-bottom: 15px;
+  }
+  
+  .retry-btn {
+    padding: 8px 15px;
+  }
+  
+/* Lead card styles */
+.lead-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+.lead-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.lead-company {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.lead-contact, .lead-phone {
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #666;
+}
+
+.lead-status {
+  display: inline-block;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background-color: #f0f0f0;
+  color: #666;
+  margin: 6px 0;
+}
+
+.lead-card.high-priority {
+  border-left: 4px solid #f44336;
+}
+
+.lead-card.medium-priority {
+  border-left: 4px solid #ff9800;
+}
+
+.lead-card.low-priority {
+  border-left: 4px solid #4caf50;
+}
+
+.lead-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.lead-actions .btn {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+.dashboard-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 200px;
+  padding: 16px;
+  background-color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+}
+
+.stat-icon {
+  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  color: #3f51b5;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.no-data {
+  text-align: center;
+  padding: 24px;
+  color: #666;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  font-style: italic;
+}
+
+.recent-leads-container .section-title {
+  margin-bottom: 16px;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 8px;
+}
+</style>
   <script src="/js/safe-data-loader.js"></script>
   
 <script>
@@ -2143,8 +2344,46 @@ window.createTemplate = function(strings, ...values) {
 };
 </script>
   <script src="/js/safe-loader.js"></script>
+
+<script>
+  // Error handler helper
+  window.addEventListener('error', function(event) {
+    console.error('JavaScript error caught:', event.message);
+    
+    // Log details to help diagnose issues
+    if (event.error && event.error.stack) {
+      console.error('Error stack:', event.error.stack);
+    }
+    
+    // Prevent the error from breaking the whole page
+    event.preventDefault();
+  });
+  
+  // Make sure all fetch operations have proper error handling
+  const originalFetch = window.fetch;
+  window.fetch = function(...args) {
+    return originalFetch(...args)
+      .catch(error => {
+        console.error('Fetch error:', error.message);
+        // Re-throw the error for the calling code to handle
+        throw error;
+      });
+  };
+</script>
+
+  <!-- Lead Cards Display -->
+  <script src="/lead-cards-solution.js" defer></script>
+
+  <!-- Lead Cards Fix -->
+  <script src="/lead-cards-fix.js"></script>
 </head>
 <body>
+          <div style="padding: 10px; background-color: #f8f9fa; text-align: center;">
+            <a href="/leads-display" style="color: #3f51b5; text-decoration: none; font-weight: bold;">
+              <i class="fas fa-users"></i> View Leads Display
+            </a>
+          </div>
+        
 <script>
 // Helper function for safe HTML templates
 function safeHTML(strings, ...values) {
@@ -2253,6 +2492,11 @@ function renderNotificationTemplate(title, message, icon, type = 'default') {
         <p class="ai-lead-description">Let AI find your next qualified leads based on criteria you specify.</p>
       </div>
 
+      <!-- Dashboard Stats Section -->
+      <div class="card-grid dashboard-stats">
+        <!-- Stats cards will be inserted here by JavaScript -->
+      </div>
+
       <!-- Recent Leads Table - Prioritized for Mobile-First View -->
       <div id="leadsContainer" class="card-container featured-section">
         <div class="mobile-badge">MOST IMPORTANT</div>
@@ -2340,13 +2584,52 @@ function renderNotificationTemplate(title, message, icon, type = 'default') {
   <script>
   // Safe initialization
   document.addEventListener('DOMContentLoaded', function() {
+  // Initialize user interface
+  initializeDashboard();
+  
+  // Load all data immediately instead of lazy loading
+  fetchDashboardData();
+  
+  // Load leads data if on the leads page
+  if (window.location.pathname === '/leads' || window.location.pathname.startsWith('/leads/')) {
+    fetchLeadsData();
+  }
+  
+  // Add proper error handling for data loading
+    function handleDataFetchError(error, dataType) {
+    console.error(`Error loading ${dataType} data:`, error);
+    showNotification('Error', `Failed to load ${dataType} data. Please try again.`, 'error');
+    // Display empty state with retry button
+    const container = document.querySelector(`.${dataType}-container`);
+    if (container) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-exclamation-circle"></i></div>
+          <div class="empty-state-message">Unable to load ${dataType} data</div>
+          <button class="btn btn-primary retry-btn" data-type="${dataType}">Try Again</button>
+        </div>
+      `;
+      // Add retry event listener
+      const retryBtn = container.querySelector('.retry-btn');
+      if (retryBtn) {
+        retryBtn.addEventListener('click', function() {
+          if (this.dataset.type === 'dashboard') {
+            fetchDashboardData();
+          } else if (this.dataset.type === 'leads') {
+            fetchLeadsData();
+          }
+        });
+      }
+    }
+  }
+
     console.log('Dashboard initialized safely');
     
     // Perform basic initialization
     setupNotifications();
     
     // Attempt to safely load data
-    fetchDashboardData() {
+    fetchDashboardData();
     console.log('Fetching dashboard data from analytics endpoint');
     
     fetch('/api/analytics/dashboard', {
@@ -2371,46 +2654,6 @@ function renderNotificationTemplate(title, message, icon, type = 'default') {
       console.error('Error loading dashboard data:', error);
       showNotification('Error', 'Failed to load dashboard data. Please try again.', 'error');
     });
-  }
-  
-  function displayDashboardData(data) {
-    console.log('Displaying dashboard data');
-    // Simple display of basic metrics
-    const statsContainer = document.querySelector('.dashboard-stats');
-    if (statsContainer) {
-      statsContainer.innerHTML = '';
-      
-      if (data && data.metrics) {
-        const metrics = data.metrics;
-        
-        // Create stat cards
-        const createStatCard = (label, value, icon) => {
-          const card = document.createElement('div');
-          card.className = 'stat-card';
-          card.innerHTML = `
-            <div class="stat-icon"><i class="fas fa-${icon}"></i></div>
-            <div class="stat-content">
-              <div class="stat-value">${value}</div>
-              <div class="stat-label">${label}</div>
-            </div>
-          `;
-          return card;
-        };
-        
-        // Add some sample metrics
-        statsContainer.appendChild(createStatCard('Total Leads', metrics.totalLeads || 0, 'users'));
-        statsContainer.appendChild(createStatCard('Active Calls', metrics.activeCalls || 0, 'phone'));
-        statsContainer.appendChild(createStatCard('Conversion Rate', (metrics.conversionRate || 0) + '%', 'chart-line'));
-      } else {
-        statsContainer.innerHTML = '<div class="no-data">No dashboard data available</div>';
-      }
-    }
-    
-    // Display leads if available
-    if (data && data.recentLeads) {
-      displayLeads(data.recentLeads);
-    }
-  };
   });
   
   // Safe notification system
@@ -2424,14 +2667,33 @@ function renderNotificationTemplate(title, message, icon, type = 'default') {
   }
   
   // Safe data loading
-  function fetchDashboardData() {
-    console.log('Fetching dashboard data from analytics endpoint');
-    
-    fetch('/api/analytics/dashboard', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      },
+  
+function fetchDashboardData() {
+  console.log('Fetching dashboard data from analytics endpoint');
+  
+  fetch('/api/analytics/dashboard', {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json'
+    },
+    credentials: 'include'
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('Dashboard data loaded successfully:', data);
+    // Process data safely
+    displayDashboardData(data);
+  })
+  .catch(error => {
+    console.error('Error loading dashboard data:', error);
+    handleDataFetchError(error, 'dashboard');
+  });
+},
       credentials: 'include'
     })
     .then(response => {
@@ -2451,46 +2713,209 @@ function renderNotificationTemplate(title, message, icon, type = 'default') {
     });
   }
   
-  function displayDashboardData(data) {
-    console.log('Displaying dashboard data');
-    // Simple display of basic metrics
-    const statsContainer = document.querySelector('.dashboard-stats');
-    if (statsContainer) {
-      statsContainer.innerHTML = '';
+  
+
+function displayDashboardData(data) {
+  console.log('Displaying dashboard data', data);
+  
+  // Simple display of basic metrics
+  const statsContainer = document.querySelector('.dashboard-stats');
+  if (statsContainer) {
+    statsContainer.innerHTML = '';
+    
+    if (data && data.data) {
+      const metrics = data.data;
       
-      if (data && data.metrics) {
-        const metrics = data.metrics;
-        
-        // Create stat cards
-        const createStatCard = (label, value, icon) => {
-          const card = document.createElement('div');
-          card.className = 'stat-card';
-          card.innerHTML = `
-            <div class="stat-icon"><i class="fas fa-${icon}"></i></div>
-            <div class="stat-content">
-              <div class="stat-value">${value}</div>
-              <div class="stat-label">${label}</div>
-            </div>
-          `;
-          return card;
-        };
-        
-        // Add some sample metrics
-        statsContainer.appendChild(createStatCard('Total Leads', metrics.totalLeads || 0, 'users'));
-        statsContainer.appendChild(createStatCard('Active Calls', metrics.activeCalls || 0, 'phone'));
-        statsContainer.appendChild(createStatCard('Conversion Rate', (metrics.conversionRate || 0) + '%', 'chart-line'));
-      } else {
-        statsContainer.innerHTML = '<div class="no-data">No dashboard data available</div>';
-      }
+      // Create stat cards
+      const createStatCard = (label, value, icon) => {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+          <div class="stat-icon"><i class="fas fa-${icon}"></i></div>
+          <div class="stat-content">
+            <div class="stat-value">${value}</div>
+            <div class="stat-label">${label}</div>
+          </div>
+        `;
+        return card;
+      };
+      
+      // Add metrics
+      statsContainer.appendChild(createStatCard('Total Calls', metrics.totalCalls || 0, 'phone-alt'));
+      statsContainer.appendChild(createStatCard('Calls This Month', metrics.callsLastMonth || 0, 'calendar-alt'));
+      statsContainer.appendChild(createStatCard('Unique Leads Called', metrics.uniqueLeadsCalled || 0, 'users'));
+    } else {
+      statsContainer.innerHTML = '<div class="no-data">No dashboard data available</div>';
+    }
+  }
+  
+  // Display leads if available
+  if (data && data.data && data.data.recentLeads) {
+    displayLeads(data.data.recentLeads);
+  }
+}
+
+function displayLeads(leads) {
+  const leadsContainer = document.querySelector('.recent-leads-list');
+  if (!leadsContainer) return;
+  
+  console.log('Displaying leads:', leads);
+  
+  if (!leads || leads.length === 0) {
+    leadsContainer.innerHTML = '<div class="no-data">No leads available</div>';
+    return;
+  }
+  
+  // Clear existing content
+  leadsContainer.innerHTML = '';
+  
+  // Create lead cards
+  leads.forEach(lead => {
+    const leadCard = document.createElement('div');
+    leadCard.className = 'lead-card';
+    leadCard.dataset.leadId = lead.id;
+    
+    // Add priority class
+    if (lead.priority >= 4) {
+      leadCard.classList.add('high-priority');
+    } else if (lead.priority >= 2) {
+      leadCard.classList.add('medium-priority');
+    } else {
+      leadCard.classList.add('low-priority');
     }
     
-    // Display leads if available
-    if (data && data.recentLeads) {
-      displayLeads(data.recentLeads);
-    }
-  } {
-    console.log('Attempting to fetch dashboard data');
+    leadCard.innerHTML = `
+      <div class="lead-company">${lead.companyName || 'Unnamed Company'}</div>
+      <div class="lead-contact">${lead.contactName || 'No contact name'}</div>
+      <div class="lead-phone">${lead.phoneNumber || 'No phone number'}</div>
+      <div class="lead-status">${lead.status || 'new'}</div>
+      <div class="lead-actions">
+        <button class="btn btn-sm btn-call" data-lead-id="${lead.id}">
+          <i class="fas fa-phone"></i> Call
+        </button>
+        <button class="btn btn-sm btn-view" data-lead-id="${lead.id}">
+          <i class="fas fa-eye"></i> View
+        </button>
+      </div>
+    `;
     
+    // Add event listeners for buttons
+    const callBtn = leadCard.querySelector('.btn-call');
+    if (callBtn) {
+      callBtn.addEventListener('click', function() {
+        window.location.href = `/call-in-progress/${lead.id}`;
+      });
+    }
+    
+    const viewBtn = leadCard.querySelector('.btn-view');
+    if (viewBtn) {
+      viewBtn.addEventListener('click', function() {
+        window.location.href = `/leads/${lead.id}`;
+      });
+    }
+    
+    leadsContainer.appendChild(leadCard);
+  });
+}}
+
+function displayLeads(leads) {
+  const leadsContainer = document.querySelector('.recent-leads-list');
+  if (!leadsContainer) return;
+  
+  console.log('Displaying leads:', leads);
+  
+  if (!leads || leads.length === 0) {
+    leadsContainer.innerHTML = '<div class="no-data">No leads available</div>';
+    return;
+  }
+  
+  // Clear existing content
+  leadsContainer.innerHTML = '';
+  
+  // Create lead cards
+  leads.forEach(lead => {
+    const leadCard = document.createElement('div');
+    leadCard.className = 'lead-card';
+    leadCard.dataset.leadId = lead.id;
+    
+    // Add priority class
+    if (lead.priority >= 4) {
+      leadCard.classList.add('high-priority');
+    } else if (lead.priority >= 2) {
+      leadCard.classList.add('medium-priority');
+    } else {
+      leadCard.classList.add('low-priority');
+    }
+    
+    leadCard.innerHTML = `
+      <div class="lead-company">${lead.companyName || 'Unnamed Company'}</div>
+      <div class="lead-contact">${lead.contactName || 'No contact name'}</div>
+      <div class="lead-phone">${lead.phoneNumber || 'No phone number'}</div>
+      <div class="lead-status">${lead.status || 'new'}</div>
+      <div class="lead-actions">
+        <button class="btn btn-sm btn-call" data-lead-id="${lead.id}">
+          <i class="fas fa-phone"></i> Call
+        </button>
+        <button class="btn btn-sm btn-view" data-lead-id="${lead.id}">
+          <i class="fas fa-eye"></i> View
+        </button>
+      </div>
+    `;
+    
+    // Add event listeners for buttons
+    const callBtn = leadCard.querySelector('.btn-call');
+    if (callBtn) {
+      callBtn.addEventListener('click', function() {
+        window.location.href = `/call-in-progress/${lead.id}`;
+      });
+    }
+    
+    const viewBtn = leadCard.querySelector('.btn-view');
+    if (viewBtn) {
+      viewBtn.addEventListener('click', function() {
+        window.location.href = `/leads/${lead.id}`;
+      });
+    }
+    
+    leadsContainer.appendChild(leadCard);
+  });
+}
+});</script>
+  
+  <!-- Lead Cards Display -->
+  <script src="/js/dashboard-debug.js"></script>
+  <script src="/lead-cards-display.js"></script>
+
+<script>
+// Simple lead cards script that runs immediately
+(function() {
+  console.log('Lead cards display enhancement loaded');
+  
+  // Add immediate execution to transform cards when page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing lead cards');
+    setTimeout(convertLeadsToCards, 100);
+  });
+  
+  // Function to convert leads table to cards
+  function convertLeadsToCards() {
+    console.log('Converting leads to cards');
+    
+    // Clear existing content in the recent leads section
+    const recentLeadsContainer = document.querySelector('.recent-leads-list');
+    if (!recentLeadsContainer) {
+      console.log('Recent leads container not found');
+      return;
+    }
+    
+    // First check if we already have API data
+    if (window.dashboardData && window.dashboardData.data && window.dashboardData.data.recentLeads) {
+      displayLeads(window.dashboardData.data.recentLeads);
+      return;
+    }
+    
+    // Otherwise, fetch data directly
+    console.log('Fetching leads data directly');
     fetch('/api/analytics/dashboard', {
       method: 'GET',
       headers: {
@@ -2505,17 +2930,85 @@ function renderNotificationTemplate(title, message, icon, type = 'default') {
       return response.json();
     })
     .then(data => {
-      console.log('Dashboard data loaded successfully');
-      // Process data safely
+      console.log('Lead data loaded successfully:', data);
+      window.dashboardData = data;
+      
+      if (data && data.data && data.data.recentLeads) {
+        displayLeads(data.data.recentLeads);
+      } else {
+        recentLeadsContainer.innerHTML = '<div class="no-data">No leads available</div>';
+      }
     })
     .catch(error => {
-      console.error('Error loading dashboard data:', error);
+      console.error('Error loading lead data:', error);
+      recentLeadsContainer.innerHTML = '<div class="no-data">Error loading leads. Please refresh the page.</div>';
     });
   }
-</script>
   
-  <!-- Lead Cards Display -->
-  <script src="/js/dashboard-debug.js"></script>
-  <script src="/lead-cards-display.js"></script>
+  // Display leads as cards
+  function displayLeads(leads) {
+    const leadsContainer = document.querySelector('.recent-leads-list');
+    if (!leadsContainer) return;
+    
+    console.log('Displaying leads as cards:', leads);
+    
+    if (!leads || leads.length === 0) {
+      leadsContainer.innerHTML = '<div class="no-data">No leads available</div>';
+      return;
+    }
+    
+    // Clear existing content
+    leadsContainer.innerHTML = '';
+    
+    // Create lead cards
+    leads.forEach(lead => {
+      const leadCard = document.createElement('div');
+      leadCard.className = 'lead-card';
+      leadCard.dataset.leadId = lead.id;
+      
+      // Add priority class
+      if (lead.priority >= 4) {
+        leadCard.classList.add('high-priority');
+      } else if (lead.priority >= 2) {
+        leadCard.classList.add('medium-priority');
+      } else {
+        leadCard.classList.add('low-priority');
+      }
+      
+      leadCard.innerHTML = `
+        <div class="lead-company">${lead.companyName || 'Unnamed Company'}</div>
+        <div class="lead-contact">${lead.contactName || 'No contact name'}</div>
+        <div class="lead-phone">${lead.phoneNumber || 'No phone number'}</div>
+        <div class="lead-status">${lead.status || 'new'}</div>
+        <div class="lead-actions">
+          <button class="btn btn-sm btn-primary btn-call" data-lead-id="${lead.id}">
+            <i class="fas fa-phone"></i> Call
+          </button>
+          <button class="btn btn-sm btn-outline-secondary btn-view" data-lead-id="${lead.id}">
+            <i class="fas fa-eye"></i> View
+          </button>
+        </div>
+      `;
+      
+      // Add event listeners for buttons
+      const callBtn = leadCard.querySelector('.btn-call');
+      if (callBtn) {
+        callBtn.addEventListener('click', function() {
+          window.location.href = `/call-in-progress/${lead.id}`;
+        });
+      }
+      
+      const viewBtn = leadCard.querySelector('.btn-view');
+      if (viewBtn) {
+        viewBtn.addEventListener('click', function() {
+          window.location.href = `/leads/${lead.id}`;
+        });
+      }
+      
+      leadsContainer.appendChild(leadCard);
+    });
+  }
+})();
+</script>
 </body>
 </html>

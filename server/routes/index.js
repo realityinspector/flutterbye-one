@@ -8,7 +8,7 @@ const { authenticateJWT } = require('../auth');
 const organizationsRoutes = require('./organizations');
 const organizationMembersRoutes = require('./organization-members');
 const leadsRoutes = require('./leads');
-const { analytics } = require('../analytics');
+const analytics = require('../analytics');
 
 function registerApiRoutes(app) {
   // Organization routes
