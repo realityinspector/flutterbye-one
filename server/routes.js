@@ -229,10 +229,6 @@ function registerRoutes(app) {
   // Auth routes
   setupAuth(app);
 
-  // Register our new authentication routes
-  const { router: authRouter } = require('./auth-routes');
-  app.use('/api/auth', authRouter);
-
   // Register all API routes (leads, organizations, etc.)
   registerApiRoutes(app);
 

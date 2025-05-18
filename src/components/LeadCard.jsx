@@ -1,266 +1,216 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-
-// Import shared Lead model
-import { Lead } from '../../shared/models/Lead';
-import { ReactNativeUIAdapters } from '../../shared/adapters/ReactNativeAdapter';
+import {
+  Box,
+  HStack,
+  VStack,
+  Text,
+  Icon,
+  Badge,
+  Spacer,
+  Pressable,
+} from 'native-base';
+import { Feather } from '@expo/vector-icons';
 
 /**
- * Lead Card Component for React Native
- * Uses the shared Lead model across platforms
+ * LeadCard component displays a lead with contact info and status
+ * 
+ * @param {Object} props Component props
+ * @param {Object} props.lead Lead data object
+ * @param {Function} props.onPress Optional callback when card is pressed
+ * @param {React.ReactNode} props.rightElement Optional element to render on the right side
+ * @param {boolean} props.showStatus Whether to show the lead status
+ * @param {Function} props.onViewContact Optional callback when view contact button is pressed
+ * @param {Function} props.onCallLead Optional callback when call lead button is pressed 
+ * @param {Function} props.onEditLead Optional callback when edit lead button is pressed
+ * @param {Function} props.onDeleteLead Optional callback when delete lead button is pressed
  */
-const LeadCard = ({ 
-  lead, 
-  onPress, 
-  onCall, 
-  onEdit,
-  onDelete,
-  compact = false 
+const LeadCard = ({
+  lead,
+  onPress,
+  rightElement,
+  showStatus = false,
+  onViewContact,
+  onCallLead,
+  onEditLead,
+  onDeleteLead,
 }) => {
-  // Ensure we're working with a Lead model instance
-  const leadModel = lead instanceof Lead ? lead : new Lead(lead);
-  
-  // Get formatted status from UI adapter
-  const statusStyle = ReactNativeUIAdapters.formatStatus(leadModel.status);
-  
-  // Format priority as stars
-  const formatPriority = (priority) => {
-    return Array(5)
-      .fill(0)
-      .map((_, index) => (
-        <Ionicons
-          key={index}
-          name={index < priority ? 'star' : 'star-outline'}
-          size={14}
-          color={index < priority ? '#f39c12' : '#ccc'}
-          style={styles.priorityStar}
-        />
-      ));
+  // Get status badge color
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'new': return 'info';
+      case 'contacted': return 'warning';
+      case 'qualified': return 'success';
+      case 'unqualified': return 'error';
+      case 'converted': return 'purple';
+      default: return 'gray';
+    }
   };
+
+  // Format priority level
+  const getPriorityText = (priority) => {
+    if (priority >= 8) return 'High';
+    if (priority >= 4) return 'Medium';
+    return 'Low';
+  };
+
+  // Format priority color
+  const getPriorityColor = (priority) => {
+    if (priority >= 8) return 'error';
+    if (priority >= 4) return 'warning';
+    return 'success';
+  };
+
+  // Display company name or contact name if company is missing
+  const displayName = lead.globalLead?.companyName || lead.globalLead?.contactName || 'Unknown';
   
-  // Compact mode for list views
-  if (compact) {
-    return (
-      <TouchableOpacity 
-        style={styles.compactContainer}
-        onPress={() => onPress && onPress(leadModel)}
-      >
-        <View style={styles.compactContent}>
-          <Text style={styles.compactCompanyName} numberOfLines={1}>
-            {leadModel.getDisplayName()}
-          </Text>
-          
-          {leadModel.getContactName() && (
-            <Text style={styles.compactContactName} numberOfLines={1}>
-              {leadModel.getContactName()}
-            </Text>
-          )}
-        </View>
-        
-        <View style={[styles.statusBadge, { backgroundColor: statusStyle.color }]}>
-          <Text style={styles.statusText}>{statusStyle.text}</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  }
-  
-  // Full lead card
+  // Format phone number for display
+  const formatPhoneNumber = (phoneNumber) => {
+    if (!phoneNumber) return '';
+    // Simple formatting, could be enhanced with library like libphonenumber-js
+    const cleaned = phoneNumber.replace(/\D/g, '');
+    return cleaned;
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.companyName}>{leadModel.getDisplayName()}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: statusStyle.color }]}>
-          <Text style={styles.statusText}>{statusStyle.text}</Text>
-        </View>
-      </View>
-      
-      <View style={styles.content}>
-        {leadModel.getContactName() && (
-          <View style={styles.infoRow}>
-            <Ionicons name="person" size={16} color="#555" />
-            <Text style={styles.infoText}>{leadModel.getContactName()}</Text>
-          </View>
-        )}
+    <Box 
+      bg="white" 
+      p={4} 
+      rounded="md"
+      borderWidth={1}
+      borderColor="gray.100"
+      shadow={1}
+    >
+      <HStack space={3} alignItems="flex-start">
+        <Box rounded="full" bg="primary.100" p={2}>
+          <Icon as={Feather} name="briefcase" size={5} color="primary.600" />
+        </Box>
         
-        {leadModel.getPhoneNumber() && (
-          <View style={styles.infoRow}>
-            <Ionicons name="call" size={16} color="#555" />
-            <Text style={styles.infoText}>
-              {ReactNativeUIAdapters.formatPhoneNumber(leadModel.getPhoneNumber())}
+        <VStack space={1} flex={1}>
+          <HStack alignItems="center" justifyContent="space-between">
+            <Text bold numberOfLines={1} fontSize="md" maxW="70%">
+              {displayName}
             </Text>
-          </View>
-        )}
-        
-        {leadModel.getEmail() && (
-          <View style={styles.infoRow}>
-            <Ionicons name="mail" size={16} color="#555" />
-            <Text style={styles.infoText}>{leadModel.getEmail()}</Text>
-          </View>
-        )}
-        
-        <View style={styles.priorityContainer}>
-          <Text style={styles.priorityLabel}>Priority: </Text>
-          <View style={styles.priorityStars}>
-            {formatPriority(leadModel.priority)}
-          </View>
-        </View>
-        
-        {leadModel.lastContact && (
-          <Text style={styles.lastContact}>
-            Last Contact: {ReactNativeUIAdapters.formatDate(leadModel.lastContact)}
-          </Text>
-        )}
-      </View>
-      
-      <View style={styles.actions}>
-        {leadModel.canMakeCall() && (
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.callButton]}
-            onPress={() => onCall && onCall(leadModel)}
-          >
-            <Ionicons name="call" size={18} color="white" />
-            <Text style={styles.actionButtonText}>Call</Text>
-          </TouchableOpacity>
-        )}
-        
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.editButton]}
-          onPress={() => onEdit && onEdit(leadModel)}
-        >
-          <Ionicons name="create" size={18} color="white" />
-          <Text style={styles.actionButtonText}>Edit</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.deleteButton]}
-          onPress={() => onDelete && onDelete(leadModel)}
-        >
-          <Ionicons name="trash" size={18} color="white" />
-          <Text style={styles.actionButtonText}>Delete</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+            
+            {rightElement || (
+              <Badge 
+                colorScheme={getPriorityColor(lead.priority)} 
+                variant="solid" 
+                rounded="md"
+              >
+                {getPriorityText(lead.priority)}
+              </Badge>
+            )}
+          </HStack>
+          
+          <HStack alignItems="center" space={1}>
+            <Icon as={Feather} name="user" size={3} color="gray.500" />
+            <Text color="gray.600" fontSize="sm">
+              {lead.globalLead?.contactName || 'No contact name'}
+            </Text>
+          </HStack>
+          
+          {lead.globalLead?.phoneNumber && (
+            <HStack alignItems="center" space={1}>
+              <Icon as={Feather} name="phone" size={3} color="gray.500" />
+              <Text color="gray.600" fontSize="sm">
+                {formatPhoneNumber(lead.globalLead.phoneNumber)}
+              </Text>
+            </HStack>
+          )}
+          
+          {lead.globalLead?.email && (
+            <HStack alignItems="center" space={1}>
+              <Icon as={Feather} name="mail" size={3} color="gray.500" />
+              <Text color="gray.600" fontSize="sm" numberOfLines={1}>
+                {lead.globalLead.email}
+              </Text>
+            </HStack>
+          )}
+          
+          {/* Optional status badge and organization badges */}
+          {showStatus && (
+            <VStack space={2} mt={1}>
+              <HStack space={2} flexWrap="wrap">
+                <Badge colorScheme={getStatusColor(lead.status)} variant="subtle">
+                  {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                </Badge>
+                
+                {/* Organization sharing badge */}
+                {lead.isShared && lead.organizationId && (
+                  <Badge colorScheme="blue" variant="subtle">
+                    <HStack space={1} alignItems="center">
+                      <Icon as={Feather} name="users" size="2xs" />
+                      <Text fontSize="xs">
+                        {lead.organization?.name || 'Team'}
+                      </Text>
+                    </HStack>
+                  </Badge>
+                )}
+                
+                {lead.reminderDate && new Date(lead.reminderDate) > new Date() && (
+                  <HStack alignItems="center" space={1}>
+                    <Icon as={Feather} name="clock" size={3} color="amber.500" />
+                    <Text color="amber.500" fontSize="xs">
+                      Reminder: {new Date(lead.reminderDate).toLocaleDateString()}
+                    </Text>
+                  </HStack>
+                )}
+              </HStack>
+            </VStack>
+          )}
+          
+          {/* Action buttons row */}
+          <HStack space={4} mt={3} justifyContent="flex-end" px={2}>
+            <Pressable
+              onPress={() => {
+                console.log("View contact card button clicked", lead?.globalLead?.companyName || "Unknown");
+                if (onViewContact) {
+                  onViewContact(lead);
+                } else if (onPress) {
+                  onPress();
+                }
+              }}
+            >
+              <Icon as={Feather} name="eye" size="sm" color="gray.600" />
+            </Pressable>
+            
+            <Pressable
+              onPress={() => {
+                console.log("Call lead button clicked", lead?.globalLead?.phoneNumber || "No phone");
+                if (onCallLead) {
+                  onCallLead(lead);
+                }
+              }}
+            >
+              <Icon as={Feather} name="phone" size="sm" color="gray.600" />
+            </Pressable>
+            
+            <Pressable
+              onPress={() => {
+                console.log("Edit lead button clicked", lead?.id);
+                if (onEditLead) {
+                  onEditLead(lead);
+                }
+              }}
+            >
+              <Icon as={Feather} name="edit-2" size="sm" color="gray.600" />
+            </Pressable>
+            
+            <Pressable
+              onPress={() => {
+                console.log("Delete lead button clicked", lead?.id);
+                if (onDeleteLead) {
+                  onDeleteLead(lead);
+                }
+              }}
+            >
+              <Icon as={Feather} name="trash-2" size="sm" color="gray.600" />
+            </Pressable>
+          </HStack>
+        </VStack>
+      </HStack>
+    </Box>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    marginVertical: 8,
-    marginHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    overflow: 'hidden',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  companyName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    flex: 1,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  statusText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
-  content: {
-    padding: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  infoText: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#333',
-  },
-  priorityContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  priorityLabel: {
-    fontSize: 14,
-    color: '#555',
-  },
-  priorityStars: {
-    flexDirection: 'row',
-  },
-  priorityStar: {
-    marginHorizontal: 1,
-  },
-  lastContact: {
-    fontSize: 12,
-    color: '#777',
-    marginTop: 8,
-    fontStyle: 'italic',
-  },
-  actions: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  callButton: {
-    backgroundColor: '#27ae60',
-  },
-  editButton: {
-    backgroundColor: '#3498db',
-  },
-  deleteButton: {
-    backgroundColor: '#e74c3c',
-  },
-  actionButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    marginLeft: 4,
-  },
-  // Compact styles
-  compactContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  compactContent: {
-    flex: 1,
-  },
-  compactCompanyName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  compactContactName: {
-    fontSize: 14,
-    color: '#555',
-  },
-});
 
 export default LeadCard;
