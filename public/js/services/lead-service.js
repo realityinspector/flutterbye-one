@@ -26,17 +26,44 @@ class LeadService {
       const lead = new Lead(leadData);
       lead.validate();
       
+      // Format the request payload
+      const payload = lead.toJSON();
+      
+      // Log what we're sending
+      console.log('Creating lead with data:', payload);
+      
       // Send to API
-      const response = await this.apiClient.createLead(lead.toJSON());
+      const response = await this.apiClient.createLead(payload);
+      
+      // Handle different response formats
+      let createdLead;
+      if (response.success && response.data) {
+        // Standard success response format
+        createdLead = new Lead(response.data);
+      } else if (response.id) {
+        // Direct object response format
+        createdLead = new Lead(response);
+      } else {
+        throw new Error('Invalid response format from API');
+      }
       
       // Update local cache
-      const createdLead = new Lead(response.data);
       this._updateLeadInCache(createdLead);
+      
+      // Notify about successful creation
+      console.log('Lead created successfully:', createdLead);
       
       return createdLead;
     } catch (error) {
+      // Enhanced error handling
       console.error('Error creating lead:', error);
-      throw error;
+      
+      // Provide more context in the error
+      const enhancedError = new Error(`Failed to create lead: ${error.message}`);
+      enhancedError.originalError = error;
+      enhancedError.leadData = leadData;
+      
+      throw enhancedError;
     }
   }
 

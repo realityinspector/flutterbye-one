@@ -49,55 +49,178 @@ class ModalManager {
    * @returns {Object} Modal instance with close method
    */
   show(content, options = {}) {
-    // Merge options
-    const modalOptions = {
-      ...this.options,
-      ...options
-    };
-    
-    // Create modal elements
+    try {
+      // Store previously focused element for restoration later
+      this.previouslyFocused = document.activeElement;
+      
+      // Merge options
+      const modalOptions = {
+        ...this.options,
+        ...options
+      };
+      
+      // Create modal elements
+      const overlay = document.createElement('div');
+      overlay.className = modalOptions.overlayClass;
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      
+      if (modalOptions.title) {
+        overlay.setAttribute('aria-labelledby', `modal-title-${Date.now()}`);
+      } else {
+        overlay.setAttribute('aria-label', modalOptions.ariaLabel || 'Dialog');
+      }
+      
+      const modalEl = document.createElement('div');
+      modalEl.className = modalOptions.modalClass;
+      
+      // Set size constraints
+      if (modalOptions.width) {
+        modalEl.style.width = typeof modalOptions.width === 'number' 
+          ? `${modalOptions.width}px` 
+          : modalOptions.width;
+      }
+      
+      if (modalOptions.maxWidth) {
+        modalEl.style.maxWidth = typeof modalOptions.maxWidth === 'number' 
+          ? `${modalOptions.maxWidth}px` 
+          : modalOptions.maxWidth;
+      }
+      
+      if (modalOptions.height) {
+        modalEl.style.height = typeof modalOptions.height === 'number' 
+          ? `${modalOptions.height}px` 
+          : modalOptions.height;
+      }
+      
+      // Add content based on type
+      if (typeof content === 'string') {
+        // If content is a string and has a modal title, set up the aria-labelledby relationship
+        modalEl.innerHTML = content;
+        
+        // If there's a title in the content, add an ID to it for accessibility
+        const titleElement = modalEl.querySelector('.modal-header h3, .modal-header h2');
+        if (titleElement && overlay.hasAttribute('aria-labelledby')) {
+          titleElement.id = overlay.getAttribute('aria-labelledby');
+        }
+      } else if (content instanceof HTMLElement) {
+        modalEl.appendChild(content);
+        
+        // Similar title handling for HTML element content
+        const titleElement = content.querySelector('.modal-header h3, .modal-header h2');
+        if (titleElement && overlay.hasAttribute('aria-labelledby')) {
+          titleElement.id = overlay.getAttribute('aria-labelledby');
+        }
+      }
+      
+      // Add close button if needed
+      if (modalOptions.showCloseButton !== false) {
+        const closeButton = document.createElement('button');
+        closeButton.className = modalOptions.closeButtonClass;
+        closeButton.innerHTML = '&times;';
+        closeButton.setAttribute('aria-label', 'Close dialog');
+        modalEl.prepend(closeButton);
+        
+        closeButton.addEventListener('click', () => {
+          this.close(modal);
+        });
+      }
+      
+      // Add to container
+      overlay.appendChild(modalEl);
+      this.container.appendChild(overlay);
+      
+      // Create modal object
+      const modal = {
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+        overlay,
+        modal: modalEl,
+        options: modalOptions,
+        close: () => this.close(modal),
+        previouslyFocused: this.previouslyFocused
+      };
+      
+      // Add to active modals
+      this.activeModals.push(modal);
+      
+      // Set up event listeners
+      if (modalOptions.closeOnOverlayClick) {
+        overlay.addEventListener('click', (event) => {
+          if (event.target === overlay) {
+            this.close(modal);
+          }
+        });
+      }
+      
+      // Listen for escape key
+      const handleEscape = (event) => {
+        if (event.key === 'Escape') {
+          this.close(modal);
+        }
+      };
+      
+      document.addEventListener('keydown', handleEscape);
+      
+      // Store the event handler for later removal
+      modal.escapeHandler = handleEscape;
+      
+      // Trap focus within the modal
+      this._setupFocusTrap(modal);
+      
+      // Add animation classes after a short delay (for transitions)
+      setTimeout(() => {
+        overlay.classList.add('active');
+        modalEl.classList.add('active');
+        
+        // Focus the first focusable element
+        this._focusFirstElement(modalEl);
+      }, 10);
+      
+      // Execute onOpen callback if provided
+      if (typeof modalOptions.onOpen === 'function') {
+        modalOptions.onOpen(modalEl, modal);
+      }
+      
+      return modal;
+    } catch (error) {
+      console.error('Error showing modal:', error);
+      
+      // If there's an error, create a simple error modal instead
+      const errorModal = this._createErrorModal('Failed to display modal', error.message);
+      return errorModal;
+    }
+  }
+  
+  /**
+   * Create a simple error modal as a fallback
+   * @private
+   * @param {string} title - Error title
+   * @param {string} message - Error message
+   * @returns {Object} Modal instance
+   */
+  _createErrorModal(title, message) {
     const overlay = document.createElement('div');
-    overlay.className = modalOptions.overlayClass;
+    overlay.className = this.options.overlayClass;
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'error-modal-title');
     
     const modalEl = document.createElement('div');
-    modalEl.className = modalOptions.modalClass;
-    
-    if (modalOptions.width) {
-      modalEl.style.width = typeof modalOptions.width === 'number' 
-        ? `${modalOptions.width}px` 
-        : modalOptions.width;
-    }
-    
-    if (modalOptions.maxWidth) {
-      modalEl.style.maxWidth = typeof modalOptions.maxWidth === 'number' 
-        ? `${modalOptions.maxWidth}px` 
-        : modalOptions.maxWidth;
-    }
-    
-    if (modalOptions.height) {
-      modalEl.style.height = typeof modalOptions.height === 'number' 
-        ? `${modalOptions.height}px` 
-        : modalOptions.height;
-    }
-    
-    // Add content
-    if (typeof content === 'string') {
-      modalEl.innerHTML = content;
-    } else if (content instanceof HTMLElement) {
-      modalEl.appendChild(content);
-    }
-    
-    // Add close button if needed
-    if (modalOptions.showCloseButton !== false) {
-      const closeButton = document.createElement('button');
-      closeButton.className = modalOptions.closeButtonClass;
-      closeButton.innerHTML = '&times;';
-      modalEl.prepend(closeButton);
-      
-      closeButton.addEventListener('click', () => {
-        this.close(modal);
-      });
-    }
+    modalEl.className = this.options.modalClass;
+    modalEl.innerHTML = `
+      <button class="${this.options.closeButtonClass}" aria-label="Close dialog">&times;</button>
+      <div class="modal-content error-content">
+        <div class="modal-header">
+          <h3 id="error-modal-title">${title}</h3>
+        </div>
+        <div class="modal-body">
+          <p>${message}</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary">OK</button>
+        </div>
+      </div>
+    `;
     
     // Add to container
     overlay.appendChild(modalEl);
@@ -105,49 +228,75 @@ class ModalManager {
     
     // Create modal object
     const modal = {
-      id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+      id: 'error-modal',
       overlay,
       modal: modalEl,
-      options: modalOptions,
-      close: () => this.close(modal)
-    };
-    
-    // Add to active modals
-    this.activeModals.push(modal);
-    
-    // Set up event listeners
-    if (modalOptions.closeOnOverlayClick) {
-      overlay.addEventListener('click', (event) => {
-        if (event.target === overlay) {
-          this.close(modal);
-        }
-      });
-    }
-    
-    // Listen for escape key
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        this.close(modal);
+      options: this.options,
+      close: () => {
+        overlay.remove();
+        return true;
       }
     };
     
-    document.addEventListener('keydown', handleEscape);
+    // Set up event listeners
+    const closeBtn = modalEl.querySelector(`.${this.options.closeButtonClass}`);
+    const okBtn = modalEl.querySelector('.btn-primary');
     
-    // Store the event handler for later removal
-    modal.escapeHandler = handleEscape;
+    closeBtn.addEventListener('click', () => modal.close());
+    okBtn.addEventListener('click', () => modal.close());
     
-    // Add animation classes after a short delay (for transitions)
+    // Show immediately
+    overlay.classList.add('active');
+    modalEl.classList.add('active');
+    
+    // Focus the OK button
     setTimeout(() => {
-      overlay.classList.add('active');
-      modalEl.classList.add('active');
+      okBtn.focus();
     }, 10);
     
-    // Execute onOpen callback if provided
-    if (typeof modalOptions.onOpen === 'function') {
-      modalOptions.onOpen(modalEl, modal);
-    }
-    
     return modal;
+  }
+  
+  /**
+   * Set up a focus trap to keep focus within the modal
+   * @private
+   * @param {Object} modal - The modal object
+   */
+  _setupFocusTrap(modal) {
+    const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const firstFocusableElement = modal.modal.querySelectorAll(focusableElements)[0];
+    const focusableContent = modal.modal.querySelectorAll(focusableElements);
+    const lastFocusableElement = focusableContent[focusableContent.length - 1];
+    
+    modal.handleTabKey = (e) => {
+      if (e.key === 'Tab') {
+        if (e.shiftKey && document.activeElement === firstFocusableElement) {
+          e.preventDefault();
+          lastFocusableElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastFocusableElement) {
+          e.preventDefault();
+          firstFocusableElement.focus();
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', modal.handleTabKey);
+  }
+  
+  /**
+   * Focus the first focusable element in the modal
+   * @private
+   * @param {HTMLElement} modalEl - The modal element
+   */
+  _focusFirstElement(modalEl) {
+    const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const focusableContent = modalEl.querySelectorAll(focusableElements);
+    
+    if (focusableContent.length) {
+      focusableContent[0].focus();
+    } else {
+      modalEl.focus();
+    }
   }
 
   /**
@@ -160,40 +309,79 @@ class ModalManager {
       return false;
     }
     
-    // Execute onBeforeClose callback if provided
-    if (typeof modal.options.onBeforeClose === 'function') {
-      // Allow preventing close
-      const shouldClose = modal.options.onBeforeClose(modal.modal, modal);
-      if (shouldClose === false) {
-        return false;
+    try {
+      // Execute onBeforeClose callback if provided
+      if (typeof modal.options.onBeforeClose === 'function') {
+        // Allow preventing close
+        const shouldClose = modal.options.onBeforeClose(modal.modal, modal);
+        if (shouldClose === false) {
+          return false;
+        }
       }
-    }
-    
-    // Remove animation classes
-    modal.overlay.classList.remove('active');
-    modal.modal.classList.remove('active');
-    
-    // Remove escape handler
-    if (modal.escapeHandler) {
-      document.removeEventListener('keydown', modal.escapeHandler);
-    }
-    
-    // Remove from DOM after animation completes
-    setTimeout(() => {
+      
+      // Remove animation classes
+      modal.overlay.classList.remove('active');
+      modal.modal.classList.remove('active');
+      
+      // Remove event handlers
+      if (modal.escapeHandler) {
+        document.removeEventListener('keydown', modal.escapeHandler);
+      }
+      
+      if (modal.handleTabKey) {
+        document.removeEventListener('keydown', modal.handleTabKey);
+      }
+      
+      // Store the previously focused element for restoration
+      const previouslyFocused = modal.previouslyFocused;
+      
+      // Remove from DOM after animation completes
+      setTimeout(() => {
+        if (modal.overlay.parentNode) {
+          modal.overlay.parentNode.removeChild(modal.overlay);
+        }
+        
+        // Remove from active modals
+        this.activeModals = this.activeModals.filter(m => m !== modal);
+        
+        // Execute onClose callback if provided
+        if (typeof modal.options.onClose === 'function') {
+          modal.options.onClose(modal);
+        }
+        
+        // Restore focus to the previously focused element
+        if (previouslyFocused && previouslyFocused.focus) {
+          // Wait a bit to ensure the DOM has settled
+          setTimeout(() => {
+            previouslyFocused.focus();
+            
+            // Ensure the element can actually receive focus
+            if (document.activeElement !== previouslyFocused) {
+              document.body.focus();
+            }
+          }, 10);
+        }
+        
+        // If there are still active modals, focus should go to the top-most one
+        if (this.activeModals.length > 0) {
+          const topModal = this.activeModals[this.activeModals.length - 1];
+          this._focusFirstElement(topModal.modal);
+        }
+      }, modal.options.animationDuration);
+      
+      return true;
+    } catch (error) {
+      console.error('Error closing modal:', error);
+      
+      // In case of error, force removal from DOM and cleanup
       if (modal.overlay.parentNode) {
         modal.overlay.parentNode.removeChild(modal.overlay);
       }
       
-      // Remove from active modals
       this.activeModals = this.activeModals.filter(m => m !== modal);
       
-      // Execute onClose callback if provided
-      if (typeof modal.options.onClose === 'function') {
-        modal.options.onClose(modal);
-      }
-    }, modal.options.animationDuration);
-    
-    return true;
+      return false;
+    }
   }
 
   /**
