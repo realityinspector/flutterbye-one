@@ -254,7 +254,7 @@ import { LeadService } from '../services/LeadService';
 
 ### Week 5: Cleanup
 - [ ] Remove redundant files
-- [x] Update React Native to use same models
+- [ ] Update React Native to use same models
 - [x] Documentation update
 - [x] Performance optimization
 - [ ] Final QA testing

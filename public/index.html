@@ -525,9 +525,6 @@
     </div>
   </footer>
 
-  <!-- Load Auth Client -->
-  <script src="/js/auth-client.js"></script>
-  
   <!-- Login Modal -->
   <div id="loginModal" class="modal">
     <div class="modal-content">
@@ -647,40 +644,37 @@
       });
       
       // Handle login form submission
-      loginForm.addEventListener('submit', async function(e) {
+      loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
         loginError.classList.add('hidden');
         
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         
-        // Show loading state
-        const submitBtn = loginForm.querySelector('button[type="submit"]');
-        const originalBtnText = submitBtn.textContent;
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Logging in...';
-        
-        try {
-          // Use our authClient for login
-          const result = await authClient.login(username, password);
-          
-          if (result.success) {
+        fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include', // Send cookies with the request
+          body: JSON.stringify({ username, password })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
             // Login successful, redirect to dashboard
             window.location.href = '/dashboard.html';
           } else {
             // Display error message
-            loginError.textContent = result.message || 'Login failed. Please check your credentials.';
+            loginError.textContent = data.message || 'Login failed. Please check your credentials.';
             loginError.classList.remove('hidden');
           }
-        } catch (error) {
+        })
+        .catch(error => {
           console.error('Login error:', error);
-          loginError.textContent = error.message || 'Login failed. Please check your credentials.';
+          loginError.textContent = 'An error occurred. Please try again later.';
           loginError.classList.remove('hidden');
-        } finally {
-          // Restore button state
-          submitBtn.disabled = false;
-          submitBtn.textContent = originalBtnText;
-        }
+        });
       });
       
       // Handle signup form submission
