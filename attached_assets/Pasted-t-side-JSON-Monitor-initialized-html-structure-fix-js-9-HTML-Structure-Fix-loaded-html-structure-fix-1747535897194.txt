@@ -1,0 +1,221 @@
+t-side JSON Monitor initialized
+html-structure-fix.js:9 HTML Structure Fix loaded
+html-structure-fix.js:78 HTML Structure Fix initialized
+clean-html-templates.js:8 Clean HTML Templates script loaded
+clean-html-templates.js:87 Clean HTML Templates script initialized
+safe-data-loader.js:9 Safe data loader initialized
+safe-data-loader.js:116 Safe data loader ready
+safe-loader.js:5 Safe data loader initialized
+safe-loader.js:18 Safe data loader ready
+api-validator.js:49 API validator initialized - improved JSON error handling
+dashboard-debug.js:9 Dashboard debug helper loaded
+dashboard-debug.js:87 Dashboard debug helper: Enhanced fetch logging enabled
+dashboard-debug.js:17 API Request: /dashboard-check Object
+safe-data-loader.js:50 Intercepting API request to /dashboard-check
+diagnose-json-error.js:47 🔄 API Request: /dashboard-check Object
+api-interceptor.js:20 Intercepting API request to: /dashboard-check
+debug-response.js:67 [2025-05-18T02:38:00.246Z] 🌐 API Request: /dashboard-check
+dashboard:2348 Dashboard initialized safely
+dashboard:2383 Notification system initialized
+dashboard:2393 Fetching dashboard data from analytics endpoint
+dashboard-debug.js:17 API Request: /api/analytics/dashboard Object
+safe-data-loader.js:50 Intercepting API request to /api/analytics/dashboard
+diagnose-json-error.js:47 🔄 API Request: /api/analytics/dashboard Object
+api-interceptor.js:20 Intercepting API request to: /api/analytics/dashboard
+debug-response.js:67 [2025-05-18T02:38:00.246Z] 🌐 API Request: /api/analytics/dashboard
+dashboard:2355 Fetching dashboard data from analytics endpoint
+dashboard-debug.js:17 API Request: /api/analytics/dashboard Object
+safe-data-loader.js:50 Intercepting API request to /api/analytics/dashboard
+diagnose-json-error.js:47 🔄 API Request: /api/analytics/dashboard Object
+api-interceptor.js:20 Intercepting API request to: /api/analytics/dashboard
+debug-response.js:67 [2025-05-18T02:38:00.246Z] 🌐 API Request: /api/analytics/dashboard
+html-structure-fix.js:25 Possible unclosed <li> tags: 1 missing
+(anonymous) @ html-structure-fix.js:25Understand this warning
+html-structure-fix.js:25 Possible unclosed <th> tags: 1 missing
+(anonymous) @ html-structure-fix.js:25Understand this warning
+html-structure-fix.js:39 Document structure check complete
+debug-response.js:72 [2025-05-18T02:38:00.356Z] ✅ API Response (110ms): /dashboard-check - Status: 200
+api-interceptor.js:31 Response from /dashboard-check: 200
+favicon.ico:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+api-interceptor.js:73 Successfully parsed JSON response from /dashboard-check
+debug-response.js:79 [2025-05-18T02:38:00.358Z] 📄 Response text for /dashboard-check:
+debug-response.js:80 ---START RESPONSE---
+debug-response.js:81 {"authenticated":true,"user":{"id":2,"username":"realityinspector","email":"sm@allonething.xyz","fullName":"Sean McDonald","companyName":null,"role":"admin","hasCompletedSetup":false,"createdAt":"2025-05-01T20:17:19.429Z","updatedAt":"2025-05-01T20:17:19.429Z"}}
+debug-response.js:82 ---END RESPONSE---
+debug-response.js:88 [2025-05-18T02:38:00.358Z] ✓ Valid JSON response for /dashboard-check: {
+  "authenticated": true,
+  "user": {
+    "id": 2,
+    "username": "realityinspector",
+    "email": "sm@allonething.xyz",
+    "fullName": "Sean McDonald",
+    "companyName": null,
+    "role": "admin",
+    "hasCompletedSetup": false,
+    "createdAt": "2025-05-01T20:17:19.429Z",
+    "updatedAt": "2025-05-01T20:17:19.429Z"
+  }
+}
+diagnose-json-error.js:64 ✅ Response for /dashboard-check: Status=200, Size=262 bytes
+client-json-monitor.js:130 Fetch response for /dashboard-check: {"authenticated":true,"user":{"id":2,"username":"realityinspector","email":"sm@allonething.xyz","ful... (262 chars)
+client-json-monitor.js:141 ✅ Valid JSON from /dashboard-check
+safe-data-loader.js:58 Received response from /dashboard-check Status: 200
+safe-data-loader.js:89 Successfully parsed JSON from /dashboard-check
+dashboard-debug.js:22 API Response status for /dashboard-check: 200
+dashboard-debug.js:38 API Response for /dashboard-check (first 100 chars): {"authenticated":true,"user":{"id":2,"username":"realityinspector","email":"sm@allonething.xyz","ful...
+dashboard-debug.js:49 Successfully parsed JSON from /dashboard-check undefined
+auth-fix.js:33 Authentication check status: 200
+auth-fix.js:65 Authentication successful, user: realityinspector
+debug-response.js:72 [2025-05-18T02:38:00.481Z] ✅ API Response (235ms): /api/analytics/dashboard - Status: 200
+api-interceptor.js:31 Response from /api/analytics/dashboard: 200
+api-interceptor.js:73 Successfully parsed JSON response from /api/analytics/dashboard
+debug-response.js:79 [2025-05-18T02:38:00.484Z] 📄 Response text for /api/analytics/dashboard:
+debug-response.js:80 ---START RESPONSE---
+debug-response.js:81 {"success":true,"data":{"totalCalls":4,"callsLastWeek":0,"callsLastMonth":4,"avgDuration":15,"uniqueLeadsCalled":4,"pendingFollowups":0,"recentLeads":[{"id":15,"status":"new","priority":5,"isShared":false,"companyName":"La Venadita","contactName":"Nestor Takahashi","phoneNumber":"+1 916-329-8587"},{"id":14,"status":"new","priority":5,"isShared":false,"companyName":"Chando's Tacos","contactName":"Lisandro 'Chando' Madrigal","phoneNumber":"+1 916-376-8226"},{"id":12,"status":"new","priority":5,"isShared":false,"companyName":"Napa Valley Yoga Center","contactName":null,"phoneNumber":null},{"id":11,"status":"new","priority":5,"isShared":false,"companyName":"Test Company","contactName":null,"phoneNumber":null},{"id":10,"status":"new","priority":3,"isShared":false,"companyName":"Green Earth Organics","contactName":"Jordan Smith","phoneNumber":"555-876-5432"}]}}
+debug-response.js:82 ---END RESPONSE---
+debug-response.js:88 [2025-05-18T02:38:00.484Z] ✓ Valid JSON response for /api/analytics/dashboard: {
+  "success": true,
+  "data": {
+    "totalCalls": 4,
+    "callsLastWeek": 0,
+    "callsLastMonth": 4,
+    "avgDuration": 15,
+    "uniqueLeadsCalled": 4,
+    "pendingFollowups": 0,
+    "recentLeads": [
+      {
+        "id": 15,
+        "status": "new",
+        "priority": 5,
+        "isShared": false,
+        "companyName": "La Venadita",
+        "contactName": "Nestor Takahashi",
+        "phoneNumber": "+1 916-329-8587"
+      },
+      {
+        "id": 14,
+        "status": "new",
+        "priority": 5,
+        "isShared": false,
+        "companyName": "Chando's Tacos",
+        "contactName": "Lisandro 'Chando' Madrigal",
+        "phoneNumber": "+1 916-376-8226"
+      },
+      {
+        "id": 12,
+        "status": "new",
+        "priority": 5,
+        "isShared": false,
+        "companyName": "Napa Valley Yoga Center",
+        "contactName": null,
+        "phoneNumber": null
+      },
+      {
+        "id": 11,
+        "status": "new",
+        "priority": 5,
+        "isShared": false,
+        "companyName": "Test Company",
+        "contactName": null,
+        "phoneNumber": null
+      },
+      {
+        "id": 10,
+        "status": "new",
+        "priority": 3,
+        "isShared": false,
+        "companyName": "Green Earth Organics",
+        "contactName": "Jordan Smith",
+        "phoneNumber": "555-876-5432"
+      }
+    ]
+  }
+}
+diagnose-json-error.js:64 ✅ Response for /api/analytics/dashboard: Status=200, Size=867 bytes
+client-json-monitor.js:130 Fetch response for /api/analytics/dashboard: {"success":true,"data":{"totalCalls":4,"callsLastWeek":0,"callsLastMonth":4,"avgDuration":15,"unique... (867 chars)
+client-json-monitor.js:141 ✅ Valid JSON from /api/analytics/dashboard
+safe-data-loader.js:58 Received response from /api/analytics/dashboard Status: 200
+safe-data-loader.js:89 Successfully parsed JSON from /api/analytics/dashboard
+dashboard-debug.js:22 API Response status for /api/analytics/dashboard: 200
+dashboard-debug.js:38 API Response for /api/analytics/dashboard (first 100 chars): {"success":true,"data":{"totalCalls":4,"callsLastWeek":0,"callsLastMonth":4,"avgDuration":15,"unique...
+dashboard-debug.js:49 Successfully parsed JSON from /api/analytics/dashboard true
+dashboard:2409 Dashboard data loaded successfully: Object
+dashboard:2420 Displaying dashboard data
+debug-response.js:72 [2025-05-18T02:38:00.672Z] ✅ API Response (426ms): /api/analytics/dashboard - Status: 200
+api-interceptor.js:31 Response from /api/analytics/dashboard: 200
+api-interceptor.js:73 Successfully parsed JSON response from /api/analytics/dashboard
+debug-response.js:79 [2025-05-18T02:38:00.673Z] 📄 Response text for /api/analytics/dashboard:
+debug-response.js:80 ---START RESPONSE---
+debug-response.js:81 {"success":true,"data":{"totalCalls":4,"callsLastWeek":0,"callsLastMonth":4,"avgDuration":15,"uniqueLeadsCalled":4,"pendingFollowups":0,"recentLeads":[{"id":15,"status":"new","priority":5,"isShared":false,"companyName":"La Venadita","contactName":"Nestor Takahashi","phoneNumber":"+1 916-329-8587"},{"id":14,"status":"new","priority":5,"isShared":false,"companyName":"Chando's Tacos","contactName":"Lisandro 'Chando' Madrigal","phoneNumber":"+1 916-376-8226"},{"id":12,"status":"new","priority":5,"isShared":false,"companyName":"Napa Valley Yoga Center","contactName":null,"phoneNumber":null},{"id":11,"status":"new","priority":5,"isShared":false,"companyName":"Test Company","contactName":null,"phoneNumber":null},{"id":10,"status":"new","priority":3,"isShared":false,"companyName":"Green Earth Organics","contactName":"Jordan Smith","phoneNumber":"555-876-5432"}]}}
+debug-response.js:82 ---END RESPONSE---
+debug-response.js:88 [2025-05-18T02:38:00.673Z] ✓ Valid JSON response for /api/analytics/dashboard: {
+  "success": true,
+  "data": {
+    "totalCalls": 4,
+    "callsLastWeek": 0,
+    "callsLastMonth": 4,
+    "avgDuration": 15,
+    "uniqueLeadsCalled": 4,
+    "pendingFollowups": 0,
+    "recentLeads": [
+      {
+        "id": 15,
+        "status": "new",
+        "priority": 5,
+        "isShared": false,
+        "companyName": "La Venadita",
+        "contactName": "Nestor Takahashi",
+        "phoneNumber": "+1 916-329-8587"
+      },
+      {
+        "id": 14,
+        "status": "new",
+        "priority": 5,
+        "isShared": false,
+        "companyName": "Chando's Tacos",
+        "contactName": "Lisandro 'Chando' Madrigal",
+        "phoneNumber": "+1 916-376-8226"
+      },
+      {
+        "id": 12,
+        "status": "new",
+        "priority": 5,
+        "isShared": false,
+        "companyName": "Napa Valley Yoga Center",
+        "contactName": null,
+        "phoneNumber": null
+      },
+      {
+        "id": 11,
+        "status": "new",
+        "priority": 5,
+        "isShared": false,
+        "companyName": "Test Company",
+        "contactName": null,
+        "phoneNumber": null
+      },
+      {
+        "id": 10,
+        "status": "new",
+        "priority": 3,
+        "isShared": false,
+        "companyName": "Green Earth Organics",
+        "contactName": "Jordan Smith",
+        "phoneNumber": "555-876-5432"
+      }
+    ]
+  }
+}
+diagnose-json-error.js:64 ✅ Response for /api/analytics/dashboard: Status=200, Size=867 bytes
+client-json-monitor.js:130 Fetch response for /api/analytics/dashboard: {"success":true,"data":{"totalCalls":4,"callsLastWeek":0,"callsLastMonth":4,"avgDuration":15,"unique... (867 chars)
+client-json-monitor.js:141 ✅ Valid JSON from /api/analytics/dashboard
+safe-data-loader.js:58 Received response from /api/analytics/dashboard Status: 200
+safe-data-loader.js:89 Successfully parsed JSON from /api/analytics/dashboard
+dashboard-debug.js:22 API Response status for /api/analytics/dashboard: 200
+dashboard-debug.js:38 API Response for /api/analytics/dashboard (first 100 chars): {"success":true,"data":{"totalCalls":4,"callsLastWeek":0,"callsLastMonth":4,"avgDuration":15,"unique...
+dashboard-debug.js:49 Successfully parsed JSON from /api/analytics/dashboard true
+dashboard:2371 Dashboard data loaded successfully: Object
+dashboard:2420 Displaying dashboar

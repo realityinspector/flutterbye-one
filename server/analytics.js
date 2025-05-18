@@ -32,13 +32,39 @@ async function getDashboardMetrics(userId = null) {
     
     // Format the results
     const metrics = result.rows[0];
+    
+    // Also get recent leads for this user
+    let recentLeads = [];
+    if (userId) {
+      const leadsQuery = `
+        SELECT ul.id, ul.status, ul.priority, ul.is_shared, gl.company_name, gl.contact_name, gl.phone_number
+        FROM user_leads ul
+        JOIN global_leads gl ON ul.global_lead_id = gl.id
+        WHERE ul.user_id = $1
+        ORDER BY ul.created_at DESC
+        LIMIT 5
+      `;
+      
+      const leadsResult = await pool.query(leadsQuery, [userId]);
+      recentLeads = leadsResult.rows.map(row => ({
+        id: row.id,
+        status: row.status,
+        priority: row.priority,
+        isShared: row.is_shared,
+        companyName: row.company_name,
+        contactName: row.contact_name,
+        phoneNumber: row.phone_number
+      }));
+    }
+    
     return {
       totalCalls: parseInt(metrics.total_calls) || 0,
       callsLastWeek: parseInt(metrics.calls_last_week) || 0,
       callsLastMonth: parseInt(metrics.calls_last_month) || 0,
       avgDuration: Math.round(parseFloat(metrics.avg_duration) || 0),
       uniqueLeadsCalled: parseInt(metrics.unique_leads_called) || 0,
-      pendingFollowups: parseInt(metrics.pending_followups) || 0
+      pendingFollowups: parseInt(metrics.pending_followups) || 0,
+      recentLeads: recentLeads
     };
   } catch (error) {
     console.error('Error getting dashboard metrics:', error);
