@@ -3,19 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FLUTTERBYE: The CRM Focused on Healthy Meetings</title>
+  <title>FlutterBye CRM</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
     :root {
-      --primary: #0066ff;
-      --primary-dark: #0052cc;
-      --secondary: #e6f0ff;
-      --dark: #333;
-      --light: #f7f7f7;
-      --success: #28a745;
-      --danger: #dc3545;
-      --warning: #ffc107;
-      --info: #17a2b8;
+      --primary-color: #4a6cf7;
+      --primary-dark: #3a5cd7;
+      --primary-light: #6a8cf7;
+      --secondary-color: #5fd3f3;
+      --accent-color: #f76a8c;
+      --success-color: #4CAF50;
+      --warning-color: #FFC107;
+      --danger-color: #F44336;
+      --dark-color: #333333;
+      --light-color: #f4f4f4;
+      --grey-color: #9E9E9E;
+      --grey-light: #e0e0e0;
+      --text-dark: #333333;
+      --text-light: #f4f4f4;
+      --border-radius: 4px;
+      --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
     }
     
     * {
@@ -25,276 +33,269 @@
     }
     
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--light-color);
+      color: var(--text-dark);
       line-height: 1.6;
-      color: var(--dark);
-      background-color: var(--light);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
+      min-height: 100vh;
     }
     
-    a {
-      text-decoration: none;
-      color: var(--primary);
-    }
-    
-    button, .btn {
-      cursor: pointer;
-      padding: 10px 20px;
-      border-radius: 4px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-    
-    .btn-primary {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-    }
-    
-    .btn-primary:hover {
-      background-color: var(--primary-dark);
-    }
-    
-    .btn-outline {
-      background-color: transparent;
-      color: var(--primary);
-      border: 1px solid var(--primary);
-    }
-    
-    .btn-outline:hover {
-      background-color: var(--primary);
-      color: white;
-    }
-    
-    /* Header & Navigation */
-    header {
-      background-color: white;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      padding: 1rem;
-      z-index: 100;
-    }
-    
-    .navbar {
+    .container {
       max-width: 1200px;
       margin: 0 auto;
+      padding: 0 15px;
+    }
+    
+    header {
+      background-color: white;
+      box-shadow: var(--box-shadow);
+      padding: 1rem 0;
+    }
+    
+    .header-content {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     
     .logo {
-      font-size: 1.5rem;
+      font-size: 1.8rem;
       font-weight: 700;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
+      color: var(--primary-color);
     }
     
     .logo i {
       margin-right: 10px;
     }
     
-    .nav-links {
+    nav ul {
       display: flex;
       list-style: none;
     }
     
-    .nav-links li {
-      margin-left: 2rem;
+    nav ul li {
+      margin-left: 20px;
     }
     
-    .nav-links a {
-      color: var(--dark);
+    nav ul li a {
+      color: var(--dark-color);
+      text-decoration: none;
       font-weight: 500;
+      transition: var(--transition);
     }
     
-    .nav-links a:hover {
-      color: var(--primary);
+    nav ul li a:hover {
+      color: var(--primary-color);
     }
     
-    /* Hero Section */
-    .hero {
-      background: linear-gradient(135deg, var(--primary) 0%, #66a3ff 100%);
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: var(--primary-color);
       color: white;
-      padding: 4rem 1rem;
+      text-decoration: none;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      transition: var(--transition);
+      border: none;
+      cursor: pointer;
+    }
+    
+    .btn:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      border: 2px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+    
+    .btn-outline:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .hero {
+      padding: 80px 0;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+      color: white;
       text-align: center;
     }
     
-    .hero-content {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    
     .hero h1 {
-      font-size: 2.5rem;
+      font-size: 3rem;
       margin-bottom: 1rem;
     }
     
     .hero p {
       font-size: 1.2rem;
       margin-bottom: 2rem;
-      opacity: 0.9;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
     }
     
-    /* Features Section */
+    .hero-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    
     .features {
-      padding: 4rem 1rem;
+      padding: 80px 0;
       background-color: white;
     }
     
-    .section-title {
+    .section-header {
       text-align: center;
       margin-bottom: 3rem;
-      color: var(--dark);
-      font-size: 2rem;
     }
     
-    .feature-grid {
+    .section-header h2 {
+      font-size: 2rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+    
+    .section-header p {
+      max-width: 700px;
+      margin: 0 auto;
+      color: var(--grey-color);
+    }
+    
+    .features-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
     }
     
     .feature-card {
-      background-color: var(--light);
-      border-radius: 8px;
+      background-color: var(--light-color);
+      border-radius: var(--border-radius);
       padding: 2rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       text-align: center;
-      transition: transform 0.3s ease;
+      box-shadow: var(--box-shadow);
+      transition: var(--transition);
     }
     
     .feature-card:hover {
       transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
     
     .feature-icon {
-      font-size: 2.5rem;
-      color: var(--primary);
+      font-size: 3rem;
+      color: var(--primary-color);
       margin-bottom: 1rem;
     }
     
     .feature-card h3 {
+      font-size: 1.5rem;
       margin-bottom: 1rem;
-      color: var(--dark);
     }
     
-    /* Login Form */
-    .login-section {
-      padding: 4rem 1rem;
-      background-color: var(--secondary);
-    }
-    
-    .login-container {
-      max-width: 400px;
-      margin: 0 auto;
-      background-color: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-    
-    .form-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-    }
-    
-    .form-group input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-    
-    .form-group input:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-    
-    .login-buttons {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    /* Footer */
-    footer {
-      background-color: var(--dark);
+    .cta {
+      padding: 80px 0;
+      background-color: var(--primary-color);
       color: white;
-      padding: 2rem 1rem;
+      text-align: center;
+    }
+    
+    .cta h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .cta p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    footer {
+      background-color: var(--dark-color);
+      color: white;
+      padding: 3rem 0;
       margin-top: auto;
-      width: 100%;
-      box-sizing: border-box;
-      left: 0;
-      right: 0;
-      max-width: 100%;
-      position: static;
-      display: block;
-      clear: both;
-      flex-shrink: 0;
     }
     
     .footer-content {
-      max-width: 1200px;
-      margin: 0 auto;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 2rem;
     }
     
-    .footer-col h3 {
-      margin-bottom: 1rem;
-      color: white;
+    .footer-column h3 {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+      position: relative;
     }
     
-    .footer-col ul {
+    .footer-column h3::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -10px;
+      width: 50px;
+      height: 2px;
+      background-color: var(--primary-color);
+    }
+    
+    .footer-column ul {
       list-style: none;
     }
     
-    .footer-col ul li {
-      margin-bottom: 0.5rem;
+    .footer-column ul li {
+      margin-bottom: 10px;
     }
     
-    .footer-col a {
-      color: #ddd;
+    .footer-column ul li a {
+      color: var(--grey-light);
+      text-decoration: none;
+      transition: var(--transition);
     }
     
-    .footer-col a:hover {
+    .footer-column ul li a:hover {
       color: white;
     }
     
-    .footer-bottom {
+    .social-links {
+      display: flex;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .social-links a {
+      color: white;
+      background-color: rgba(255, 255, 255, 0.1);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    
+    .social-links a:hover {
+      background-color: var(--primary-color);
+    }
+    
+    .copyright {
       text-align: center;
       padding-top: 2rem;
       margin-top: 2rem;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
       font-size: 0.9rem;
-      color: #aaa;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      color: var(--grey-light);
     }
     
-    .footer-logo {
-      margin-top: 1.5rem;
-    }
-    
-    .footer-logo img {
-      max-width: 100%;
-      height: auto;
-    }
-    
-    /* Modal */
+    /* Modal Styles */
     .modal {
       display: none;
       position: fixed;
@@ -303,152 +304,232 @@
       width: 100%;
       height: 100%;
       background-color: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
       align-items: center;
       justify-content: center;
+      z-index: 1000;
     }
     
-    .modal.show {
+    .modal.active {
       display: flex;
     }
     
     .modal-content {
       background-color: white;
+      border-radius: var(--border-radius);
+      width: 100%;
+      max-width: 400px;
       padding: 2rem;
-      border-radius: 8px;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      animation: modalOpen 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      position: relative;
     }
     
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--grey-color);
+      transition: var(--transition);
+    }
+    
+    .modal-close:hover {
+      color: var(--danger-color);
+    }
+    
+    .modal h2 {
+      margin-bottom: 1.5rem;
+      color: var(--primary-color);
+    }
+    
+    .form-group {
       margin-bottom: 1.5rem;
     }
     
-    .modal-header h2 {
-      color: var(--dark);
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
     }
     
-    .close-modal {
-      font-size: 1.5rem;
-      cursor: pointer;
-      background: none;
-      border: none;
-      color: #888;
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--grey-light);
+      border-radius: var(--border-radius);
+      font-size: 1rem;
     }
     
-    .close-modal:hover {
-      color: var(--danger);
+    .form-buttons {
+      display: flex;
+      justify-content: space-between;
     }
     
-    .message {
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 4px;
-    }
-    
-    .message.error {
-      background-color: rgba(220, 53, 69, 0.1);
-      color: var(--danger);
-      border: 1px solid rgba(220, 53, 69, 0.2);
+    .error-message {
+      color: var(--danger-color);
+      font-size: 0.9rem;
+      margin-top: 10px;
     }
     
     .hidden {
       display: none;
     }
     
-    @keyframes modalOpen {
-      from {
-        opacity: 0;
-        transform: translateY(-50px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    /* Responsive */
+    /* Responsive Styles */
     @media (max-width: 768px) {
-      .nav-links {
+      nav ul {
         display: none;
       }
       
-      .feature-grid {
-        grid-template-columns: 1fr;
+      .hero h1 {
+        font-size: 2rem;
+      }
+      
+      .hero p {
+        font-size: 1rem;
+      }
+      
+      .hero-buttons {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .hero-buttons .btn {
+        width: 100%;
       }
     }
   </style>
 </head>
 <body>
-  <!-- Header & Navigation -->
   <header>
-    <nav class="navbar">
-      <a href="#" class="logo">
-        <i class="fas fa-wind"></i>
-        FLUTTERBYE
-      </a>
-      <ul class="nav-links">
-        <li><a href="#features">Features</a></li>
-        <li><a href="#pricing">Pricing</a></li>
-        <li><a href="#contact">Contact</a></li>
-        <li><a href="#" id="loginBtn" class="btn btn-outline">Login</a></li>
-      </ul>
-    </nav>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <i class="fas fa-feather-alt"></i> FlutterBye CRM
+        </div>
+        <nav>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </nav>
+        <div>
+          <button id="loginBtn" class="btn btn-outline">Login</button>
+          <button id="signupBtn" class="btn">Sign Up</button>
+        </div>
+      </div>
+    </div>
   </header>
 
-  <!-- Hero Section -->
   <section class="hero">
-    <div class="hero-content">
-      <h1>FLUTTERBYE: The CRM Focused on Healthy Meetings</h1>
-      <p>Transform your customer relationships with walk-and-talk meetings. Making fitness and productivity work together.</p>
-      <div class="alpha-notice" style="background-color: rgba(255,255,255,0.2); padding: 10px; border-radius: 4px; margin-bottom: 20px;">
-        <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>Alpha Version Notice:</strong> FLUTTERBYE is currently in alpha development. Many features are still under development and may not be fully functional.</p>
+    <div class="container">
+      <h1>Smart CRM for Modern Sales Teams</h1>
+      <p>FlutterBye is an intelligent CRM system designed to empower sales professionals with advanced lead management and powerful contact tracking capabilities.</p>
+      <div class="hero-buttons">
+        <a href="#demo" class="btn">Request Demo</a>
+        <a href="#dashboard" class="btn btn-outline">Go to Dashboard</a>
       </div>
-      <button class="btn btn-primary" id="getStartedBtn">Get Started</button>
     </div>
   </section>
 
-  <!-- Features Section -->
-  <section class="features" id="features">
-    <h2 class="section-title">Key Features</h2>
-    <div class="feature-grid">
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-walking"></i>
-        </div>
-        <h3>Walk & Talk Meetings</h3>
-        <p>Schedule informal walking meetings with clients and team members to boost creativity and health simultaneously.</p>
+  <section id="features" class="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Powerful Features</h2>
+        <p>Discover the tools that will transform your sales process and boost your team's productivity.</p>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-users"></i>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <h3>Lead Management</h3>
+          <p>Organize leads effectively with custom pipelines, prioritization, and automated follow-ups.</p>
         </div>
-        <h3>Healthy Lead Management</h3>
-        <p>Manage your contacts, schedule follow-ups, and track conversations while encouraging active meeting styles.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-chart-line"></i>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-phone-alt"></i>
+          </div>
+          <h3>Call Tracking</h3>
+          <p>Record and analyze call data with intelligent insights to improve customer interactions.</p>
         </div>
-        <h3>Performance & Wellness Metrics</h3>
-        <p>Track both your sales performance and physical activity to see how healthy habits improve your business results.</p>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Performance Analytics</h3>
+          <p>Gain valuable insights into sales performance with customizable dashboards and reports.</p>
+        </div>
       </div>
-    </div>
-    <div class="alpha-note" style="text-align: center; margin-top: 2rem; font-style: italic;">
-      <p>Note: Some features are currently under development in this alpha version.</p>
     </div>
   </section>
 
-  <!-- Login Section -->
-  <section class="login-section" id="login">
-    <div class="login-container">
-      <h2 class="section-title">Login to Your Account</h2>
-      <div class="message error hidden" id="loginError"></div>
+  <section class="cta">
+    <div class="container">
+      <h2>Ready to Transform Your Sales Process?</h2>
+      <p>Join thousands of sales professionals who have increased their productivity and closed more deals with FlutterBye CRM.</p>
+      <button id="ctaSignupBtn" class="btn">Get Started Today</button>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-column">
+          <h3>Company</h3>
+          <ul>
+            <li><a href="#about">About Us</a></li>
+            <li><a href="#careers">Careers</a></li>
+            <li><a href="#blog">Blog</a></li>
+            <li><a href="#press">Press</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h3>Product</h3>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#security">Security</a></li>
+            <li><a href="#integrations">Integrations</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h3>Resources</h3>
+          <ul>
+            <li><a href="#docs">Documentation</a></li>
+            <li><a href="#tutorials">Tutorials</a></li>
+            <li><a href="#webinars">Webinars</a></li>
+            <li><a href="#api">API</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h3>Connect</h3>
+          <ul>
+            <li><a href="#contact">Contact Us</a></li>
+            <li><a href="#support">Support</a></li>
+            <li><a href="#partners">Partners</a></li>
+          </ul>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="copyright">
+        &copy; 2025 FlutterBye CRM. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close">&times;</span>
+      <h2>Login to Your Account</h2>
       <form id="loginForm">
         <div class="form-group">
           <label for="username">Username</label>
@@ -458,133 +539,119 @@
           <label for="password">Password</label>
           <input type="password" id="password" name="password" required>
         </div>
-        <div class="login-buttons">
-          <button type="submit" class="btn btn-primary">Login</button>
-          <a href="#" id="createAccountBtn">Create Account</a>
+        <div class="error-message hidden" id="loginError"></div>
+        <div class="form-buttons">
+          <button type="submit" class="btn">Login</button>
+          <button type="button" class="btn btn-outline" id="switchToSignup">Sign Up</button>
         </div>
       </form>
     </div>
-  </section>
+  </div>
 
-  <!-- Footer -->
-  <footer>
-    <div class="footer-content">
-      <div class="footer-col">
-        <h3>FLUTTERBYE</h3>
-        <p>The CRM Focused on Healthy Meetings. Transforming customer relationships through active engagement.</p>
-      </div>
-      <div class="footer-col">
-        <h3>Quick Links</h3>
-        <ul>
-          <li><a href="#">Home</a></li>
-          <li><a href="#features">Features</a></li>
-          <li><a href="/terms.html">Terms of Service</a></li>
-          <li><a href="/privacy.html">Privacy Policy</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h3>Alpha Status</h3>
-        <p>FLUTTERBYE is currently in alpha development. Features are being added and refined continuously.</p>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p>&copy; 2025 FLUTTERBYE. All rights reserved.</p>
-      <div class="footer-logo">
-        <a href="https://allonething.xyz" target="_blank">
-          <img src="/images/aot-labs-logo.png" alt="AOT Labs Logo" width="232" height="70">
-        </a>
-      </div>
-    </div>
-  </footer>
-
-  <!-- Register Modal -->
-  <div class="modal" id="registerModal">
+  <!-- Signup Modal -->
+  <div id="signupModal" class="modal">
     <div class="modal-content">
-      <div class="modal-header">
-        <h2>Create an Account</h2>
-        <button class="close-modal">&times;</button>
-      </div>
-      <div class="message error hidden" id="registerError"></div>
-      <form id="registerForm">
+      <span class="modal-close">&times;</span>
+      <h2>Create an Account</h2>
+      <form id="signupForm">
         <div class="form-group">
-          <label for="regUsername">Username</label>
-          <input type="text" id="regUsername" name="username" required>
+          <label for="fullName">Full Name</label>
+          <input type="text" id="fullName" name="fullName" required>
         </div>
         <div class="form-group">
-          <label for="regFullName">Full Name</label>
-          <input type="text" id="regFullName" name="fullName" required>
+          <label for="signupUsername">Username</label>
+          <input type="text" id="signupUsername" name="username" required>
         </div>
         <div class="form-group">
-          <label for="regEmail">Email Address</label>
-          <input type="email" id="regEmail" name="email" required>
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
         </div>
         <div class="form-group">
-          <label for="regPassword">Password</label>
-          <input type="password" id="regPassword" name="password" required>
+          <label for="signupPassword">Password</label>
+          <input type="password" id="signupPassword" name="password" required>
         </div>
         <div class="form-group">
-          <label for="regConfirmPassword">Confirm Password</label>
-          <input type="password" id="regConfirmPassword" name="confirmPassword" required>
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" required>
         </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+        <div class="error-message hidden" id="signupError"></div>
+        <div class="form-buttons">
+          <button type="submit" class="btn">Sign Up</button>
+          <button type="button" class="btn btn-outline" id="switchToLogin">Login</button>
+        </div>
       </form>
     </div>
   </div>
 
   <script>
-    // Check if user is already logged in
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('Index page loaded - checking URL parameters');
+      // Modal elements
+      const loginModal = document.getElementById('loginModal');
+      const signupModal = document.getElementById('signupModal');
+      const loginBtn = document.getElementById('loginBtn');
+      const signupBtn = document.getElementById('signupBtn');
+      const ctaSignupBtn = document.getElementById('ctaSignupBtn');
+      const closeBtns = document.querySelectorAll('.modal-close');
+      const switchToSignup = document.getElementById('switchToSignup');
+      const switchToLogin = document.getElementById('switchToLogin');
       
-      // Check URL parameters to avoid redirect loops
-      const urlParams = new URLSearchParams(window.location.search);
-      const authRequired = urlParams.get('auth') === 'required';
-      const wasRedirected = urlParams.get('redirected') === 'true';
-      
-      console.log('Auth required:', authRequired, 'Was redirected:', wasRedirected);
-      
-      // Only check auth status if we weren't redirected here from dashboard
-      if (!authRequired || !wasRedirected) {
-        console.log('Checking authentication status');
-        // Make a single auth check request
-        fetch('/dashboard-check', {
-          credentials: 'include' // Send cookies with the request
-        })
-          .then(response => response.json())
-          .then(data => {
-            console.log('Auth check result:', data);
-            if (data.authenticated) {
-              // User is authenticated, redirect to dashboard
-              console.log('User authenticated, redirecting to dashboard');
-              window.location.replace('/dashboard');
-            }
-          })
-          .catch(error => {
-            console.error('Auth check failed:', error);
-          });
-      } else {
-        console.log('Skipping auth check due to redirect parameters');
-      }
-      
-      // If auth is required, show a message to the user
-      if (authRequired) {
-        const loginError = document.getElementById('loginError');
-        loginError.textContent = 'Please log in to access the dashboard';
-        loginError.classList.remove('hidden');
-        document.querySelector('#login').scrollIntoView({ behavior: 'smooth' });
-      }
-      
-      // Login form submission
+      // Form elements
       const loginForm = document.getElementById('loginForm');
+      const signupForm = document.getElementById('signupForm');
       const loginError = document.getElementById('loginError');
+      const signupError = document.getElementById('signupError');
       
+      // Open modals
+      loginBtn.addEventListener('click', function() {
+        loginModal.classList.add('active');
+      });
+      
+      signupBtn.addEventListener('click', function() {
+        signupModal.classList.add('active');
+      });
+      
+      ctaSignupBtn.addEventListener('click', function() {
+        signupModal.classList.add('active');
+      });
+      
+      // Close modals
+      closeBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          loginModal.classList.remove('active');
+          signupModal.classList.remove('active');
+        });
+      });
+      
+      // Switch between modals
+      switchToSignup.addEventListener('click', function() {
+        loginModal.classList.remove('active');
+        signupModal.classList.add('active');
+      });
+      
+      switchToLogin.addEventListener('click', function() {
+        signupModal.classList.remove('active');
+        loginModal.classList.add('active');
+      });
+      
+      // Close modal when clicking outside
+      window.addEventListener('click', function(event) {
+        if (event.target === loginModal) {
+          loginModal.classList.remove('active');
+        }
+        if (event.target === signupModal) {
+          signupModal.classList.remove('active');
+        }
+      });
+      
+      // Handle login form submission
       loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        loginError.classList.add('hidden');
         
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         
-        fetch('/api/login', {
+        fetch('/api/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -592,19 +659,14 @@
           credentials: 'include', // Send cookies with the request
           body: JSON.stringify({ username, password })
         })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Login failed. Please try again.');
-          }
-          return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
           if (data.success) {
             // Login successful, redirect to dashboard
-            window.location.href = '/dashboard';
+            window.location.href = '/dashboard.html';
           } else {
             // Display error message
-            loginError.textContent = data.message || 'Login failed. Please try again.';
+            loginError.textContent = data.message || 'Login failed. Please check your credentials.';
             loginError.classList.remove('hidden');
           }
         })
@@ -615,59 +677,20 @@
         });
       });
       
-      // Modal functionality
-      const registerModal = document.getElementById('registerModal');
-      const createAccountBtn = document.getElementById('createAccountBtn');
-      const closeModalBtn = document.querySelector('.close-modal');
-      const loginBtn = document.getElementById('loginBtn');
-      const getStartedBtn = document.getElementById('getStartedBtn');
-      
-      function openRegisterModal() {
-        registerModal.classList.add('show');
-      }
-      
-      function closeRegisterModal() {
-        registerModal.classList.remove('show');
-      }
-      
-      createAccountBtn.addEventListener('click', function(e) {
+      // Handle signup form submission
+      signupForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        openRegisterModal();
-      });
-      
-      getStartedBtn.addEventListener('click', function() {
-        document.querySelector('#login').scrollIntoView({ behavior: 'smooth' });
-      });
-      
-      loginBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        document.querySelector('#login').scrollIntoView({ behavior: 'smooth' });
-      });
-      
-      closeModalBtn.addEventListener('click', closeRegisterModal);
-      
-      window.addEventListener('click', function(e) {
-        if (e.target === registerModal) {
-          closeRegisterModal();
-        }
-      });
-      
-      // Registration form submission
-      const registerForm = document.getElementById('registerForm');
-      const registerError = document.getElementById('registerError');
-      
-      registerForm.addEventListener('submit', function(e) {
-        e.preventDefault();
+        signupError.classList.add('hidden');
         
-        const username = document.getElementById('regUsername').value;
-        const fullName = document.getElementById('regFullName').value;
-        const email = document.getElementById('regEmail').value;
-        const password = document.getElementById('regPassword').value;
-        const confirmPassword = document.getElementById('regConfirmPassword').value;
+        const fullName = document.getElementById('fullName').value;
+        const username = document.getElementById('signupUsername').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('signupPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
         
         if (password !== confirmPassword) {
-          registerError.textContent = 'Passwords do not match.';
-          registerError.classList.remove('hidden');
+          signupError.textContent = 'Passwords do not match.';
+          signupError.classList.remove('hidden');
           return;
         }
         
@@ -677,29 +700,30 @@
             'Content-Type': 'application/json'
           },
           credentials: 'include', // Send cookies with the request
-          body: JSON.stringify({ username, fullName, email, password })
+          body: JSON.stringify({ fullName, username, email, password })
         })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Registration failed. Please try again.');
-          }
-          return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
           if (data.success) {
-            // Registration successful, redirect to dashboard
-            window.location.href = '/dashboard';
+            // Signup successful, redirect to dashboard
+            window.location.href = '/dashboard.html';
           } else {
             // Display error message
-            registerError.textContent = data.message || 'Registration failed. Please try again.';
-            registerError.classList.remove('hidden');
+            signupError.textContent = data.message || 'Registration failed. Please try again.';
+            signupError.classList.remove('hidden');
           }
         })
         .catch(error => {
-          console.error('Registration error:', error);
-          registerError.textContent = 'An error occurred. Please try again later.';
-          registerError.classList.remove('hidden');
+          console.error('Signup error:', error);
+          signupError.textContent = 'An error occurred. Please try again later.';
+          signupError.classList.remove('hidden');
         });
+      });
+
+      // Add direct link to dashboard for demo purposes
+      document.querySelector('a[href="#dashboard"]').addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = '/dashboard.html';
       });
     });
   </script>
