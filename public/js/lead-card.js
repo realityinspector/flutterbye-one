@@ -106,6 +106,12 @@ function createLeadCard(lead) {
   card.className = 'lead-card';
   card.dataset.leadId = lead.id;
   
+  // Handle different data structures (direct properties or nested within globalLead)
+  const companyName = lead.companyName || (lead.globalLead && lead.globalLead.companyName) || 'Unnamed Company';
+  const contactName = lead.contactName || (lead.globalLead && lead.globalLead.contactName) || 'No contact name';
+  const phoneNumber = lead.phoneNumber || (lead.globalLead && lead.globalLead.phoneNumber) || 'No phone number';
+  const status = lead.status || 'new';
+  
   // Add priority class if available
   if (lead.priority) {
     if (lead.priority >= 4) {
@@ -117,10 +123,40 @@ function createLeadCard(lead) {
     }
   }
   
-  // Simplified card content - just the company name for now
+  // Complete card content with all lead information
   card.innerHTML = `
-    <div class="lead-company">${lead.companyName || 'Unnamed Company'}</div>
+    <div class="lead-company">${companyName}</div>
+    <div class="lead-contact">${contactName}</div>
+    <div class="lead-phone">${phoneNumber}</div>
+    <div class="lead-status">
+      <span class="status-pill status-${status}">${status}</span>
+    </div>
+    <div class="lead-actions">
+      <button class="btn-call" data-lead-id="${lead.id}">
+        <i class="fas fa-phone"></i> Call
+      </button>
+      <button class="btn-view" data-lead-id="${lead.id}">
+        <i class="fas fa-eye"></i> View
+      </button>
+    </div>
   `;
+  
+  // Add event listeners for buttons
+  const callBtn = card.querySelector('.btn-call');
+  if (callBtn) {
+    callBtn.addEventListener('click', function(event) {
+      event.preventDefault();
+      window.location.href = `/call-in-progress/${lead.id}`;
+    });
+  }
+  
+  const viewBtn = card.querySelector('.btn-view');
+  if (viewBtn) {
+    viewBtn.addEventListener('click', function(event) {
+      event.preventDefault();
+      window.location.href = `/leads/${lead.id}`;
+    });
+  }
   
   return card;
 }
