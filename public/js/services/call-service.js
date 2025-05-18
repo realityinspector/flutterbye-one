@@ -78,24 +78,61 @@ class CallService {
       this.activeCall.notes = notes;
       this.activeCall.calculateDuration();
       
+      // Format and log the request payload
+      const payload = this.activeCall.toJSON();
+      console.log('Ending call with data:', payload);
+      
       // Send to API
       const response = await this.apiClient.updateCall(
         this.activeCall.id, 
-        this.activeCall.toJSON()
+        payload
       );
       
+      // Handle different response formats
+      let completedCall;
+      if (response.success && response.data) {
+        // Standard success response format
+        completedCall = new Call(response.data);
+      } else if (response.id) {
+        // Direct object response format
+        completedCall = new Call(response);
+      } else {
+        throw new Error('Invalid response format from API');
+      }
+      
       // Update local cache
-      const completedCall = new Call(response.data);
       this._updateCallInCache(completedCall);
+      
+      // Notify about successful completion
+      console.log('Call ended successfully:', completedCall);
       
       // Clear active call
       const returnCall = this.activeCall;
       this.activeCall = null;
       
+      // Update lead's last contacted timestamp if needed
+      try {
+        if (this.leadService) {
+          await this.leadService.markAsContacted(completedCall.leadId, {
+            notes: notes
+          });
+          console.log('Lead marked as contacted');
+        }
+      } catch (leadError) {
+        console.warn('Could not update lead contact status:', leadError.message);
+      }
+      
       return completedCall;
     } catch (error) {
+      // Enhanced error handling
       console.error('Error ending call:', error);
-      throw error;
+      
+      // Provide more context in the error
+      const enhancedError = new Error(`Failed to end call: ${error.message}`);
+      enhancedError.originalError = error;
+      enhancedError.callData = this.activeCall;
+      
+      throw enhancedError;
     }
   }
 

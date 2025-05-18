@@ -35,11 +35,18 @@
   margin-bottom: 16px;
   position: relative;
   transition: var(--transition);
+  border: 1px solid transparent;
 }
 
 .lead-card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
+}
+
+.lead-card:focus-within {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.25);
 }
 
 .lead-card-compact {
@@ -69,6 +76,10 @@
   font-weight: 500;
 }
 
+.lead-status-error {
+  background-color: var(--danger-color);
+}
+
 .lead-priority {
   margin-bottom: 12px;
 }
@@ -80,7 +91,8 @@
   font-size: 18px;
 }
 
-.priority-star:hover {
+.priority-star:hover, 
+.priority-star:focus {
   color: var(--warning-color);
 }
 
@@ -96,12 +108,15 @@
 .lead-details > div {
   margin-bottom: 8px;
   color: var(--text-dark);
+  display: flex;
+  align-items: center;
 }
 
 .lead-details i {
   color: var(--grey-color);
   width: 16px;
   margin-right: 8px;
+  flex-shrink: 0;
 }
 
 .lead-last-contact, .lead-reminder {
@@ -112,15 +127,79 @@
 
 .lead-reminder-due {
   color: var(--danger-color) !important;
+  font-weight: 500;
+}
+
+.lead-reminder-due i {
+  color: var(--danger-color);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
 }
 
 .lead-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .lead-actions .btn {
-  margin-left: 8px;
+  margin-left: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.lead-actions .btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.lead-actions .btn:focus:not(:active)::after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+.lead-card-error {
+  border-left: 4px solid var(--danger-color);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
 /* ===== CALL TRACKER STYLES ===== */

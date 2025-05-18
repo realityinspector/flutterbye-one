@@ -83,11 +83,12 @@ function registerRoutes(app) {
     res.sendFile(path.join(__dirname, '../public/settings.html'));
   });
   
-  // Dashboard authentication check
+  // Dashboard authentication check - updated to support the refactored client
   app.get('/dashboard-check', (req, res) => {
     try {
-      // Get token from cookies
-      const token = req.cookies && req.cookies.auth_token;
+      // Get token from cookies or Authorization header
+      const token = req.cookies && req.cookies.auth_token || 
+                   (req.headers.authorization && req.headers.authorization.split(' ')[1]);
       
       console.log('Dashboard check - Token present:', !!token, 'JWT_SECRET:', JWT_SECRET.substring(0, 5) + '...');
       
@@ -104,7 +105,13 @@ function registerRoutes(app) {
         
         // Token is valid
         console.log('Dashboard check - Token verified successfully - user:', decoded.user.username);
-        return res.json({ authenticated: true, user: decoded.user });
+        return res.json({ 
+          authenticated: true, 
+          user: decoded.user,
+          // Include additional fields for backward compatibility with the refactored client
+          success: true,
+          data: decoded.user
+        });
       });
     } catch (error) {
       console.error(`Error in /dashboard-check:`, error);

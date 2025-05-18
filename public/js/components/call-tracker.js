@@ -249,76 +249,133 @@ class CallTracker {
    * @returns {string} HTML string
    */
   render() {
-    let html = '';
-    
-    if (!this.call) {
-      // No call in progress
-      html = `
-        <div class="call-tracker ${this.options.className}">
+    try {
+      let html = '';
+      
+      if (!this.call) {
+        // No call in progress
+        html = `
+          <div class="call-tracker ${this.options.className}" role="region" aria-label="Call tracking interface">
+            <div class="call-header">
+              <h3 id="call-header-title">Start a Call</h3>
+            </div>
+            <div class="call-info">
+              <div class="call-status" aria-live="polite">Ready to call</div>
+              <div class="call-timer" aria-label="Call timer">00:00</div>
+            </div>
+            <div class="call-actions">
+              <button class="btn btn-start" data-action="start" aria-describedby="call-header-title">
+                <i class="fas fa-phone-alt" aria-hidden="true"></i> Start Call
+              </button>
+            </div>
+          </div>
+        `;
+      } else if (this.call.isActive()) {
+        // Call in progress
+        html = `
+          <div class="call-tracker ${this.options.className}" role="region" aria-label="Active call in progress">
+            <div class="call-header">
+              <h3 id="call-header-active">Call in Progress</h3>
+            </div>
+            <div class="call-info">
+              <div class="call-status" aria-live="polite">Call in progress</div>
+              <div class="call-timer" role="timer" aria-label="Call duration" aria-live="polite">00:00</div>
+            </div>
+            <div class="call-actions">
+              <button class="btn btn-end" data-action="end" aria-describedby="call-header-active">
+                <i class="fas fa-phone-slash" aria-hidden="true"></i> End Call
+              </button>
+              <button class="btn btn-cancel" data-action="cancel" aria-describedby="call-header-active">
+                <i class="fas fa-times" aria-hidden="true"></i> Cancel
+              </button>
+            </div>
+          </div>
+        `;
+      } else if (this.call.isCompleted()) {
+        // Call completed
+        const outcomeText = this.call.getOutcomeText();
+        const durationText = this.call.getDurationText();
+        
+        html = `
+          <div class="call-tracker ${this.options.className} call-tracker-completed" role="region" aria-label="Completed call information">
+            <div class="call-header">
+              <h3 id="call-header-completed">Call Completed</h3>
+            </div>
+            <div class="call-info">
+              <div class="call-status" aria-live="polite">
+                <span>Call completed: </span>
+                <span class="call-outcome">${outcomeText}</span>
+              </div>
+              <div class="call-timer" aria-label="Call duration">${durationText}</div>
+            </div>
+            ${this.call.notes ? `
+              <div class="call-notes">
+                <h4>Notes:</h4>
+                <p>${this._escapeHtml(this.call.notes)}</p>
+              </div>
+            ` : ''}
+            <div class="call-actions">
+              <button class="btn btn-new" data-action="new" aria-describedby="call-header-completed">
+                <i class="fas fa-phone-alt" aria-hidden="true"></i> New Call
+              </button>
+            </div>
+          </div>
+        `;
+      } else if (this.call.isCanceled()) {
+        // Call canceled
+        html = `
+          <div class="call-tracker ${this.options.className} call-tracker-canceled" role="region" aria-label="Canceled call information">
+            <div class="call-header">
+              <h3 id="call-header-canceled">Call Canceled</h3>
+            </div>
+            <div class="call-info">
+              <div class="call-status" aria-live="polite">Call canceled</div>
+              <div class="call-timer">00:00</div>
+            </div>
+            <div class="call-actions">
+              <button class="btn btn-new" data-action="new" aria-describedby="call-header-canceled">
+                <i class="fas fa-phone-alt" aria-hidden="true"></i> New Call
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      
+      return html;
+    } catch (error) {
+      console.error('Error rendering call tracker:', error);
+      
+      // Return a fallback UI if rendering fails
+      return `
+        <div class="call-tracker call-tracker-error" role="region" aria-label="Call tracker error">
           <div class="call-header">
-            <h3>Start a Call</h3>
+            <h3>Error Loading Call Tracker</h3>
           </div>
           <div class="call-info">
-            <div class="call-status">Ready to call</div>
-            <div class="call-timer">00:00</div>
+            <div class="call-status call-status-error">There was an error loading the call tracker</div>
           </div>
           <div class="call-actions">
-            <button class="btn btn-start" data-action="start">Start Call</button>
-          </div>
-        </div>
-      `;
-    } else if (this.call.isActive()) {
-      // Call in progress
-      html = `
-        <div class="call-tracker ${this.options.className}">
-          <div class="call-header">
-            <h3>Call in Progress</h3>
-          </div>
-          <div class="call-info">
-            <div class="call-status">Call in progress</div>
-            <div class="call-timer">00:00</div>
-          </div>
-          <div class="call-actions">
-            <button class="btn btn-end" data-action="end">End Call</button>
-            <button class="btn btn-cancel" data-action="cancel">Cancel</button>
-          </div>
-        </div>
-      `;
-    } else if (this.call.isCompleted()) {
-      // Call completed
-      html = `
-        <div class="call-tracker ${this.options.className}">
-          <div class="call-header">
-            <h3>Call Completed</h3>
-          </div>
-          <div class="call-info">
-            <div class="call-status">Call completed: ${this.call.getOutcomeText()}</div>
-            <div class="call-timer">${this.call.getDurationText()}</div>
-          </div>
-          <div class="call-actions">
-            <button class="btn btn-new" data-action="new">New Call</button>
-          </div>
-        </div>
-      `;
-    } else if (this.call.isCanceled()) {
-      // Call canceled
-      html = `
-        <div class="call-tracker ${this.options.className}">
-          <div class="call-header">
-            <h3>Call Canceled</h3>
-          </div>
-          <div class="call-info">
-            <div class="call-status">Call canceled</div>
-            <div class="call-timer">00:00</div>
-          </div>
-          <div class="call-actions">
-            <button class="btn btn-new" data-action="new">New Call</button>
+            <button class="btn btn-primary" onclick="window.location.reload()">Refresh</button>
           </div>
         </div>
       `;
     }
+  }
+  
+  /**
+   * Escape HTML to prevent XSS
+   * @private
+   * @param {string} html - String to escape
+   * @returns {string} Escaped string
+   */
+  _escapeHtml(html) {
+    if (typeof html !== 'string') {
+      return html;
+    }
     
-    return html;
+    const div = document.createElement('div');
+    div.textContent = html;
+    return div.innerHTML;
   }
 
   /**

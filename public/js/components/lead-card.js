@@ -40,70 +40,109 @@ class LeadCard {
     const lead = this.lead;
     const options = this.options;
     
-    // Priority stars HTML
-    const priorityStars = this._renderPriorityStars(lead.priority);
-    
-    // Status badge
-    const statusBadge = options.showStatus 
-      ? `<span class="lead-status" style="background-color: ${lead.getStatusColor()}">${lead.getStatusText()}</span>` 
-      : '';
+    try {
+      // Priority stars HTML
+      const priorityStars = this._renderPriorityStars(lead.priority);
+      
+      // Status badge
+      const statusBadge = options.showStatus 
+        ? `<span class="lead-status" style="background-color: ${lead.getStatusColor()}">${lead.getStatusText()}</span>` 
+        : '';
 
-    // Determine if we should show call button (only if there's a phone number)
-    const showCallButton = options.showActions && lead.canMakeCall();
-    
-    // Construct the card HTML
-    const cardHTML = `
-      <div class="lead-card ${options.className} ${options.compact ? 'lead-card-compact' : ''}" data-lead-id="${lead.id}">
-        <div class="lead-card-header">
-          <h3 class="lead-company">${this._escapeHtml(lead.getDisplayName())}</h3>
-          ${statusBadge}
-        </div>
-        
-        ${options.showPriority ? `
-        <div class="lead-priority">
-          ${priorityStars}
-        </div>
-        ` : ''}
-        
-        ${options.showDetails ? `
-        <div class="lead-details">
-          <div class="lead-contact">
-            <i class="fas fa-user"></i> ${this._escapeHtml(lead.getContactName())}
+      // Determine if we should show call button (only if there's a phone number)
+      const showCallButton = options.showActions && lead.canMakeCall();
+      
+      // Prepare reminder class if reminder is due
+      const reminderClass = lead.reminderDate && lead.isReminderDue() ? 'lead-reminder-due' : '';
+      
+      // Construct the card HTML with enhanced accessibility
+      const cardHTML = `
+        <div class="lead-card ${options.className} ${options.compact ? 'lead-card-compact' : ''}" 
+             data-lead-id="${lead.id}" 
+             role="article" 
+             aria-labelledby="lead-company-${lead.id}">
+          <div class="lead-card-header">
+            <h3 class="lead-company" id="lead-company-${lead.id}">${this._escapeHtml(lead.getDisplayName())}</h3>
+            ${statusBadge ? `<span class="lead-status" style="background-color: ${lead.getStatusColor()}" role="status">${lead.getStatusText()}</span>` : ''}
           </div>
           
-          <div class="lead-phone">
-            <i class="fas fa-phone"></i> ${this._escapeHtml(lead.getPhoneNumber())}
-          </div>
-          
-          <div class="lead-email">
-            <i class="fas fa-envelope"></i> ${this._escapeHtml(lead.getEmail())}
-          </div>
-          
-          ${lead.lastContactedAt ? `
-          <div class="lead-last-contact">
-            <i class="fas fa-calendar-check"></i> Last Contact: ${lead.getLastContactedText()}
+          ${options.showPriority ? `
+          <div class="lead-priority" aria-label="Priority: ${lead.priority} out of 5">
+            ${priorityStars}
           </div>
           ` : ''}
           
-          ${lead.reminderDate ? `
-          <div class="lead-reminder ${lead.isReminderDue() ? 'lead-reminder-due' : ''}">
-            <i class="fas fa-bell"></i> Reminder: ${lead.getReminderText()}
+          ${options.showDetails ? `
+          <div class="lead-details">
+            <div class="lead-contact">
+              <i class="fas fa-user" aria-hidden="true"></i> 
+              <span>${this._escapeHtml(lead.getContactName())}</span>
+            </div>
+            
+            <div class="lead-phone">
+              <i class="fas fa-phone" aria-hidden="true"></i> 
+              <span>${this._escapeHtml(lead.getPhoneNumber())}</span>
+            </div>
+            
+            <div class="lead-email">
+              <i class="fas fa-envelope" aria-hidden="true"></i> 
+              <span>${this._escapeHtml(lead.getEmail())}</span>
+            </div>
+            
+            ${lead.lastContactedAt ? `
+            <div class="lead-last-contact">
+              <i class="fas fa-calendar-check" aria-hidden="true"></i> 
+              <span>Last Contact: ${lead.getLastContactedText()}</span>
+            </div>
+            ` : ''}
+            
+            ${lead.reminderDate ? `
+            <div class="lead-reminder ${reminderClass}" role="status">
+              <i class="fas fa-bell" aria-hidden="true"></i> 
+              <span>Reminder: ${lead.getReminderText()}</span>
+              ${lead.isReminderDue() ? '<span class="visually-hidden">(Due now)</span>' : ''}
+            </div>
+            ` : ''}
+          </div>
+          ` : ''}
+          
+          ${options.showActions ? `
+          <div class="lead-actions">
+            ${showCallButton ? 
+              `<button class="btn btn-call" data-action="call" aria-label="Call ${this._escapeHtml(lead.getDisplayName())}">
+                <i class="fas fa-phone" aria-hidden="true"></i> Call
+              </button>` : ''}
+            <button class="btn btn-edit" data-action="edit" aria-label="Edit ${this._escapeHtml(lead.getDisplayName())}">
+              <i class="fas fa-edit" aria-hidden="true"></i> Edit
+            </button>
+            <button class="btn btn-delete" data-action="delete" aria-label="Delete ${this._escapeHtml(lead.getDisplayName())}">
+              <i class="fas fa-trash" aria-hidden="true"></i> Delete
+            </button>
           </div>
           ` : ''}
         </div>
-        ` : ''}
-        
-        ${options.showActions ? `
-        <div class="lead-actions">
-          ${showCallButton ? `<button class="btn btn-call" data-action="call"><i class="fas fa-phone"></i> Call</button>` : ''}
-          <button class="btn btn-edit" data-action="edit"><i class="fas fa-edit"></i> Edit</button>
-          <button class="btn btn-delete" data-action="delete"><i class="fas fa-trash"></i> Delete</button>
+      `;
+      
+      return cardHTML;
+    } catch (error) {
+      console.error('Error rendering lead card:', error);
+      
+      // Return a fallback UI if rendering fails
+      return `
+        <div class="lead-card lead-card-error" data-lead-id="${lead.id || 'unknown'}">
+          <div class="lead-card-header">
+            <h3 class="lead-company">Error Loading Lead</h3>
+            <span class="lead-status lead-status-error">Error</span>
+          </div>
+          <div class="lead-details">
+            <p>There was an error loading this lead. Please try refreshing the page.</p>
+          </div>
+          <div class="lead-actions">
+            <button class="btn btn-primary" onclick="window.location.reload()">Refresh</button>
+          </div>
         </div>
-        ` : ''}
-      </div>
-    `;
-    
-    return cardHTML;
+      `;
+    }
   }
 
   /**
