@@ -1,15 +1,29 @@
+/**
+ * Database connection module
+ * Provides a unified database connection for the application
+ */
+
 const { Pool } = require('pg');
 const { drizzle } = require('drizzle-orm/node-postgres');
-const schema = require('../shared/db/schema');
+require('dotenv').config();
 
-// Database connection
+// Create a PostgreSQL connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Initialize Drizzle with the pool
-const db = drizzle(pool, { schema });
+// Test the connection and log status
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('Database connection error:', err);
+  } else {
+    console.log('Database connected successfully at:', res.rows[0].now);
+  }
+});
 
-// Export the database instance
-module.exports = { db, pool };
+// Export pool for direct query access
+module.exports = {
+  pool,
+  query: (text, params) => pool.query(text, params)
+};
