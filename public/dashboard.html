@@ -2892,70 +2892,8 @@ function displayLeads(leads) {
 
 <!-- Old display function has been removed in favor of unified implementation -->
 <script>
-/* Commented out old implementation
-  function displayLeads(leads) {
-    const leadsContainer = document.querySelector('.recent-leads-list');
-    if (!leadsContainer) return;
-    
-    console.log('Displaying leads as cards:', leads);
-    
-    if (!leads || leads.length === 0) {
-      leadsContainer.innerHTML = '<div class="no-data">No leads available</div>';
-      return;
-    }
-    
-    // Clear existing content
-    leadsContainer.innerHTML = '';
-    
-    // Create lead cards
-    leads.forEach(lead => {
-      const leadCard = document.createElement('div');
-      leadCard.className = 'lead-card';
-      leadCard.dataset.leadId = lead.id;
-      
-      // Add priority class
-      if (lead.priority >= 4) {
-        leadCard.classList.add('high-priority');
-      } else if (lead.priority >= 2) {
-        leadCard.classList.add('medium-priority');
-      } else {
-        leadCard.classList.add('low-priority');
-      }
-      
-      leadCard.innerHTML = `
-        <div class="lead-company">${lead.companyName || 'Unnamed Company'}</div>
-        <div class="lead-contact">${lead.contactName || 'No contact name'}</div>
-        <div class="lead-phone">${lead.phoneNumber || 'No phone number'}</div>
-        <div class="lead-status">${lead.status || 'new'}</div>
-        <div class="lead-actions">
-          <button class="btn btn-sm btn-primary btn-call" data-lead-id="${lead.id}">
-            <i class="fas fa-phone"></i> Call
-          </button>
-          <button class="btn btn-sm btn-outline-secondary btn-view" data-lead-id="${lead.id}">
-            <i class="fas fa-eye"></i> View
-          </button>
-        </div>
-      `;
-      
-      // Add event listeners for buttons
-      const callBtn = leadCard.querySelector('.btn-call');
-      if (callBtn) {
-        callBtn.addEventListener('click', function() {
-          window.location.href = `/call-in-progress/${lead.id}`;
-        });
-      }
-      
-      const viewBtn = leadCard.querySelector('.btn-view');
-      if (viewBtn) {
-        viewBtn.addEventListener('click', function() {
-          window.location.href = `/leads/${lead.id}`;
-        });
-      }
-      
-      leadsContainer.appendChild(leadCard);
-    });
-  }
-})();
+// This old implementation has been removed and replaced by the unified lead-card.js
+// All lead card functionality is now centralized in one place
 </script>
 </body>
 </html>
