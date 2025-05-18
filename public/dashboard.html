@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - FLUTTERBYE: The CRM Focused on Healthy Meetings</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="/css/lead-card.css">
   <script src="/js/debug-response.js"></script>
   <script src="/js/api-interceptor.js"></script>
   <script src="/js/auth-fix.js"></script>
@@ -2371,11 +2372,8 @@ window.createTemplate = function(strings, ...values) {
   };
 </script>
 
-  <!-- Lead Cards Display -->
-  <script src="/lead-cards-solution.js" defer></script>
-
-  <!-- Lead Cards Fix -->
-  <script src="/lead-cards-fix.js"></script>
+  <!-- Unified Lead Card Implementation -->
+  <script src="/js/lead-card.js" defer></script>
 </head>
 <body>
           <div style="padding: 10px; background-color: #f8f9fa; text-align: center;">
@@ -2506,7 +2504,7 @@ function renderNotificationTemplate(title, message, icon, type = 'default') {
         </div>
         
         <!-- Card-based Lead Container -->
-        <div class="lead-cards-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px;">
+        <div class="leads-container">
           <div class="lead-loading">
             <i class="fas fa-spinner fa-spin"></i>
             <p>Loading leads...</p>
@@ -2884,68 +2882,17 @@ function displayLeads(leads) {
   
   <!-- Lead Cards Display -->
   <script src="/js/dashboard-debug.js"></script>
-  <script src="/lead-cards-display.js"></script>
 
 <script>
-// Simple lead cards script that runs immediately
+// This script has been replaced by the unified lead-card.js implementation
 (function() {
-  console.log('Lead cards display enhancement loaded');
-  
-  // Add immediate execution to transform cards when page loads
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing lead cards');
-    setTimeout(convertLeadsToCards, 100);
-  });
-  
-  // Function to convert leads table to cards
-  function convertLeadsToCards() {
-    console.log('Converting leads to cards');
-    
-    // Clear existing content in the recent leads section
-    const recentLeadsContainer = document.querySelector('.recent-leads-list');
-    if (!recentLeadsContainer) {
-      console.log('Recent leads container not found');
-      return;
-    }
-    
-    // First check if we already have API data
-    if (window.dashboardData && window.dashboardData.data && window.dashboardData.data.recentLeads) {
-      displayLeads(window.dashboardData.data.recentLeads);
-      return;
-    }
-    
-    // Otherwise, fetch data directly
-    console.log('Fetching leads data directly');
-    fetch('/api/analytics/dashboard', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      },
-      credentials: 'include'
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Lead data loaded successfully:', data);
-      window.dashboardData = data;
-      
-      if (data && data.data && data.data.recentLeads) {
-        displayLeads(data.data.recentLeads);
-      } else {
-        recentLeadsContainer.innerHTML = '<div class="no-data">No leads available</div>';
-      }
-    })
-    .catch(error => {
-      console.error('Error loading lead data:', error);
-      recentLeadsContainer.innerHTML = '<div class="no-data">Error loading leads. Please refresh the page.</div>';
-    });
-  }
-  
-  // Display leads as cards
+  console.log('Lead card unification active - all lead displays now using unified implementation');
+})();
+</script>
+
+<!-- Old display function has been removed in favor of unified implementation -->
+<script>
+/* Commented out old implementation
   function displayLeads(leads) {
     const leadsContainer = document.querySelector('.recent-leads-list');
     if (!leadsContainer) return;
