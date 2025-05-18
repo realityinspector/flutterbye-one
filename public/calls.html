@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlutterBye CRM Dashboard</title>
+  <title>FlutterBye CRM - Calls</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <link rel="stylesheet" href="css/components.css">
   <style>
-    /* Dashboard specific styles */
+    /* Calls page specific styles */
     :root {
       --sidebar-width: 240px;
       --header-height: 60px;
@@ -116,19 +116,8 @@
       align-items: center;
     }
     
-    .user-info {
-      margin-left: 20px;
-      text-align: right;
-    }
-    
-    .user-name {
-      font-weight: 600;
-      display: block;
-    }
-    
-    .user-company {
-      font-size: 0.8rem;
-      color: #666;
+    .header-actions .btn {
+      margin-left: 10px;
     }
     
     /* Content */
@@ -136,73 +125,59 @@
       padding: 20px;
     }
     
-    .dashboard-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
+    .filters-container {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      padding: 20px;
       margin-bottom: 20px;
     }
     
-    .card {
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .filter-group {
+      margin-bottom: 15px;
+    }
+    
+    .filter-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: var(--border-radius);
+      border: 1px solid #e0e0e0;
+    }
+    
+    .filter-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 15px;
+    }
+    
+    .calls-container {
       background-color: #fff;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       padding: 20px;
     }
     
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-      border-bottom: 1px solid #f0f0f0;
-      padding-bottom: 10px;
-    }
-    
-    .card-title {
-      font-size: 1.2rem;
-      font-weight: 600;
-    }
-    
-    .card-actions a {
-      color: var(--primary-color);
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
-    
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 15px;
-    }
-    
-    .stat-card {
-      background-color: #f8f9fa;
-      border-radius: 6px;
-      padding: 15px;
-      text-align: center;
-    }
-    
-    .stat-value {
-      font-size: 2rem;
-      font-weight: 600;
-      color: var(--primary-color);
-    }
-    
-    .stat-label {
-      font-size: 0.9rem;
-      color: #666;
-    }
-    
     .calls-table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
     }
     
     .calls-table th,
     .calls-table td {
-      padding: 10px;
+      padding: 12px 15px;
       text-align: left;
       border-bottom: 1px solid #f0f0f0;
     }
@@ -210,6 +185,7 @@
     .calls-table th {
       font-weight: 600;
       color: #666;
+      background-color: #f8f9fa;
     }
     
     .calls-table tr:hover {
@@ -218,10 +194,48 @@
     
     .call-outcome {
       display: inline-block;
-      padding: 3px 8px;
+      padding: 4px 8px;
       border-radius: 12px;
       font-size: 0.8rem;
       color: white;
+    }
+    
+    .call-details {
+      margin-top: 15px;
+    }
+    
+    .detail-group {
+      display: flex;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .detail-label {
+      font-weight: 600;
+      width: 150px;
+      color: #666;
+    }
+    
+    .detail-value {
+      flex: 1;
+    }
+    
+    .call-notes {
+      display: block;
+    }
+    
+    .call-notes .detail-label {
+      margin-bottom: 5px;
+      display: block;
+      width: 100%;
+    }
+    
+    .call-notes .detail-value {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      white-space: pre-wrap;
     }
     
     .loading-indicator {
@@ -233,7 +247,6 @@
       bottom: 0;
       background-color: rgba(255, 255, 255, 0.7);
       z-index: 1000;
-      display: flex;
       align-items: center;
       justify-content: center;
     }
@@ -254,7 +267,7 @@
     
     .no-data {
       text-align: center;
-      padding: 20px;
+      padding: 40px;
       color: #666;
       font-style: italic;
     }
@@ -275,8 +288,13 @@
         margin-left: 0;
       }
       
-      .dashboard-cards {
+      .filters-grid {
         grid-template-columns: 1fr;
+      }
+      
+      .calls-table {
+        display: block;
+        overflow-x: auto;
       }
     }
   </style>
@@ -292,13 +310,13 @@
         </button>
       </div>
       <nav class="sidebar-nav">
-        <a href="dashboard.html" class="nav-item active">
+        <a href="dashboard.html" class="nav-item">
           <i class="fas fa-tachometer-alt"></i> Dashboard
         </a>
         <a href="leads.html" class="nav-item">
           <i class="fas fa-user-tie"></i> Leads
         </a>
-        <a href="calls.html" class="nav-item">
+        <a href="calls.html" class="nav-item active">
           <i class="fas fa-phone"></i> Calls
         </a>
         <a href="reports.html" class="nav-item">
@@ -318,76 +336,60 @@
       <!-- Header -->
       <header class="header">
         <div class="header-title">
-          <h1>Dashboard</h1>
+          <h1>Calls</h1>
         </div>
         <div class="header-actions">
-          <button id="refresh-btn" class="btn btn-primary">
+          <button id="refresh-btn" class="btn">
             <i class="fas fa-sync"></i> Refresh
           </button>
-          <div id="user-info" class="user-info">
-            <span class="user-name">Loading...</span>
-            <span class="user-company"></span>
-          </div>
+          <button id="new-call-btn" class="btn btn-primary">
+            <i class="fas fa-phone"></i> New Call
+          </button>
         </div>
       </header>
 
       <!-- Content -->
       <div class="content">
-        <!-- Stats Card -->
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">Stats Overview</h3>
-          </div>
-          <div id="stats-container" class="card-body">
-            <div class="stats-grid">
-              <div class="stat-card">
-                <div class="stat-value">0</div>
-                <div class="stat-label">Total Leads</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-value">0</div>
-                <div class="stat-label">Total Calls</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-value">0</div>
-                <div class="stat-label">New Leads</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-value">0</div>
-                <div class="stat-label">Calls This Week</div>
-              </div>
+        <!-- Filters -->
+        <div id="filters-container" class="filters-container">
+          <div class="filters-grid">
+            <div class="filter-group">
+              <label for="date-range-start">Start Date</label>
+              <input type="date" id="date-range-start">
+            </div>
+            
+            <div class="filter-group">
+              <label for="date-range-end">End Date</label>
+              <input type="date" id="date-range-end">
+            </div>
+            
+            <div class="filter-group">
+              <label for="outcome-filter">Outcome</label>
+              <select id="outcome-filter">
+                <option value="all">All Outcomes</option>
+                <option value="interested">Interested</option>
+                <option value="not_interested">Not Interested</option>
+                <option value="callback">Callback Requested</option>
+                <option value="no_answer">No Answer</option>
+                <option value="left_voicemail">Left Voicemail</option>
+                <option value="wrong_number">Wrong Number</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <label for="lead-filter">Lead</label>
+              <select id="lead-filter">
+                <option value="all">All Leads</option>
+                <!-- Lead options will be dynamically added here -->
+              </select>
             </div>
           </div>
         </div>
 
-        <div class="dashboard-cards">
-          <!-- Recent Leads Card -->
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Recent Leads</h3>
-              <div class="card-actions">
-                <a href="leads.html" id="view-all-leads">View All</a>
-              </div>
-            </div>
-            <div id="recent-leads-container" class="card-body">
-              <!-- Lead cards will be dynamically inserted here -->
-              <div class="no-data">Loading leads...</div>
-            </div>
-          </div>
-
-          <!-- Recent Calls Card -->
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Recent Calls</h3>
-              <div class="card-actions">
-                <a href="calls.html" id="view-all-calls">View All</a>
-              </div>
-            </div>
-            <div id="recent-calls-container" class="card-body">
-              <!-- Call list will be dynamically inserted here -->
-              <div class="no-data">Loading calls...</div>
-            </div>
-          </div>
+        <!-- Calls Container -->
+        <div id="calls-container" class="calls-container">
+          <!-- Calls table will be dynamically inserted here -->
+          <div class="no-data">Loading calls...</div>
         </div>
       </div>
     </main>
@@ -416,6 +418,6 @@
   <script src="js/components/modal-manager.js"></script>
   
   <!-- Page Controller -->
-  <script src="js/pages/dashboard.js"></script>
+  <script src="js/pages/calls.js"></script>
 </body>
 </html>

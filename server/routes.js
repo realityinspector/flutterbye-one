@@ -66,21 +66,17 @@ function registerRoutes(app) {
     res.sendFile(path.join(__dirname, '../public/leads-display.html'));
   });
 
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/dashboard.html'));
-  });
-  
-  // Only explicit exact routes
+// Only explicit exact routes
   app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/dashboard.html'));
   });
   
   app.get('/leads', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+    res.sendFile(path.join(__dirname, '../public/leads.html'));
   });
   
   app.get('/calls', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+    res.sendFile(path.join(__dirname, '../public/calls.html'));
   });
   
   app.get('/settings', (req, res) => {
