@@ -479,6 +479,37 @@
   <script src="js/components/lead-card.js"></script>
   <script src="js/components/modal-manager.js"></script>
 
+  <!-- Initialize Call Tracker -->
+  <script>
+    function initializeCallTracker(lead, callService, leadService) {
+      try {
+        console.log(`Initializing call tracker for lead ID: ${lead.id}`);
+        const callTracker = new CallTracker(lead.id, callService, {
+          containerSelector: '#callInterface',
+          onCallEnd: async (call) => {
+            try {
+              await leadService.update(lead.id, {
+                status: 'contacted',
+                lastContactedAt: new Date().toISOString()
+              });
+              setTimeout(() => {
+                window.location.href = `/lead-detail.html?id=${lead.id}`;
+              }, 2000);
+            } catch (error) {
+              console.error('Error updating lead after call:', error);
+            }
+          },
+          onCallCancel: () => {
+            window.location.href = `/lead-detail.html?id=${lead.id}`;
+          }
+        });
+        callTracker.init();
+      } catch (error) {
+        console.error('Error initializing call tracker:', error);
+      }
+    }
+  </script>
+
   <script>
     // Add a unified error handling function
     function showErrorMessage(container, title, message, buttonText = 'Return to Leads', buttonUrl = '/leads.html') {
