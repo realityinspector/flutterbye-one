@@ -480,15 +480,34 @@
   <script src="js/components/modal-manager.js"></script>
   
   <script>
+    // Add a unified error handling function
+    function showErrorMessage(container, title, message, buttonText = 'Return to Leads', buttonUrl = '/leads.html') {
+      container.innerHTML = `
+        <div class="lead-info" style="padding: 20px; text-align: center;">
+          <h2>${title}</h2>
+          <p>${message}</p>
+          <a href="${buttonUrl}" class="btn btn-primary" style="display: inline-block; margin-top: 20px;">${buttonText}</a>
+        </div>
+      `;
+    }
+    
     document.addEventListener('DOMContentLoaded', async function() {
       // Parse URL parameters
       const urlParams = new URLSearchParams(window.location.search);
       const leadId = urlParams.get('id');
       const action = urlParams.get('action');
       
+      // Get container reference
+      const leadContainer = document.getElementById('leadContainer');
+      
       if (!leadId) {
-        alert('Lead ID is required');
-        window.location.href = '/leads.html';
+        showErrorMessage(
+          leadContainer,
+          'Missing Lead ID',
+          'A lead ID is required to view lead details. Please select a lead from the leads page.',
+          'Go to Leads Page',
+          '/leads.html'
+        );
         return;
       }
       
@@ -499,11 +518,44 @@
         const leadService = new LeadService(apiClient, storageManager);
         const callService = new CallService(apiClient, storageManager);
         
-        // Fetch lead data
-        const lead = await leadService.get(leadId);
+        // Skip auth check for now - we'll handle auth errors at the API level
+        // We don't want the dashboard-check to block our lead detail page from loading
         
-        if (!lead) {
-          throw new Error('Lead not found');
+        // Display loading state
+        leadContainer.innerHTML = `
+          <div class="lead-info" style="padding: 20px; text-align: center;">
+            <h2>Loading Lead...</h2>
+            <p>Please wait while we load the lead details.</p>
+          </div>
+        `;
+        
+        // Fetch lead data
+        let lead;
+        try {
+          lead = await leadService.get(leadId);
+        } catch (error) {
+          // Handle the specific API error for leads
+          console.warn('Failed to get lead:', error.message);
+          showErrorMessage(
+            leadContainer,
+            'Lead Not Available',
+            'The requested lead could not be found or you don\'t have permission to view it.',
+            'Return to Leads',
+            '/leads.html'
+          );
+          return;
+        }
+        
+        // Handle missing lead data
+        if (!lead || !lead.id) {
+          showErrorMessage(
+            leadContainer,
+            'Lead Not Found',
+            'The requested lead could not be found. It may have been deleted or you may not have permission to view it.',
+            'Return to Leads',
+            '/leads.html'
+          );
+          return;
         }
         
         // Render lead details
@@ -515,13 +567,25 @@
         }
       } catch (error) {
         console.error('Error loading lead:', error);
-        document.getElementById('leadContainer').innerHTML = `
-          <div class="lead-info" style="padding: 20px; text-align: center;">
-            <h2>Error loading lead</h2>
-            <p>${error.message || 'An unexpected error occurred'}</p>
-            <a href="/leads.html" class="btn btn-primary">Return to Leads</a>
-          </div>
-        `;
+        
+        // Provide different error messages based on the error type
+        let title = 'Error Loading Lead';
+        let message = 'An unexpected error occurred while loading the lead details.';
+        
+        if (error.message) {
+          // Handle specific error types
+          if (error.message.includes('not found') || error.message.includes('permission')) {
+            title = 'Lead Not Available';
+            message = 'The requested lead could not be found or you don\'t have permission to view it.';
+          } else if (error.message.includes('network') || error.message.includes('failed')) {
+            title = 'Connection Error';
+            message = 'Unable to connect to the server. Please check your internet connection and try again.';
+          } else {
+            message = error.message;
+          }
+        }
+        
+        showErrorMessage(leadContainer, title, message);
       }
     });
     

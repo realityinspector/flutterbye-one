@@ -85,7 +85,53 @@ class CallTracker {
       return true;
     } catch (error) {
       console.error('Error starting call:', error);
-      alert(`Failed to start call: ${error.message}`);
+      
+      // Display a more user-friendly error message
+      const errorMessage = error.message || 'Unknown error';
+      
+      // Handle specific error messages
+      let friendlyMessage = 'Failed to start call';
+      if (errorMessage.includes('not found') || errorMessage.includes('permission')) {
+        friendlyMessage = 'This lead cannot be called. It may not exist or you don\'t have permission to access it.';
+      } else if (errorMessage.includes('already in progress')) {
+        friendlyMessage = 'Another call is already in progress. Please end that call before starting a new one.';
+      } else {
+        friendlyMessage = `Failed to start call: ${errorMessage}`;
+      }
+      
+      // Show error message in the UI instead of using alert
+      if (this.container) {
+        this.container.innerHTML = `
+          <div class="call-tracker call-tracker-error" role="region" aria-label="Call error">
+            <div class="call-header">
+              <h3>Call Error</h3>
+            </div>
+            <div class="call-info">
+              <div class="call-status call-status-error">${friendlyMessage}</div>
+            </div>
+            <div class="call-actions">
+              <button class="btn btn-primary" data-action="return">Return to Leads</button>
+            </div>
+          </div>
+        `;
+        
+        // Add event listener for the return button
+        const returnButton = this.container.querySelector('[data-action="return"]');
+        if (returnButton) {
+          returnButton.addEventListener('click', () => {
+            window.location.href = '/leads.html';
+          });
+        }
+      } else {
+        // Fallback to alert if container is not available
+        alert(friendlyMessage);
+      }
+      
+      // Call the error callback if provided
+      if (this.options.onCallError) {
+        this.options.onCallError(error);
+      }
+      
       return false;
     }
   }
