@@ -33,18 +33,6 @@ class Call {
     this.updatedAt = this.updatedAt ? new Date(this.updatedAt) : null;
   }
 
-  getStartTimeText() {
-    return new Date(this.startTime || this.createdAt).toLocaleString();
-  }
-
-  getDurationText() {
-    return this.duration ? `${Math.round(this.duration / 60)} min` : '-';
-  }
-
-  getOutcomeText() {
-    return this.outcome || 'Unknown';
-  }
-
   /**
    * Validate the call data
    * @returns {boolean} True if valid, throws error if invalid
