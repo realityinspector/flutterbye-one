@@ -69,8 +69,26 @@ class CallTracker {
   async startCall() {
     try {
       console.log(`CallTracker: Starting call to lead ID ${this.leadId}`);
-      // Start the call via the service with improved error handling
-      this.call = await this.callService.startCall(this.leadId);
+      
+      // Try to start the call using normal service first
+      try {
+        this.call = await this.callService.startCall(this.leadId);
+      } catch (serviceError) {
+        console.warn('Regular call start failed, trying direct method:', serviceError);
+        
+        // If regular method fails, try the direct method we added to the window object
+        if (window.makeDirectCall) {
+          console.log('Attempting direct call through fallback method');
+          this.call = await window.makeDirectCall(this.leadId);
+          
+          // If direct call succeeded, update the call service state
+          if (this.call) {
+            this.callService._activeCall = this.call;
+          }
+        } else {
+          throw serviceError; // Re-throw if direct method not available
+        }
+      }
       
       // Update UI
       this.updateUI();

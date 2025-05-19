@@ -526,6 +526,14 @@
             window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href);
             return;
           }
+          
+          // Store the token again to ensure it's available for API calls
+          if (authCheck.token) {
+            localStorage.setItem('auth_token', authCheck.token);
+            document.cookie = `auth_token=${authCheck.token}; path=/; max-age=86400`;
+            console.log('Authentication token refreshed and stored');
+          }
+          
           console.log('Authentication confirmed, user:', authCheck.user);
         } catch (error) {
           console.warn('Auth check failed:', error);
@@ -789,6 +797,49 @@
       
       // Initialize call tracker with explicit ID logging
       console.log(`Initializing call tracker for lead ID: ${lead.id}`);
+      
+      // Workaround for making direct call to API if needed
+      window.makeDirectCall = async function(leadId) {
+        try {
+          // Get token
+          const token = localStorage.getItem('auth_token') || 
+                    document.cookie.split('auth_token=')[1]?.split(';')[0];
+                    
+          if (!token) {
+            alert('Authentication required. Please log in again.');
+            window.location.href = '/login.html';
+            return null;
+          }
+          
+          // Make direct API call
+          const response = await fetch('/api/calls', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              leadId: parseInt(leadId),
+              userLeadId: parseInt(leadId),
+              callDate: new Date().toISOString(),
+              duration: 0,
+              status: 'active',
+              notes: ''
+            })
+          });
+          
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`API error: ${response.status} ${text}`);
+          }
+          
+          return await response.json();
+        } catch (error) {
+          console.error('Direct call failed:', error);
+          alert(`Failed to start call: ${error.message}`);
+          return null;
+        }
+      };
       
       // Make sure we use the correct ID format expected by the server
       const callTracker = new CallTracker(lead.id, callService, {

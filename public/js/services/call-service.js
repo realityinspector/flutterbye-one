@@ -48,12 +48,14 @@ class CallService {
         throw new Error('Authentication required');
       }
       
-      // Create a new call
+      // Create a new call with proper data structure
       const call = new Call({
-        leadId,
+        leadId: parseInt(leadId),
         userLeadId: parseInt(leadId), // Explicitly set userLeadId as number to match server expectation
         startTime: new Date(),
-        status: 'active'
+        status: 'active',
+        duration: 0, // Set default duration
+        notes: '' // Set default notes
       });
       
       // Send to API with detailed error logging

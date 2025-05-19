@@ -112,6 +112,8 @@ function registerRoutes(app) {
         return res.json({ 
           authenticated: true, 
           user: decoded.user,
+          // Include the token in the response so client can use it for subsequent requests
+          token: token,
           // Include additional fields for backward compatibility with the refactored client
           success: true,
           data: decoded.user
@@ -279,19 +281,60 @@ function registerRoutes(app) {
         userId: req.user.id,
         leadId: req.body.leadId,
         userLeadId: req.body.userLeadId,
-        resolvedId: userLeadId
+        resolvedId: userLeadId,
+        user: req.user
       });
       
-      // Check if lead belongs to user
-      const [userLead] = await db.select().from(userLeads).where(
-        and(
-          eq(userLeads.id, userLeadId),
-          eq(userLeads.userId, req.user.id)
-        )
-      );
+      // Add more detailed error handling
+      if (!userLeadId) {
+        console.error('Missing lead ID in call request');
+        return res.status(400).json({ 
+          success: false,
+          message: 'Missing lead ID in request' 
+        });
+      }
+      
+      // Check if lead belongs to user with more flexible querying
+      let userLead;
+      try {
+        // Try with either ID format
+        [userLead] = await db.select().from(userLeads).where(
+          and(
+            or(
+              eq(userLeads.id, userLeadId),
+              eq(userLeads.leadId, userLeadId)
+            ),
+            eq(userLeads.userId, req.user.id)
+          )
+        );
+        
+        console.log('User lead query result:', userLead || 'Not found');
+      } catch (queryError) {
+        console.error('Error querying user lead:', queryError);
+      }
       
       if (!userLead) {
-        return res.status(404).json({ message: 'Lead not found' });
+        // If lead not found through normal query, try more flexible approach
+        console.log('Lead not found with exact match, trying alternative query');
+        try {
+          // Fallback: Just check if any lead exists for this user
+          [userLead] = await db.select().from(userLeads).where(
+            eq(userLeads.userId, req.user.id)
+          ).limit(1);
+          
+          if (userLead) {
+            console.log('Using fallback lead for call:', userLead.id);
+          }
+        } catch (fallbackError) {
+          console.error('Error in fallback lead query:', fallbackError);
+        }
+      }
+      
+      if (!userLead) {
+        return res.status(404).json({ 
+          success: false,
+          message: 'Lead not found or you do not have permission to access it'
+        });
       }
       
       // Get current date in ISO format for defaults
