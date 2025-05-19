@@ -8,6 +8,7 @@ class Call {
     const defaults = {
       id: null,
       leadId: null,
+      userLeadId: null, // Added to match server expectation
       userId: null,
       startTime: null,
       endTime: null,
@@ -88,6 +89,7 @@ class Call {
     const result = {
       id: this.id,
       leadId: this.leadId,
+      userLeadId: this.userLeadId || this.leadId, // Use leadId as fallback for backward compatibility
       userId: this.userId,
       startTime: this.startTime ? this.startTime.toISOString() : null,
       endTime: this.endTime ? this.endTime.toISOString() : null,
