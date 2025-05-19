@@ -877,13 +877,13 @@ class CallTracker {
             let displayNumber = '';
             
             if (phoneEl) {
-                phoneDisplay = phoneEl.textContent.trim();
+                displayNumber = phoneEl.textContent.trim();
             } else {
                 // Extract from the entire page if needed
                 const pageText = document.body.innerText;
                 const phoneMatch = pageText.match(/\+?1?\s*\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
                 if (phoneMatch) {
-                    phoneDisplay = phoneMatch[0].trim();
+                    displayNumber = phoneMatch[0].trim();
                 }
             }
             
