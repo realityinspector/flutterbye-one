@@ -475,9 +475,16 @@
   <script src="js/services/sync-service.js"></script>
 
   <!-- Components -->
-  <script src="js/components/call-tracker.js"></script>
-  <script src="js/components/lead-card.js"></script>
   <script src="js/components/modal-manager.js"></script>
+  <script src="js/components/lead-card.js"></script>
+  <script src="js/components/call-tracker.js"></script>
+
+  <script>
+    // Verify CallTracker is loaded
+    if (typeof CallTracker === 'undefined') {
+      console.error('CallTracker failed to load');
+    }
+  </script>
 
   <script>
     // Make initializeCallTracker available globally
