@@ -870,12 +870,11 @@ class CallTracker {
             
           case 'place-call':
             // Find phone number through multiple methods
-            let phoneDisplay = '';
-            
-            // Try all possible phone number locations
             const phoneEl = document.querySelector('.phone-number') || 
                 document.querySelector('[id*="phone"]') ||
                 document.querySelector('[class*="phone"]');
+            
+            let displayNumber = '';
             
             if (phoneEl) {
                 phoneDisplay = phoneEl.textContent.trim();
