@@ -866,9 +866,56 @@
         }
       });
       
-      // Initialize call
+      // Initialize call with phone number if available
       callTracker.init();
-      setTimeout(() => callTracker.startCall(), 500);
+      
+      // If the action parameter is 'call', automatically start the call
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('action') === 'call') {
+        // First, show a message that we're initiating the call
+        const phoneNumber = lead.phone || lead.mobilePhone || '';
+        if (phoneNumber) {
+          // If on mobile, try to launch the phone dialer
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          const isAndroid = /Android/.test(navigator.userAgent);
+          
+          if (isIOS || isAndroid) {
+            // Create a phone link that will launch the native dialer
+            const phoneLink = document.createElement('a');
+            phoneLink.href = `tel:${phoneNumber.replace(/[^0-9+]/g, '')}`;
+            phoneLink.style.display = 'none';
+            document.body.appendChild(phoneLink);
+            
+            // Briefly show a message before initiating the call
+            const callInitiatingMessage = document.createElement('div');
+            callInitiatingMessage.className = 'call-initiating-message';
+            callInitiatingMessage.style.position = 'fixed';
+            callInitiatingMessage.style.top = '50%';
+            callInitiatingMessage.style.left = '50%';
+            callInitiatingMessage.style.transform = 'translate(-50%, -50%)';
+            callInitiatingMessage.style.padding = '15px 20px';
+            callInitiatingMessage.style.background = 'rgba(0,102,255,0.9)';
+            callInitiatingMessage.style.color = 'white';
+            callInitiatingMessage.style.borderRadius = '8px';
+            callInitiatingMessage.style.zIndex = '9999';
+            callInitiatingMessage.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+            callInitiatingMessage.innerHTML = `<p>Initiating call to ${phoneNumber}...</p>`;
+            document.body.appendChild(callInitiatingMessage);
+            
+            // Wait a moment, then launch the dialer
+            setTimeout(() => {
+              phoneLink.click();
+              // Remove the message after clicking
+              setTimeout(() => {
+                document.body.removeChild(callInitiatingMessage);
+              }, 2000);
+            }, 1000);
+          }
+        }
+        
+        // Start the call in our system after a short delay
+        setTimeout(() => callTracker.startCall(), 500);
+      }
     }
   </script>
 </body>
