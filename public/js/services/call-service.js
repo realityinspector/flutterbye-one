@@ -32,6 +32,7 @@ class CallService {
       // Create a new call
       const call = new Call({
         leadId,
+        userLeadId: leadId, // Explicitly set userLeadId to match server expectation
         startTime: new Date(),
         status: 'active'
       });
