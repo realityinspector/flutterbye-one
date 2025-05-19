@@ -870,14 +870,14 @@ class CallTracker {
 
           case 'place-call':
             // Find phone number through multiple methods
-            const phoneNumberEl = document.querySelector('.phone-number') || 
+            const phoneEl = document.querySelector('.phone-number') || 
                 document.querySelector('[id*="phone"]') ||
                 document.querySelector('[class*="phone"]');
 
             let displayNumber = '';
 
-            if (phoneNumberEl) {
-                displayNumber = phoneNumberEl.textContent.trim();
+            if (phoneEl) {
+                displayNumber = phoneEl.textContent.trim();
             } else {
                 // Extract from the entire page if needed
                 const pageText = document.body.innerText;
@@ -887,7 +887,7 @@ class CallTracker {
                 }
             }
 
-            if (phoneDisplay) {
+            if (displayNumber) {
                 // Create call timer UI
                 const callTimerModal = document.createElement('div');
                 callTimerModal.id = 'call-timer-modal';
@@ -905,7 +905,7 @@ class CallTracker {
                 callTimerModal.innerHTML = `
                   <div style="background-color: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
                     <h2 style="margin-top: 0; color: #333; font-size: 22px;">Call In Progress</h2>
-                    <div style="font-size: 18px; margin: 10px 0; font-weight: bold; color: #333;">${phoneDisplay}</div>
+                    <div style="font-size: 18px; margin: 10px 0; font-weight: bold; color: #333;">${displayNumber}</div>
                     <div style="font-size: 32px; margin: 20px 0; color: #4CAF50; font-weight: bold; font-family: monospace;" id="live-call-timer">00:00</div>
                     <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
                       <button id="end-call-button" style="padding: 14px 25px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">End Call</button>
