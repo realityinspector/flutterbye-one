@@ -479,6 +479,13 @@
   <script src="js/components/lead-card.js"></script>
   <script src="js/components/modal-manager.js"></script>
 
+  <script>
+    // Ensure CallTracker class is available globally
+    if (typeof CallTracker === 'undefined') {
+      console.error('CallTracker class not loaded');
+    }
+  </script>
+
   <!-- Initialize Call Tracker -->
   <script>
     function initializeCallTracker(lead, callService, leadService) {
