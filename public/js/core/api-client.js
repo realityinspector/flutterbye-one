@@ -177,7 +177,16 @@ class APIClient {
    * Check the current authentication status
    */
   async checkAuth() {
-    return this.makeRequest('/dashboard-check', { method: 'GET' });
+    try {
+      return await this.makeRequest('/dashboard-check', { method: 'GET' });
+    } catch (error) {
+      console.warn('Auth check failed:', error.message);
+      // Return a default response to prevent errors breaking the page
+      return { 
+        authenticated: false,
+        message: 'Failed to verify authentication status'
+      };
+    }
   }
 }
 
