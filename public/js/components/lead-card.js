@@ -62,7 +62,9 @@ class LeadCard {
              role="article" 
              aria-labelledby="lead-company-${lead.id}">
           <div class="lead-card-header">
-            <h3 class="lead-company" id="lead-company-${lead.id}">${this._escapeHtml(lead.getDisplayName())}</h3>
+            <h3 class="lead-company" id="lead-company-${lead.id}">
+              <a href="/lead-detail.html?id=${lead.id}" class="lead-detail-link">${this._escapeHtml(lead.getDisplayName())}</a>
+            </h3>
             ${statusBadge ? `<span class="lead-status" style="background-color: ${lead.getStatusColor()}" role="status">${lead.getStatusText()}</span>` : ''}
           </div>
           
