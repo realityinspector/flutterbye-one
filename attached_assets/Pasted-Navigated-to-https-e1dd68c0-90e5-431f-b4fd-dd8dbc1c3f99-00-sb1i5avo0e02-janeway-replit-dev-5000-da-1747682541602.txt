@@ -1,0 +1,38 @@
+Navigated to https://e1dd68c0-90e5-431f-b4fd-dd8dbc1c3f99-00-sb1i5avo0e02.janeway.replit.dev:5000/dashboard.html
+api-client.js:22 Auth token found in storage
+call-tracker.js:1034 Uncaught SyntaxError: Identifier 'phoneEl' has already been declared (at call-tracker.js:1034:19)Understand this error
+api-adapter.js:18 Using dashboard-check endpoint
+api-adapter.js:32 Dashboard check result: {authenticated: true, user: {…}, token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7I…gwNn0.Uh-xvx7qFKQHcQ1r0zJp7H6e5VnOTJgHQX1RzmHYZK0', success: true, data: {…}}
+api-client.js:22 Auth token found in storage
+api-client.js:72 Making API request to: /api/leads?limit=5
+api-client.js:83 Request includes authorization token
+api-client.js:101 API Request: {url: '/api/leads?limit=5', method: 'GET', headers: {…}, body: undefined}
+dashboard.js:121 Error loading recent calls: TypeError: call.getStartTimeText is not a function
+    at dashboard.js:215:20
+    at Array.forEach (<anonymous>)
+    at DashboardController.renderCalls (dashboard.js:208:22)
+    at DashboardController.loadRecentCalls (dashboard.js:119:12)
+    at async Promise.all (index 1)
+    at async DashboardController.init (dashboard.js:40:7)
+loadRecentCalls @ dashboard.js:121
+await in loadRecentCalls
+init @ dashboard.js:42
+await in init
+(anonymous) @ dashboard.js:447Understand this error
+api-client.js:112 API Response status: 200 OK
+lead-service.js:242 Error getting due reminders: TypeError: lead.isReminderDue is not a function
+    at lead-service.js:240:40
+    at Array.filter (<anonymous>)
+    at LeadService.getDueReminders (lead-service.js:240:20)
+    at async DashboardController.checkDueReminders (dashboard.js:420:28)
+getDueReminders @ lead-service.js:242
+await in getDueReminders
+checkDueReminders @ dashboard.js:420
+init @ dashboard.js:50
+await in init
+(anonymous) @ dashboard.js:447Understand this error
+dashboard.js:439 Error checking reminders: TypeError: lead.isReminderDue is not a function
+    at lead-service.js:240:40
+    at Array.filter (<anonymous>)
+    at LeadService.getDueReminders (lead-service.js:240:20)
+    at async DashboardController.checkDueReminders (dashboard.js:420:28)
