@@ -36,7 +36,7 @@ class Lead {
 
     // Merge provided data with defaults
     const mergedData = { ...defaults, ...data };
-    
+
     // If globalLead is provided, merge it with defaults
     if (data.globalLead) {
       mergedData.globalLead = { ...defaults.globalLead, ...data.globalLead };
@@ -50,7 +50,7 @@ class Lead {
     this.reminderDate = this.reminderDate ? new Date(this.reminderDate) : null;
     this.createdAt = this.createdAt ? new Date(this.createdAt) : null;
     this.updatedAt = this.updatedAt ? new Date(this.updatedAt) : null;
-    
+
     if (this.globalLead) {
       this.globalLead.createdAt = this.globalLead.createdAt ? new Date(this.globalLead.createdAt) : null;
       this.globalLead.updatedAt = this.globalLead.updatedAt ? new Date(this.globalLead.updatedAt) : null;
@@ -220,7 +220,7 @@ class Lead {
       'closed': '#4CAF50',      // Green
       'lost': '#F44336'         // Red
     };
-    
+
     return colors[this.status] || '#9E9E9E'; // Default to grey
   }
 
@@ -238,7 +238,7 @@ class Lead {
       'closed': 'Closed (Won)',
       'lost': 'Closed (Lost)'
     };
-    
+
     return statusMap[this.status] || this.status;
   }
 
@@ -286,10 +286,10 @@ class Lead {
    */
   getAgeText() {
     if (!this.createdAt) return "Unknown";
-    
+
     const now = new Date();
     const diffInDays = Math.floor((now - this.createdAt) / (1000 * 60 * 60 * 24));
-    
+
     if (diffInDays === 0) return "Today";
     if (diffInDays === 1) return "Yesterday";
     if (diffInDays < 7) return `${diffInDays} days ago`;

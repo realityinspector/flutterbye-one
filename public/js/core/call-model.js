@@ -22,7 +22,7 @@ class Call {
 
     // Merge provided data with defaults
     const mergedData = { ...defaults, ...data };
-    
+
     // Assign properties to this instance
     Object.assign(this, mergedData);
 
@@ -31,6 +31,18 @@ class Call {
     this.endTime = this.endTime ? new Date(this.endTime) : null;
     this.createdAt = this.createdAt ? new Date(this.createdAt) : null;
     this.updatedAt = this.updatedAt ? new Date(this.updatedAt) : null;
+  }
+
+  getStartTimeText() {
+    return new Date(this.startTime || this.createdAt).toLocaleString();
+  }
+
+  getDurationText() {
+    return this.duration ? `${Math.round(this.duration / 60)} min` : '-';
+  }
+
+  getOutcomeText() {
+    return this.outcome || 'Unknown';
   }
 
   /**
@@ -181,7 +193,7 @@ class Call {
       'left_voicemail': 'Left Voicemail',
       'wrong_number': 'Wrong Number'
     };
-    
+
     return outcomeMap[this.outcome] || 'Unknown';
   }
 
@@ -198,7 +210,7 @@ class Call {
       'missed': 'Missed',
       'canceled': 'Canceled'
     };
-    
+
     return statusMap[this.status] || this.status;
   }
 
@@ -215,7 +227,7 @@ class Call {
       'missed': '#F44336',    // Red
       'canceled': '#9E9E9E'   // Grey
     };
-    
+
     return colors[this.status] || '#9E9E9E';
   }
 
@@ -244,18 +256,18 @@ class Call {
     if (!this.isCompleted()) {
       return "—";
     }
-    
+
     if (this.duration === null && this.startTime && this.endTime) {
       this.calculateDuration();
     }
-    
+
     if (this.duration === null) {
       return "Unknown";
     }
-    
+
     const minutes = Math.floor(this.duration / 60);
     const seconds = this.duration % 60;
-    
+
     if (minutes === 0) {
       return `${seconds}s`;
     } else {
@@ -270,11 +282,11 @@ class Call {
    */
   getFormattedNotes(maxLength = 100) {
     if (!this.notes) return "No notes";
-    
+
     if (this.notes.length <= maxLength) {
       return this.notes;
     }
-    
+
     return this.notes.substring(0, maxLength) + '...';
   }
 }
