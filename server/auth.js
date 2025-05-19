@@ -47,6 +47,12 @@ function authenticateJWT(req, res, next) {
         return res.status(401).json({ success: false, message: 'Invalid or expired token' });
       }
       
+      // Make sure decoded.user exists
+      if (!decoded || !decoded.user) {
+        console.error('Invalid token format - missing user object');
+        return res.status(401).json({ success: false, message: 'Invalid token format' });
+      }
+      
       console.log('Token verified successfully - user:', decoded.user.username);
       req.user = decoded.user;
       next();

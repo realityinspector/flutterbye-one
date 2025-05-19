@@ -110,22 +110,38 @@ class CallService {
       const payload = this.activeCall.toJSON();
       console.log('Ending call with data:', payload);
       
-      // Send to API
-      const response = await this.apiClient.updateCall(
-        this.activeCall.id, 
-        payload
-      );
-      
-      // Handle different response formats
+      // Send to API with error handling
+      let response;
       let completedCall;
-      if (response.success && response.data) {
-        // Standard success response format
-        completedCall = new Call(response.data);
-      } else if (response.id) {
-        // Direct object response format
-        completedCall = new Call(response);
-      } else {
-        throw new Error('Invalid response format from API');
+      
+      try {
+        response = await this.apiClient.updateCall(
+          this.activeCall.id, 
+          payload
+        );
+        
+        // Handle different response formats
+        if (response.success && response.data) {
+          // Standard success response format
+          completedCall = new Call(response.data);
+        } else if (response.id) {
+          // Direct object response format
+          completedCall = new Call(response);
+        } else {
+          console.warn('Unexpected API response format, using local call data');
+          completedCall = this.activeCall;
+        }
+      } catch (apiError) {
+        console.warn('API error when ending call, using local data:', apiError);
+        
+        // Create a completed call from the current active call
+        completedCall = new Call({
+          ...this.activeCall,
+          status: 'completed',
+          endTime: endTime,
+          outcome: outcome,
+          notes: notes
+        });
       }
       
       // Update local cache
