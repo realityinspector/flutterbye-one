@@ -68,7 +68,8 @@ class CallTracker {
    */
   async startCall() {
     try {
-      // Start the call via the service
+      console.log(`CallTracker: Starting call to lead ID ${this.leadId}`);
+      // Start the call via the service with improved error handling
       this.call = await this.callService.startCall(this.leadId);
       
       // Update UI

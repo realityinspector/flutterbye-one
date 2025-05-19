@@ -12,24 +12,64 @@ class APIClient {
    * Get the authentication token from storage
    */
   getStoredToken() {
-    return localStorage.getItem('auth_token') || this.getCookie('auth_token');
+    // Try to get token from multiple possible storage locations
+    const token = localStorage.getItem('auth_token') || 
+                  sessionStorage.getItem('auth_token') || 
+                  this.getCookie('auth_token');
+    
+    // Log token status for debugging (without exposing full token)
+    if (token) {
+      console.log('Auth token found in storage');
+    } else {
+      console.warn('No auth token found in storage');
+    }
+    
+    return token;
   }
 
   /**
    * Extract a cookie value by name
    */
   getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
+    try {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) {
+        const token = parts.pop().split(';').shift();
+        return token;
+      }
+    } catch (e) {
+      console.error('Error parsing cookie:', e);
+    }
     return null;
+  }
+  
+  /**
+   * Ensure we have a valid authentication token
+   * @returns {boolean} True if token is available
+   */
+  ensureAuthenticated() {
+    this.token = this.getStoredToken();
+    if (!this.token) {
+      console.warn('No authentication token available, redirecting to login');
+      window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href);
+      return false;
+    }
+    return true;
   }
 
   /**
    * Make a request to the API
    */
   async makeRequest(endpoint, options = {}) {
-    const url = `${this.baseURL}/api${endpoint}`;
+    // Make sure we're using the current token in case it was refreshed
+    this.token = this.getStoredToken();
+    
+    // Ensure endpoint starts with a slash
+    const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const url = `${this.baseURL}/api${formattedEndpoint}`;
+    
+    console.log(`Making API request to: ${url}`);
     
     // Default headers with authentication
     const headers = {
@@ -40,6 +80,9 @@ class APIClient {
     // Add authorization token if available
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
+      console.log('Request includes authorization token');
+    } else {
+      console.warn('No authorization token available for request');
     }
     
     // Prepare request options
@@ -54,14 +97,40 @@ class APIClient {
     }
 
     try {
-      // Make the fetch request
-      const response = await fetch(url, requestOptions);
+      // Log full request details for debugging
+    console.log('API Request:', {
+      url,
+      method: requestOptions.method,
+      headers: requestOptions.headers,
+      body: requestOptions.body ? JSON.parse(requestOptions.body) : undefined
+    });
+    
+    // Make the fetch request
+    const response = await fetch(url, requestOptions);
+    
+    // Log response status
+    console.log(`API Response status: ${response.status} ${response.statusText}`);
+    
+    // Handle any error responses
+    if (!response.ok) {
+      // Try to get error details from response
+      const errorText = await response.text();
+      let errorMessage = `API request failed with status ${response.status}`;
       
-      // Handle any error responses
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `API request failed with status ${response.status}`);
+      try {
+        // Try to parse as JSON if possible
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        // If not JSON, use the raw text if it exists
+        if (errorText) {
+          errorMessage += `: ${errorText}`;
+        }
       }
+      
+      console.error('API Error:', errorMessage);
+      throw new Error(errorMessage);
+    }
 
       // Parse and return the response data
       return await response.json();
@@ -138,10 +207,46 @@ class APIClient {
    * Create a new call record
    */
   async createCall(data) {
-    return this.makeRequest('/calls', { 
-      method: 'POST',
-      body: data
-    });
+    // Make sure the call object has the correct properties expected by the server
+    const callData = {
+      ...data,
+      userLeadId: data.leadId || data.userLeadId // Ensure userLeadId is set
+    };
+    
+    // Debug logging
+    console.log('Creating call with data:', callData);
+    
+    // IMPORTANT: Make a direct fetch call to avoid routing issues
+    try {
+      const token = this.getStoredToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+      
+      const response = await fetch('/api/calls', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(callData)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Call API error (${response.status}):`, errorText);
+        throw new Error(`Failed to create call: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Direct call creation failed:', error);
+      // Fall back to regular request method
+      return this.makeRequest('/calls', { 
+        method: 'POST',
+        body: callData
+      });
+    }
   }
 
   /**

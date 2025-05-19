@@ -271,10 +271,21 @@ function registerRoutes(app) {
 
   app.post('/api/calls', authenticateJWT, async (req, res) => {
     try {
+      // Use either userLeadId or leadId for compatibility
+      const userLeadId = req.body.userLeadId || req.body.leadId;
+      
+      // Log the request details for debugging
+      console.log('Call creation request:', {
+        userId: req.user.id,
+        leadId: req.body.leadId,
+        userLeadId: req.body.userLeadId,
+        resolvedId: userLeadId
+      });
+      
       // Check if lead belongs to user
       const [userLead] = await db.select().from(userLeads).where(
         and(
-          eq(userLeads.id, req.body.userLeadId),
+          eq(userLeads.id, userLeadId),
           eq(userLeads.userId, req.user.id)
         )
       );
@@ -321,12 +332,14 @@ function registerRoutes(app) {
       // Prepare the values for insertion with explicit type handling
       const insertValues = {
         userId: req.user.id,
-        userLeadId: req.body.userLeadId,
+        userLeadId: userLeadId, // Use our resolved ID that works with both client versions
         callDate: new Date(), // Always use current date to avoid any date format issues
         duration: req.body.duration ? parseInt(req.body.duration) : 0,
         outcome: req.body.outcome || 'completed',
         notes: req.body.notes || ''
       };
+      
+      console.log('Inserting call record with values:', insertValues);
 
       // Only add reminderDate if it's a valid date
       if (reminderDate) {

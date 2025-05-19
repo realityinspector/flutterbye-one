@@ -43,16 +43,25 @@ class CallService {
       // First, reset any stale call state that might be lingering
       this._resetActiveCallState();
       
+      // Check authentication - will redirect to login if no token
+      if (!this.apiClient.ensureAuthenticated()) {
+        throw new Error('Authentication required');
+      }
+      
       // Create a new call
       const call = new Call({
         leadId,
-        userLeadId: leadId, // Explicitly set userLeadId to match server expectation
+        userLeadId: parseInt(leadId), // Explicitly set userLeadId as number to match server expectation
         startTime: new Date(),
         status: 'active'
       });
       
-      // Send to API
+      // Send to API with detailed error logging
+      console.log(`Starting call to lead ${leadId}, preparing API request...`);
+      
+      // Send API request
       const response = await this.apiClient.createCall(call.toJSON());
+      console.log('Call API response:', response);
       
       // Set as active call
       this.activeCall = new Call(response.data);
