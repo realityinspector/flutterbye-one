@@ -518,8 +518,19 @@
         const leadService = new LeadService(apiClient, storageManager);
         const callService = new CallService(apiClient, storageManager);
         
-        // Skip auth check for now - we'll handle auth errors at the API level
-        // We don't want the dashboard-check to block our lead detail page from loading
+        // Check authentication before proceeding
+        try {
+          const authCheck = await apiClient.checkAuth();
+          if (!authCheck.authenticated) {
+            console.warn('User not authenticated, redirecting to login');
+            window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href);
+            return;
+          }
+          console.log('Authentication confirmed, user:', authCheck.user);
+        } catch (error) {
+          console.warn('Auth check failed:', error);
+          // Continue anyway and let the API calls handle auth errors
+        }
         
         // Display loading state
         leadContainer.innerHTML = `
@@ -636,7 +647,7 @@
             <button class="btn btn-secondary" onclick="window.location.href='/leads.html?edit=${lead.id}'">
               <i class="fas fa-edit"></i> Edit
             </button>
-            <button class="btn btn-primary" onclick="window.location.href='/lead-detail.html?id=${lead.id}&action=call'">
+            <button class="btn btn-primary" onclick="initializeCallTracker(lead, callService, leadService)">
               <i class="fas fa-phone"></i> Call
             </button>
           </div>
@@ -776,7 +787,10 @@
       callInterfaceContainer.id = 'callInterface';
       document.body.appendChild(callInterfaceContainer);
       
-      // Initialize call tracker
+      // Initialize call tracker with explicit ID logging
+      console.log(`Initializing call tracker for lead ID: ${lead.id}`);
+      
+      // Make sure we use the correct ID format expected by the server
       const callTracker = new CallTracker(lead.id, callService, {
         containerSelector: '#callInterface',
         onCallEnd: async (call) => {
