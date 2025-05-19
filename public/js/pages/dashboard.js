@@ -30,6 +30,9 @@ class DashboardController {
    */
   async init() {
     try {
+      // Explicitly hide loading indicator at startup
+      this.showLoading(false);
+      
       // Check authentication first
       await this.checkAuth();
       

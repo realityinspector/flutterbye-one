@@ -133,6 +133,11 @@ const AppNavigator = () => {
                 options={{ title: 'Add New Lead' }}
               />
               <Stack.Screen 
+                name="EditLead" 
+                component={AddLeadScreen} 
+                options={{ title: 'Edit Lead' }}
+              />
+              <Stack.Screen 
                 name="FindNewLeads" 
                 component={FindNewLeadsScreen} 
                 options={{ title: 'Find New Leads with AI' }}

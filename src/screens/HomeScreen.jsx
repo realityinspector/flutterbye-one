@@ -31,7 +31,7 @@ const HomeScreen = () => {
   const theme = useTheme();
   const toast = useToast();
   const { user } = useAuth();
-  const { leads, isLoading: leadsLoading } = useLeads();
+  const { leads, isLoading: leadsLoading, deleteLead } = useLeads();
   const { calls, isLoading: callsLoading } = useCalls();
   
   const [stats, setStats] = useState({
@@ -88,12 +88,11 @@ const HomeScreen = () => {
   const handleCallLead = (lead) => {
     console.log("Call lead", lead.id, lead.globalLead?.phoneNumber);
     if (lead.globalLead?.phoneNumber) {
-      // Could implement actual call functionality here
-      toast.show({
-        title: "Calling " + (lead.globalLead?.contactName || lead.globalLead?.companyName),
-        description: lead.globalLead?.phoneNumber,
-        status: "info",
-        duration: 3000
+      // Navigate to Call screen with lead information
+      navigation.navigate('Call', { 
+        leadId: lead.id,
+        phoneNumber: lead.globalLead?.phoneNumber,
+        contactName: lead.globalLead?.contactName || lead.globalLead?.companyName
       });
     } else {
       toast.show({
@@ -107,18 +106,61 @@ const HomeScreen = () => {
   // Handle edit lead button press
   const handleEditLead = (lead) => {
     console.log("Edit lead", lead.id, lead.globalLead?.companyName);
-    navigation.navigate('EditLead', { leadId: lead.id });
+    navigation.navigate('AddLead', { leadId: lead.id, isEditing: true });
   };
 
   // Handle delete lead button press
   const handleDeleteLead = (lead) => {
     console.log("Delete lead", lead.id, lead.globalLead?.companyName);
-    // Could implement confirmation dialog here
+    
+    // Show confirmation dialog
     toast.show({
-      title: "Delete functionality",
-      description: "Delete functionality would be implemented here",
-      status: "info",
-      duration: 3000
+      title: "Confirm Deletion",
+      description: `Are you sure you want to delete ${lead.globalLead?.companyName || 'this lead'}?`,
+      status: "warning",
+      duration: 5000,
+      isClosable: true,
+      placement: "top",
+      render: ({id}) => (
+        <Box bg="warning.100" p={3} rounded="md">
+          <HStack alignItems="center" space={2}>
+            <Icon as={Feather} name="alert-triangle" size={5} color="warning.600" />
+            <VStack flex={1}>
+              <Text fontWeight="bold" color="warning.800">
+                Confirm Delete
+              </Text>
+              <Text color="warning.700">
+                Are you sure you want to delete {lead.globalLead?.companyName || 'this lead'}?
+              </Text>
+            </VStack>
+          </HStack>
+          <HStack mt={3} justifyContent="flex-end" space={2}>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              onPress={() => toast.close(id)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              size="sm" 
+              colorScheme="error" 
+              onPress={() => {
+                // Delete the lead
+                deleteLead(lead.id);
+                toast.close(id);
+                toast.show({
+                  title: "Lead deleted",
+                  status: "success",
+                  duration: 3000
+                });
+              }}
+            >
+              Delete
+            </Button>
+          </HStack>
+        </Box>
+      )
     });
   };
 

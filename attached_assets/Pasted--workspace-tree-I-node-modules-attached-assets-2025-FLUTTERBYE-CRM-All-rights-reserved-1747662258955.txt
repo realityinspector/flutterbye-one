@@ -1,0 +1,225 @@
+~/workspace$ tree -I 'node_modules|attached_assets'
+.
+├── © 2025 FLUTTERBYE CRM. All rights reserved.
+├── App.jsx
+├── cookies.txt
+├── cookie.txt
+├── dashboard_screenshot.png
+├── docs
+│   ├── integration-testing.md
+│   ├── migration-guide.md
+│   └── refactored-architecture.md
+├── DREAM-TEAM-PLAN.md
+├── ENGINEERING.md
+├── export.py
+├── homepage.html
+├── hosted_separately
+│   ├── app.js
+│   ├── index.html
+│   ├── README.md
+│   └── style.css
+├── login_response.json
+├── package.json
+├── package-lock.json
+├── public
+│   ├── app.js
+│   ├── calls.html
+│   ├── call-tracking.js
+│   ├── call-tracking-simple.js
+│   ├── cards-link.html
+│   ├── css
+│   │   ├── components.css
+│   │   └── lead-card.css
+│   ├── dashboard_backup.html
+│   ├── dashboard.html
+│   ├── dashboard.html.backup
+│   ├── dashboard.html-bak2
+│   ├── dashboard.html.working
+│   ├── images
+│   │   └── aot-labs-logo.png
+│   ├── index.html
+│   ├── js
+│   │   ├── api-interceptor.js
+│   │   ├── api-validator.js
+│   │   ├── auth-fix.js
+│   │   ├── clean-html-templates.js
+│   │   ├── client-json-monitor.js
+│   │   ├── components
+│   │   │   ├── call-tracker.js
+│   │   │   ├── lead-card.js
+│   │   │   └── modal-manager.js
+│   │   ├── core
+│   │   │   ├── api-adapter.js
+│   │   │   ├── api-client.js
+│   │   │   ├── call-model.js
+│   │   │   ├── lead-model.js
+│   │   │   └── storage-manager.js
+│   │   ├── dashboard-debug-helper.js
+│   │   ├── dashboard-debug.js
+│   │   ├── debug-response.js
+│   │   ├── diagnose-json-error.js
+│   │   ├── html-structure-fix.js
+│   │   ├── lead-card.js
+│   │   ├── pages
+│   │   │   ├── calls.js
+│   │   │   ├── dashboard.js
+│   │   │   └── leads.js
+│   │   ├── safe-data-loader.js
+│   │   ├── safe-loader.js
+│   │   └── services
+│   │       ├── call-service.js
+│   │       ├── lead-service.js
+│   │       └── sync-service.js
+│   ├── lead-cards-demo.html
+│   ├── leads-display.html
+│   ├── leads.html
+│   ├── privacy.html
+│   ├── settings.html
+│   ├── simple.html
+│   ├── terms.html
+│   └── test.html
+├── README.md
+├── refactoring_plan.md
+├── scripts
+│   ├── add-leads-route.js
+│   ├── admin-onboard.js
+│   ├── deep-syntax-fix.js
+│   ├── extract-dashboard-scripts.js
+│   ├── final-dashboard-fix.js
+│   ├── final-fix.js
+│   ├── final-js-fix.js
+│   ├── final-syntax-cleanup.js
+│   ├── find-script-error.js
+│   ├── fix-dashboard-data.js
+│   ├── fix-dashboard-endpoint.js
+│   ├── fix-json-error.js
+│   ├── fix-lazy-loading.js
+│   ├── fix-notification-template.js
+│   ├── fix-template-strings.js
+│   ├── leads-display-fix.js
+│   ├── link-lead-cards.js
+│   ├── minimal-server.js
+│   ├── push-schema.js
+│   ├── seed-demo-data.js
+│   ├── start-server.js
+│   ├── targeted-fix.js
+│   ├── test-api-endpoints.js
+│   ├── test-dashboard-auth.js
+│   ├── test-more-leads.js
+│   ├── test-openrouter.js
+│   ├── test-specific-endpoints.js
+│   ├── trace-json-error.js
+│   └── verify-json-fix.js
+├── server
+│   ├── analytics.js
+│   ├── auth.js
+│   ├── config.js
+│   ├── db.js
+│   ├── db.ts
+│   ├── index.js
+│   ├── routes
+│   │   ├── ai.js
+│   │   ├── index.js
+│   │   ├── leads.js
+│   │   ├── organization-members.js
+│   │   └── organizations.js
+│   ├── routes.js
+│   ├── services
+│   │   └── ai
+│   │       ├── aiStorage.js
+│   │       ├── aiStorage.ts
+│   │       ├── index.js
+│   │       ├── index.ts
+│   │       ├── leadPromptTemplate.js
+│   │       ├── openai.js
+│   │       ├── openRouter.js
+│   │       ├── openRouter.ts
+│   │       ├── webSearch.js
+│   │       └── webSearch.ts
+│   ├── storage.js
+│   └── storage.ts
+├── shared
+│   ├── db
+│   │   ├── index.ts
+│   │   ├── schema.js
+│   │   ├── schema.ts
+│   │   └── zod-schema.ts
+│   └── schema.js
+├── src
+│   ├── components
+│   │   ├── AdminSetupForm.jsx
+│   │   ├── Breadcrumbs.jsx
+│   │   ├── CallActions.jsx
+│   │   ├── CallItem.jsx
+│   │   ├── CallItem.tsx
+│   │   ├── Footer.jsx
+│   │   ├── LeadCard.jsx
+│   │   ├── LeadCard.tsx.bak
+│   │   ├── LeadForm.jsx
+│   │   ├── LeadGeneration
+│   │   │   ├── FindLeadsForm.jsx
+│   │   │   ├── FindNewLeadsScreen.jsx
+│   │   │   ├── LeadApprovalList.jsx
+│   │   │   ├── LeadGenerationProgress.jsx
+│   │   │   └── NoMoreLeadsModal.jsx
+│   │   ├── MobileHeader.jsx
+│   │   ├── NewCallFAB.tsx
+│   │   ├── SetupWizard.jsx
+│   │   ├── ShareCallRecap.tsx
+│   │   ├── TeamLeadFilterToggle.jsx
+│   │   ├── TeamLeadFilterToggle.tsx
+│   │   ├── TeamLeadOptions.jsx
+│   │   ├── TeamLeadOptions.tsx
+│   │   └── UserSetupForm.jsx
+│   ├── hooks
+│   │   ├── useAsync.ts
+│   │   ├── useAuth.js
+│   │   ├── useAuth.ts
+│   │   ├── useCalls.js
+│   │   ├── useCalls.ts
+│   │   ├── useLeads.js
+│   │   ├── useLeads.ts
+│   │   ├── useOrganizations.js
+│   │   └── useOrganizations.ts
+│   ├── navigation
+│   │   ├── index.jsx
+│   │   └── TeamStackNavigator.tsx
+│   ├── screens
+│   │   ├── AdminSetupScreen.jsx
+│   │   ├── AuthScreen.jsx
+│   │   ├── CallQueueScreen.jsx
+│   │   ├── calls
+│   │   │   ├── CallHistoryScreen.jsx
+│   │   │   ├── CallScreen.jsx
+│   │   │   └── CallsScreen.jsx
+│   │   ├── HomeScreen.jsx
+│   │   ├── HomeScreen.tsx
+│   │   ├── LeadFormScreen.jsx
+│   │   ├── leads
+│   │   │   ├── AddLeadScreen.jsx
+│   │   │   ├── LeadDetailScreen.jsx
+│   │   │   └── LeadsListScreen.jsx
+│   │   ├── OrganizationDetails.tsx
+│   │   ├── Organizations.tsx
+│   │   ├── settings
+│   │   │   └── ProfileScreen.jsx
+│   │   └── UserSetupScreen.jsx
+│   ├── services
+│   │   ├── CallHandler.ts
+│   │   ├── SqliteService.ts
+│   │   └── SyncService.ts
+│   ├── types
+│   │   └── index.ts
+│   ├── types.ts
+│   └── utils
+│       ├── permissions.js
+│       └── theme.js
+├── TEAM-PLAN.md
+├── tests
+│   └── refactoring-validation.js
+├── tmp
+│   └── script_1.js
+├── token.txt
+└── tsconfig.json
+
+32 directories, 190 files

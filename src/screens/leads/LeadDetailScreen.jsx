@@ -88,7 +88,7 @@ const LeadDetailScreen = () => {
 
   // Handle edit lead
   const handleEditLead = () => {
-    navigation.navigate('LeadForm', { leadId: lead.id });
+    navigation.navigate('EditLead', { leadId: lead.id });
   };
   
   // Handle saving sharing settings
@@ -158,11 +158,11 @@ const LeadDetailScreen = () => {
   const handleCall = async () => {
     if (lead?.globalLead?.phoneNumber) {
       try {
-        await makePhoneCall(lead.globalLead.phoneNumber);
+        // Navigate to Call screen with lead information
         navigation.navigate('Call', { 
           leadId: lead.id,
           phoneNumber: lead.globalLead.phoneNumber,
-          contactName: lead.globalLead.contactName,
+          contactName: lead.globalLead.contactName || lead.globalLead.companyName
         });
       } catch (error) {
         console.error('Error making phone call:', error);
@@ -218,7 +218,7 @@ const LeadDetailScreen = () => {
 
   // Create breadcrumb items
   const breadcrumbItems = [
-    { label: 'Leads', screen: 'LeadsList' },
+    { label: 'Leads', screen: 'Leads' },
     { label: lead.globalLead.contactName || 'Lead Details' }
   ];
 
@@ -227,7 +227,7 @@ const LeadDetailScreen = () => {
       <MobileHeader 
         title={lead.globalLead.contactName || 'Lead Details'} 
         showBackButton={true} 
-        onBack={() => navigation.navigate('LeadsList')}
+        onBack={() => navigation.navigate('Leads')}
       />
       <Breadcrumbs items={breadcrumbItems} />
       <VStack flex={1}>
