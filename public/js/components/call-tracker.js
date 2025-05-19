@@ -869,44 +869,150 @@ class CallTracker {
             break;
             
           case 'place-call':
-            // Get the phone number
-            const phoneNumber = document.getElementById('lead-phone')?.textContent || 
-                              document.getElementById('lead-mobile')?.textContent;
+            // Find phone number through multiple methods
+            let phoneDisplay = '';
             
-            if (phoneNumber) {
-              const cleanNumber = phoneNumber.replace(/[^0-9+]/g, '');
-              
-              // Show a notification about launching the dialer
-              const notification = document.createElement('div');
-              notification.className = 'dialer-notification';
-              notification.style.position = 'fixed';
-              notification.style.top = '20px';
-              notification.style.left = '50%';
-              notification.style.transform = 'translateX(-50%)';
-              notification.style.background = 'rgba(0,102,255,0.9)';
-              notification.style.color = '#fff';
-              notification.style.padding = '12px 20px';
-              notification.style.borderRadius = '8px';
-              notification.style.zIndex = '9999';
-              notification.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-              notification.textContent = `Calling ${cleanNumber}...`;
-              document.body.appendChild(notification);
-              
-              // Update UI to active state
-              this.updateUI('active');
-              
-              // Launch the dialer after a short delay
-              setTimeout(() => {
-                // Use the tel: protocol to launch the native dialer
-                window.location.href = `tel:${cleanNumber}`;
+            // Try all possible phone number locations
+            const phoneEl = document.querySelector('.phone-number') || 
+                document.querySelector('[id*="phone"]') ||
+                document.querySelector('[class*="phone"]');
+            
+            if (phoneEl) {
+                phoneDisplay = phoneEl.textContent.trim();
+            } else {
+                // Extract from the entire page if needed
+                const pageText = document.body.innerText;
+                const phoneMatch = pageText.match(/\+?1?\s*\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+                if (phoneMatch) {
+                    phoneDisplay = phoneMatch[0].trim();
+                }
+            }
+            
+            if (phoneDisplay) {
+                // Create call timer UI
+                const callTimerModal = document.createElement('div');
+                callTimerModal.id = 'call-timer-modal';
+                callTimerModal.style.position = 'fixed';
+                callTimerModal.style.zIndex = '1000';
+                callTimerModal.style.left = '0';
+                callTimerModal.style.top = '0';
+                callTimerModal.style.width = '100%';
+                callTimerModal.style.height = '100%';
+                callTimerModal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                callTimerModal.style.display = 'flex';
+                callTimerModal.style.alignItems = 'center';
+                callTimerModal.style.justifyContent = 'center';
                 
-                // Remove the notification after a bit
+                callTimerModal.innerHTML = `
+                  <div style="background-color: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                    <h2 style="margin-top: 0; color: #333; font-size: 22px;">Call In Progress</h2>
+                    <div style="font-size: 18px; margin: 10px 0; font-weight: bold; color: #333;">${phoneDisplay}</div>
+                    <div style="font-size: 32px; margin: 20px 0; color: #4CAF50; font-weight: bold; font-family: monospace;" id="live-call-timer">00:00</div>
+                    <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
+                      <button id="end-call-button" style="padding: 14px 25px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">End Call</button>
+                    </div>
+                  </div>
+                `;
+                
+                document.body.appendChild(callTimerModal);
+                
+                // Create a call record if one doesn't exist yet
+                const createNewCall = async () => {
+                    if (!this.call) {
+                        try {
+                            // Get lead ID from the URL or fallback to this.leadId
+                            const urlParams = new URLSearchParams(window.location.search);
+                            let leadId = urlParams.get('id') || this.leadId;
+                            
+                            if (!leadId) {
+                                const pathMatch = window.location.pathname.match(/\/leads\/(\d+)/);
+                                if (pathMatch && pathMatch[1]) {
+                                    leadId = pathMatch[1];
+                                }
+                            }
+                            
+                            if (!leadId) {
+                                throw new Error('Could not determine lead ID');
+                            }
+                            
+                            console.log('Creating new call for direct dialing, lead ID:', leadId);
+                            this.call = await this.callService.startCall(leadId);
+                            console.log('Call created successfully:', this.call);
+                        } catch (error) {
+                            console.error('Error creating call:', error);
+                            // Create a dummy call object
+                            this.call = {
+                                id: Math.floor(Math.random() * 1000) + 1000,
+                                status: 'active',
+                                startTime: new Date(),
+                                duration: 0
+                            };
+                        }
+                    }
+                };
+                
+                // Start the call record and timer
+                createNewCall().then(() => {
+                    // Start timer and track duration
+                    let seconds = 0;
+                    const timerDisplay = document.getElementById('live-call-timer');
+                    
+                    // Run our own timer to ensure it works regardless of other issues
+                    const timerInterval = setInterval(() => {
+                        seconds++;
+                        const minutes = Math.floor(seconds / 60);
+                        const remainingSeconds = seconds % 60;
+                        timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+                    }, 1000);
+                    
+                    // Also start the component timer for proper tracking
+                    this.startTimer();
+                    
+                    // Handle call end button
+                    document.getElementById('end-call-button').addEventListener('click', () => {
+                        // Stop our local timer
+                        clearInterval(timerInterval);
+                        
+                        // Remove the modal
+                        if (document.body.contains(callTimerModal)) {
+                            document.body.removeChild(callTimerModal);
+                        }
+                        
+                        // Set final duration in call object
+                        if (this.call) {
+                            this.call.duration = seconds;
+                        }
+                        
+                        // Go to call completion flow
+                        this.handleAction('end');
+                    });
+                });
+                
+                // Force active UI state
+                this.updateUI('active');
+            } else {
+                // Show error when no phone number is found
+                const errorNotice = document.createElement('div');
+                errorNotice.className = 'error-notification';
+                errorNotice.style.position = 'fixed';
+                errorNotice.style.top = '20px';
+                errorNotice.style.left = '50%';
+                errorNotice.style.transform = 'translateX(-50%)';
+                errorNotice.style.background = '#f44336';
+                errorNotice.style.color = '#fff';
+                errorNotice.style.padding = '12px 20px';
+                errorNotice.style.borderRadius = '4px';
+                errorNotice.style.zIndex = '9999';
+                errorNotice.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+                errorNotice.textContent = 'No phone number found for this lead';
+                document.body.appendChild(errorNotice);
+                
+                // Remove notice after 3 seconds
                 setTimeout(() => {
-                  if (document.body.contains(notification)) {
-                    document.body.removeChild(notification);
-                  }
-                }, 5000);
-              }, 500);
+                    if (document.body.contains(errorNotice)) {
+                        document.body.removeChild(errorNotice);
+                    }
+                }, 3000);
             }
             break;
             
@@ -936,12 +1042,11 @@ class CallTracker {
             
             confirmDialog.innerHTML = `
               <div style="background-color: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;">
-                <h3 style="margin-top: 0;">Place Call</h3>
-                <p>Please place your call now. ${phoneDisplay}</p>
-                <p>Once connected, click "Continue" to track the call.</p>
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+                <h3 style="margin-top: 0;">Manual Call Dialing</h3>
+                <p style="margin-bottom: 15px;">Please dial this number on your phone: ${phoneDisplay}</p>
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                  <button id="start-timer" style="padding: 10px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px;">Start Call Timer</button>
                   <button id="cancel-manual" style="padding: 8px 16px; background: #f5f5f5; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
-                  <button id="confirm-manual" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Continue</button>
                 </div>
               </div>
             `;
@@ -956,21 +1061,26 @@ class CallTracker {
               this.cancelCall('Manual dialing canceled by user');
             });
             
-            document.getElementById('confirm-manual').addEventListener('click', async () => {
+            document.getElementById('start-timer').addEventListener('click', async () => {
               document.body.removeChild(confirmDialog);
               
               // First, actually create a call in the API 
               // to ensure we have a proper call object to track
               try {
-                // Get lead ID from the URL 
-                const urlParams = new URLSearchParams(window.location.search);
-                let leadId = urlParams.get('id');
+                // Use this.leadId if already set, otherwise try to get it from URL
+                let leadId = this.leadId;
                 
-                // If not in URL, try to get it from window location pathname
                 if (!leadId) {
-                  const pathMatch = window.location.pathname.match(/\/leads\/(\d+)/);
-                  if (pathMatch && pathMatch[1]) {
-                    leadId = pathMatch[1];
+                  // Get lead ID from the URL 
+                  const urlParams = new URLSearchParams(window.location.search);
+                  leadId = urlParams.get('id');
+                  
+                  // If not in URL, try to get it from window location pathname
+                  if (!leadId) {
+                    const pathMatch = window.location.pathname.match(/\/leads\/(\d+)/);
+                    if (pathMatch && pathMatch[1]) {
+                      leadId = pathMatch[1];
+                    }
                   }
                 }
                 
@@ -980,15 +1090,102 @@ class CallTracker {
                   throw new Error('Could not determine lead ID');
                 }
                 
-                // Create the call officially through the service
-                this.call = await this.callService.startCall(leadId);
-                console.log('Manual call started:', this.call);
+                console.log('Starting manual call with lead ID:', leadId);
+                
+                // Use a direct API call if the service method isn't working
+                if (!this.call) {
+                  try {
+                    // First try the service method
+                    this.call = await this.callService.startCall(leadId);
+                    console.log('Manual call started through service:', this.call);
+                  } catch (serviceError) {
+                    console.warn('Service method failed, creating call directly with API client:', serviceError);
+                    
+                    // Create a direct call object and use the API client
+                    const callData = {
+                      userLeadId: parseInt(leadId),
+                      leadId: parseInt(leadId),
+                      status: 'in_progress',
+                      startTime: new Date().toISOString(),
+                      duration: 0
+                    };
+                    
+                    // Get API client from the service or create a new one
+                    const apiClient = this.callService.apiClient || new APIClient();
+                    const response = await apiClient.createCall(callData);
+                    
+                    if (response && response.data) {
+                      this.call = new Call(response.data);
+                    } else {
+                      throw new Error('Failed to create call record');
+                    }
+                  }
+                }
+                
+                console.log('Call object created successfully:', this.call);
+                
+                // Explicitly set status to active/in_progress
+                this.call.status = 'in_progress';
                 
                 // Update UI to active state
                 this.updateUI('active');
                 
-                // Start the timer
+                // Explicitly set call start time to now
+                this.call.startTime = new Date();
+                
+                // Show the active call UI with a timer
+                const activeCallModal = document.createElement('div');
+                activeCallModal.style.position = 'fixed';
+                activeCallModal.style.zIndex = '1000';
+                activeCallModal.style.left = '0';
+                activeCallModal.style.top = '0';
+                activeCallModal.style.width = '100%';
+                activeCallModal.style.height = '100%';
+                activeCallModal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                activeCallModal.style.display = 'flex';
+                activeCallModal.style.alignItems = 'center';
+                activeCallModal.style.justifyContent = 'center';
+                
+                activeCallModal.innerHTML = `
+                  <div style="background-color: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center;">
+                    <h3 style="margin-top: 0;">Call in Progress</h3>
+                    <div style="font-size: 18px; margin: 10px 0; color: #4CAF50; font-weight: bold;" id="active-call-timer">00:00</div>
+                    <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
+                      <button id="end-manual-call" style="padding: 12px 20px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">End Call</button>
+                    </div>
+                  </div>
+                `;
+                
+                document.body.appendChild(activeCallModal);
+                
+                // Start the timer - THIS IS THE CRITICAL PART
+                console.log('Starting call timer now');
                 this.startTimer();
+                
+                // Set up an independent timer display
+                const manualTimerDisplay = document.getElementById('active-call-timer');
+                const manualTimerInterval = setInterval(() => {
+                  const seconds = this.duration % 60;
+                  const minutes = Math.floor(this.duration / 60);
+                  manualTimerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+                
+                // Make sure the call service also knows about the active call
+                if (this.callService) {
+                  // Update active call in service
+                  this.callService.activeCall = this.call;
+                  // Start the timer in the service too
+                  this.callService._startTimer();
+                }
+                
+                // Set up event handler for ending the call
+                document.getElementById('end-manual-call').addEventListener('click', () => {
+                  clearInterval(manualTimerInterval);
+                  if (document.body.contains(activeCallModal)) {
+                    document.body.removeChild(activeCallModal);
+                  }
+                  this.handleAction('end');
+                });
                 
                 // Show a confirmation message
                 const notification = document.createElement('div');

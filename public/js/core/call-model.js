@@ -46,7 +46,7 @@ class Call {
     }
 
     // Status validation
-    const validStatuses = ['scheduled', 'active', 'completed', 'missed', 'canceled'];
+    const validStatuses = ['scheduled', 'active', 'in_progress', 'completed', 'missed', 'canceled'];
     if (!validStatuses.includes(this.status)) {
       errors.push(`Status must be one of: ${validStatuses.join(', ')}`);
     }
@@ -141,7 +141,7 @@ class Call {
    * @returns {boolean} True if call is active
    */
   isActive() {
-    return this.status === 'active';
+    return this.status === 'active' || this.status === 'in_progress';
   }
 
   /**
@@ -193,6 +193,7 @@ class Call {
     const statusMap = {
       'scheduled': 'Scheduled',
       'active': 'In Progress',
+      'in_progress': 'In Progress',
       'completed': 'Completed',
       'missed': 'Missed',
       'canceled': 'Canceled'
@@ -209,6 +210,7 @@ class Call {
     const colors = {
       'scheduled': '#2196F3', // Blue
       'active': '#FF9800',    // Orange
+      'in_progress': '#FF9800', // Orange
       'completed': '#4CAF50', // Green
       'missed': '#F44336',    // Red
       'canceled': '#9E9E9E'   // Grey
