@@ -283,7 +283,27 @@ class APIClient {
    */
   async checkAuth() {
     try {
-      return await this.makeRequest('/dashboard-check', { method: 'GET' });
+      // IMPORTANT: The dashboard-check endpoint is at the root level, not under /api
+      // Make a direct fetch call to avoid the API prefix
+      const response = await fetch('/dashboard-check', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': this.token ? `Bearer ${this.token}` : undefined
+        },
+        credentials: 'include' // Include cookies in the request
+      });
+      
+      const result = await response.json();
+      
+      // If we received a token in the response, store it for future use
+      if (result.authenticated && result.token) {
+        this.token = result.token;
+        localStorage.setItem('auth_token', result.token);
+        console.log('Authentication token refreshed from server');
+      }
+      
+      return result;
     } catch (error) {
       console.warn('Auth check failed:', error.message);
       // Return a default response to prevent errors breaking the page
