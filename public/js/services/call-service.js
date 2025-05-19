@@ -15,6 +15,21 @@ class CallService {
     this.cacheDuration = 5 * 60 * 1000; // 5 minutes
     this.activeCall = null;
     this.timerInterval = null;
+    
+    // Reset active call state on initialization
+    this._resetActiveCallState();
+  }
+  
+  /**
+   * Reset the active call state
+   * @private
+   */
+  _resetActiveCallState() {
+    this.activeCall = null;
+    this._stopTimer();
+    
+    // Also clear from local storage to prevent persisted state issues
+    this.storageManager.remove('activeCall');
   }
 
   /**
@@ -25,9 +40,8 @@ class CallService {
   async startCall(leadId) {
     try {
       // Make sure we don't have another active call
-      if (this.activeCall) {
-        throw new Error('Another call is already in progress');
-      }
+      // First, reset any stale call state that might be lingering
+      this._resetActiveCallState();
       
       // Create a new call
       const call = new Call({
@@ -51,6 +65,8 @@ class CallService {
       
       return this.activeCall;
     } catch (error) {
+      // Ensure we reset the active call state if there was an error
+      this._resetActiveCallState();
       console.error(`Error starting call for lead ${leadId}:`, error);
       throw error;
     }
@@ -107,9 +123,9 @@ class CallService {
       // Notify about successful completion
       console.log('Call ended successfully:', completedCall);
       
-      // Clear active call
+      // Properly reset active call state
       const returnCall = this.activeCall;
-      this.activeCall = null;
+      this._resetActiveCallState();
       
       // Update lead's last contacted timestamp if needed
       try {
@@ -165,13 +181,15 @@ class CallService {
       const canceledCall = new Call(response.data);
       this._updateCallInCache(canceledCall);
       
-      // Clear active call
+      // Properly reset active call state
       const returnCall = this.activeCall;
-      this.activeCall = null;
+      this._resetActiveCallState();
       
       return canceledCall;
     } catch (error) {
       console.error('Error canceling call:', error);
+      // Make sure to reset call state on error
+      this._resetActiveCallState();
       throw error;
     }
   }
