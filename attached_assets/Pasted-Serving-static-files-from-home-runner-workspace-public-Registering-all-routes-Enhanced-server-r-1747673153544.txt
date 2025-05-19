@@ -1,0 +1,104 @@
+Serving static files from: /home/runner/workspace/public
+Registering all routes...
+Enhanced server running on port 5000
+Server address: { address: '0.0.0.0', family: 'IPv4', port: 5000 }
+Server is ready at http://0.0.0.0:5000
+Dashboard check - Token present: true JWT_SECRET: flutt...
+Dashboard check - Token verified successfully - user: realityinspector
+API Response to GET /dashboard-check: Valid JSON sent, content length 976
+API Response to GET /dashboard-check: Valid JSON sent, content length 976
+No new users without demo data found.
+Completed check for new users to seed with demo data
+Dashboard check - Token present: true JWT_SECRET: flutt...
+Dashboard check - Token verified successfully - user: realityinspector
+API Response to GET /dashboard-check: Valid JSON sent, content length 976
+API Response to GET /dashboard-check: Valid JSON sent, content length 976
+Dashboard check - Token present: true JWT_SECRET: flutt...
+Dashboard check - Token verified successfully - user: realityinspector
+API Response to GET /dashboard-check: Valid JSON sent, content length 976
+API Response to GET /dashboard-check: Valid JSON sent, content length 976
+Login attempt { username: 'realityinspector' }
+API Response to POST /api/login: Valid JSON sent, content length 715
+Dashboard check - Token present: true JWT_SECRET: flutt...
+Dashboard check - Token verified successfully - user: realityinspector
+API Response to GET /dashboard-check: Valid JSON sent, content length 976
+API Response to GET /dashboard-check: Valid JSON sent, content length 976
+Auth check - Token present: true JWT_SECRET: flutt...
+Token verified successfully - user: realityinspector
+Auth check - Token present: true JWT_SECRET: flutt...
+Token verified successfully - user: realityinspector
+Auth check - Token present: true JWT_SECRET: flutt...
+Token verified successfully - user: realityinspector
+API Response to GET /api/calls: Valid JSON sent, content length 5864
+API Response to GET /api/analytics/dashboard: Valid JSON sent, content length 869
+API Response to GET /api/analytics/dashboard: Valid JSON sent, content length 869
+API Response to GET /?limit=5: Valid JSON sent, content length 5653
+Auth check - Token present: true JWT_SECRET: flutt...
+Token verified successfully - user: realityinspector
+API Response to GET /: Valid JSON sent, content length 5653
+Dashboard check - Token present: true JWT_SECRET: flutt...
+Dashboard check - Token verified successfully - user: realityinspector
+API Response to GET /dashboard-check: Valid JSON sent, content length 976
+API Response to GET /dashboard-check: Valid JSON sent, content length 976
+Auth check - Token present: true JWT_SECRET: flutt...
+Token verified successfully - user: realityinspector
+Call creation request: { userId: 2, leadId: 14, userLeadId: 14, resolvedId: 14 }
+Using lead for call: 14
+Call Data: {
+  userLeadId: 14,
+  callDate: '2025-05-19T16:42:58.581Z',
+  reminderDate: null,
+  duration: 0,
+  outcome: null,
+  notes: ''
+}
+Inserting call record with values: {
+  userId: 2,
+  userLeadId: 14,
+  callDate: 2025-05-19T16:42:58.581Z,
+  duration: 0,
+  outcome: null,
+  notes: ''
+}
+Final insert values: {
+  userId: 2,
+  userLeadId: 14,
+  callDate: 2025-05-19T16:42:58.581Z,
+  duration: 0,
+  outcome: null,
+  notes: ''
+}
+API Response to POST /api/calls: Valid JSON sent, content length 235
+Dashboard check - Token present: true JWT_SECRET: flutt...
+Dashboard check - Token verified successfully - user: realityinspector
+API Response to GET /dashboard-check: Valid JSON sent, content length 976
+API Response to GET /dashboard-check: Valid JSON sent, content length 976
+Auth check - Token present: true JWT_SECRET: flutt...
+Token verified successfully - user: realityinspector
+Call creation request: { userId: 2, leadId: 14, userLeadId: 14, resolvedId: 14 }
+Using lead for call: 14
+Call Data: {
+  userLeadId: 14,
+  callDate: '2025-05-19T16:43:22.631Z',
+  reminderDate: null,
+  duration: 0,
+  outcome: null,
+  notes: ''
+}
+Inserting call record with values: {
+  userId: 2,
+  userLeadId: 14,
+  callDate: 2025-05-19T16:43:22.631Z,
+  duration: 0,
+  outcome: null,
+  notes: ''
+}
+Final insert values: {
+  userId: 2,
+  userLeadId: 14,
+  callDate: 2025-05-19T16:43:22.631Z,
+  duration: 0,
+  outcome: null,
+  notes: ''
+}
+API Response to POST /api/calls: Valid JSON sent, content length 235

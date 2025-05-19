@@ -210,7 +210,8 @@ class APIClient {
     // Make sure the call object has the correct properties expected by the server
     const callData = {
       ...data,
-      userLeadId: data.leadId || data.userLeadId // Ensure userLeadId is set
+      userLeadId: data.leadId || data.userLeadId, // Ensure userLeadId is set
+      status: 'in_progress' // Explicitly mark as in progress, not completed
     };
     
     // Debug logging
@@ -223,7 +224,11 @@ class APIClient {
         throw new Error('Authentication required');
       }
       
-      const response = await fetch('/api/calls', {
+      // Make sure we're hitting the right endpoint
+      const url = '/api/calls';
+      console.log('Sending call creation request to:', url);
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -232,17 +237,22 @@ class APIClient {
         body: JSON.stringify(callData)
       });
       
+      // Log the response for debugging
+      console.log('Call creation response status:', response.status);
+      
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`Call API error (${response.status}):`, errorText);
         throw new Error(`Failed to create call: ${response.statusText}`);
       }
       
-      return await response.json();
+      const responseData = await response.json();
+      console.log('Call creation successful:', responseData);
+      return responseData;
     } catch (error) {
       console.error('Direct call creation failed:', error);
-      // Fall back to regular request method
-      return this.makeRequest('/calls', { 
+      // Fall back to regular request method with explicit URL
+      return this.makeRequest('/api/calls', { 
         method: 'POST',
         body: callData
       });
@@ -253,10 +263,48 @@ class APIClient {
    * Update an existing call record
    */
   async updateCall(id, data) {
-    return this.makeRequest(`/calls/${id}`, { 
-      method: 'PUT',
-      body: data
-    });
+    // Debug logging
+    console.log('Updating call ID:', id, 'with data:', data);
+    
+    // Direct fetch with proper endpoint and error handling
+    try {
+      const token = this.getStoredToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+      
+      const url = `/api/calls/${id}`;
+      console.log('Sending call update request to:', url);
+      
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+      });
+      
+      // Log the response for debugging
+      console.log('Call update response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Call update API error (${response.status}):`, errorText);
+        throw new Error(`Failed to update call: ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log('Call update successful:', responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Direct call update failed:', error);
+      // Fall back to regular request method with explicit URL
+      return this.makeRequest(`/api/calls/${id}`, { 
+        method: 'PUT',
+        body: data
+      });
+    }
   }
 
   // Auth endpoints

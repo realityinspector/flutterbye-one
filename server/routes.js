@@ -253,6 +253,92 @@ function registerRoutes(app) {
       res.status(500).json({ success: false, message: 'Failed to fetch calls' });
     }
   });
+  
+  // Add a route for updating existing calls
+  app.put('/api/calls/:id', authenticateJWT, async (req, res) => {
+    try {
+      const callId = parseInt(req.params.id);
+      
+      if (isNaN(callId)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid call ID format' 
+        });
+      }
+      
+      console.log(`Updating call ${callId} with data:`, req.body);
+      
+      // First verify that this call belongs to the user
+      const existingCall = await db.query.calls.findFirst({
+        where: and(
+          eq(calls.id, callId),
+          eq(calls.userId, req.user.id)
+        )
+      });
+      
+      if (!existingCall) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Call not found or access denied' 
+        });
+      }
+      
+      // Prepare the values for update with explicit type handling
+      const updateValues = {};
+      
+      // Only update fields that are provided
+      if (req.body.endTime) {
+        try {
+          const endDate = new Date(req.body.endTime);
+          if (!isNaN(endDate.getTime())) {
+            updateValues.endTime = endDate;
+          }
+        } catch (e) {
+          console.error('Invalid endTime format:', e);
+        }
+      }
+      
+      if (req.body.duration !== undefined) {
+        updateValues.duration = parseInt(req.body.duration);
+      }
+      
+      if (req.body.outcome) {
+        updateValues.outcome = req.body.outcome;
+      }
+      
+      if (req.body.notes !== undefined) {
+        updateValues.notes = req.body.notes;
+      }
+      
+      if (req.body.status) {
+        updateValues.status = req.body.status;
+      }
+      
+      if (req.body.reminderDate) {
+        try {
+          const reminderDate = new Date(req.body.reminderDate);
+          if (!isNaN(reminderDate.getTime())) {
+            updateValues.reminderDate = reminderDate;
+          }
+        } catch (e) {
+          console.error('Invalid reminderDate format:', e);
+        }
+      }
+      
+      console.log('Final update values:', updateValues);
+      
+      // Update the call record
+      const [updatedCall] = await db.update(calls)
+        .set(updateValues)
+        .where(eq(calls.id, callId))
+        .returning();
+      
+      res.json({ success: true, data: updatedCall });
+    } catch (error) {
+      console.error('Error updating call:', error);
+      res.status(500).json({ success: false, message: 'Failed to update call record' });
+    }
+  });
 
   app.get('/api/leads/:leadId/calls', authenticateJWT, async (req, res) => {
     try {
