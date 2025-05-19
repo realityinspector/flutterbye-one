@@ -60,12 +60,14 @@ const CallScreen = () => {
           return;
         }
         
-        const leadResponse = await getLead(leadId);
-        if (leadResponse.success && leadResponse.data) {
-          setLead(leadResponse.data);
+        const leadData = await getLead(leadId);
+        if (leadData) {
+          setLead(leadData);
           setFormData(prev => ({
             ...prev,
-            userLeadId: leadId
+            userLeadId: leadId,
+            phoneNumber: route.params?.phoneNumber || leadData.globalLead?.phoneNumber,
+            contactName: route.params?.contactName || leadData.globalLead?.contactName,
           }));
         } else {
           toast.show({

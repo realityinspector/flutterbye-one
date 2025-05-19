@@ -30,13 +30,13 @@ const Footer = () => {
             <Pressable onPress={() => navigateTo('Home')}>
               <Text color="gray.300" fontSize="xs">Dashboard</Text>
             </Pressable>
-            <Pressable onPress={() => navigateTo('LeadsList')}>
+            <Pressable onPress={() => navigateTo('Leads')}>
               <Text color="gray.300" fontSize="xs">Leads</Text>
             </Pressable>
-            <Pressable onPress={() => navigateTo('CallsList')}>
+            <Pressable onPress={() => navigateTo('CallLog')}>
               <Text color="gray.300" fontSize="xs">Calls</Text>
             </Pressable>
-            <Pressable onPress={() => navigateTo('Analytics')}>
+            <Pressable onPress={() => navigateTo('Reports')}>
               <Text color="gray.300" fontSize="xs">Analytics</Text>
             </Pressable>
             <Pressable onPress={() => navigateTo('Profile')}>

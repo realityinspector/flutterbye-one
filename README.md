@@ -2,22 +2,21 @@
 
 ![FlutterBye CRM](public/images/aot-labs-logo.png)
 
-A mobile-first sales acceleration platform built with React Native, Expo, PostgreSQL, and AI-powered lead generation.
+A mobile-first sales acceleration platform built with a unified architecture, single source of truth pattern, and AI-powered lead generation.
 
 ## Project Overview
 
-FlutterBye CRM is a comprehensive mobile customer relationship management system designed for sales professionals on the go. The application features intelligent lead management, call tracking, AI-powered lead generation, and a streamlined sales process optimized for mobile use.
+FlutterBye CRM is a comprehensive customer relationship management system designed for sales professionals on the go. The application features intelligent lead management, call tracking, AI-powered lead generation, and a streamlined sales process optimized for both web and mobile use.
 
 ## Key Features
 
 - **Intelligent Lead Management**: Organize, track, and manage leads with customizable statuses and priority levels
 - **Call Tracking & Documentation**: Record calls, outcomes, and follow-up actions with automatic reminders
 - **AI-Powered Lead Generation**: Generate new leads using natural language prompts and web search capabilities
-- **Mobile-First Design**: Optimized for sales professionals who need CRM access while away from their desk
+- **Unified Architecture**: Single source of truth across all interfaces
 - **Offline Capability**: Continue working without an internet connection using local data storage
-- **User Setup Wizard**: Guided onboarding process for new users
 - **Analytics Dashboard**: Track performance metrics and call outcomes
-- **Team Lead Sharing**: Share leads with team members (planned feature)
+- **Team Lead Sharing**: Share leads with team members
 
 ## Technical Stack
 
@@ -30,40 +29,81 @@ FlutterBye CRM is a comprehensive mobile customer relationship management system
 - **AI Integration**: OpenRouter API for AI-powered features
 
 ### Frontend
-- **Framework**: React Native with Expo
-- **UI Components**: Native Base
-- **Navigation**: React Navigation
-- **State Management**: Custom hooks with context API
-- **Local Storage**: Expo SQLite for offline data
-- **Network Management**: NetInfo for connectivity monitoring
+- **Web Framework**: Vanilla JavaScript with modular architecture
+- **Mobile Framework**: React Native with Expo
+- **UI Components**: Native Base (mobile), Custom components (web)
+- **Navigation**: React Navigation (mobile)
+- **State Management**: Custom hooks with context API (mobile), Service-based architecture (web)
+- **Local Storage**: Expo SQLite (mobile), browser localStorage (web)
 
-## Project Structure
+## Refactored Architecture
+
+The codebase has been completely refactored following a clean, layered architecture:
+
+### Core Principles
+- **Single Source of Truth**: Each piece of functionality exists in exactly one place
+- **Clear Separation of Concerns**: Data, business logic, and UI layers are distinct
+- **Consistent Interfaces**: Same APIs used across web and mobile
+- **No Duplication**: Shared code whenever possible
+
+### Web Architecture
+
+```
+/public/
+├── js/
+│   ├── core/           # Data & API layer
+│   │   ├── api-client.js       # All API interactions
+│   │   ├── lead-model.js       # Lead data structure & validation
+│   │   ├── call-model.js       # Call data structure & validation
+│   │   └── storage-manager.js  # Local storage/caching
+│   ├── services/       # Business logic
+│   │   ├── lead-service.js     # All lead operations
+│   │   ├── call-service.js     # All call operations
+│   │   └── sync-service.js     # Data synchronization
+│   ├── components/     # UI components
+│   │   ├── lead-card.js        # Single lead card implementation
+│   │   ├── call-tracker.js     # Single call tracking UI
+│   │   └── modal-manager.js    # Reusable modal system
+│   └── pages/          # Page-specific controllers
+│       ├── dashboard.js
+│       ├── leads.js
+│       └── calls.js
+├── css/                # Styling
+├── dashboard.html      # Main dashboard
+├── leads.html          # Leads management 
+└── calls.html          # Call management
+```
+
+### Mobile Architecture
+
+```
+/src/
+├── components/         # Reusable UI components
+├── hooks/              # Custom React hooks
+├── navigation/         # Navigation configuration
+├── screens/            # Application screens
+│   ├── calls/          # Call-related screens
+│   ├── leads/          # Lead-related screens
+│   └── settings/       # Settings screens
+├── services/           # Frontend services
+└── utils/              # Utility functions
+```
+
+## Server Architecture
 
 ```
 ├── server/             # Backend server code
 │   ├── auth.js         # Authentication setup
 │   ├── db.js/ts        # Database connection
 │   ├── index.js        # Express server setup
-│   ├── routes.js       # API routes
-│   ├── routes/ai.js    # AI-related API routes
+│   ├── routes/         # API routes
+│   │   ├── ai.js       # AI-related API routes
+│   │   ├── leads.js    # Lead management routes
+│   │   └── organizations.js # Organization routes
 │   ├── services/ai/    # AI service implementations
 │   └── storage.js/ts   # Data access layer
 ├── shared/             # Shared code between client and server
 │   └── db/             # Database schema definitions
-│       ├── schema.ts   # Drizzle ORM schema definitions
-│       └── zod-schema.ts # Zod validation schemas and types
-├── scripts/            # Utility scripts
-│   ├── push-schema.js  # Database schema migration
-│   ├── admin-onboard.js # Admin user setup script
-│   ├── seed-demo-data.js # Demo data seeding script
-│   └── test-openrouter.js # OpenRouter API test script
-├── src/                # Frontend React Native code
-│   ├── components/     # Reusable UI components
-│   ├── hooks/          # Custom React hooks
-│   ├── navigation/     # Navigation configuration
-│   ├── screens/        # Application screens
-│   ├── services/       # Frontend services (call handling, sync)
-│   └── utils/          # Utility functions
 ```
 
 ## API Endpoints
@@ -92,13 +132,10 @@ FlutterBye CRM is a comprehensive mobile customer relationship management system
 - `POST /api/ai/web-search` - Perform web search with AI processing
 - `POST /api/ai/leads/generate` - Generate leads based on criteria
 - `POST /api/ai/leads/create` - Create leads from AI-generated lead data
-- `GET /api/ai/interactions` - Get AI interactions for user
-- `GET /api/ai/interactions/:id` - Get specific AI interaction
 
-### Analytics
-- `GET /api/analytics/dashboard` - Get dashboard metrics
-- `GET /api/analytics/user-performance` - Get user performance (admin only)
-- `GET /api/analytics/call-outcomes` - Get call outcome distribution
+### Organizations
+- `GET /api/organizations` - Get organizations
+- `GET /api/organization-members` - Get organization members
 
 ## Getting Started
 
@@ -143,41 +180,36 @@ node server/index.js
 npm start
 ```
 
-## Development Workflows
+## Development Tools
 
 The project includes several workflow scripts for development and testing:
 
-- **DBSetup**: Push database schema to PostgreSQL
+- **Schema Management**: Push database schema to PostgreSQL
   ```bash
   node scripts/push-schema.js
   ```
 
-- **AdminOnboard**: Setup the first admin user
+- **Admin Setup**: Create an admin user
   ```bash
   node scripts/admin-onboard.js
   ```
 
-- **DemoSeeder**: Seed demonstration data
+- **Demo Data**: Seed demonstration data
   ```bash
   node scripts/seed-demo-data.js
   ```
 
-- **TestOpenRouter**: Test OpenRouter API integration
+- **AI Testing**: Test OpenRouter API integration
   ```bash
   node scripts/test-openrouter.js
   ```
 
-- **TestMoreLeads**: Test lead generation capabilities
-  ```bash
-  node scripts/test-more-leads.js
-  ```
+## Upcoming Improvements
 
-## Upcoming Features
-
-- **Team Lead Sharing**: Share leads with team members
-- **Enhanced Analytics**: More detailed performance metrics and visualizations
-- **Call Recording**: Record and transcribe calls for better follow-up
-- **Email Integration**: Send and track emails directly from the CRM
+- Complete unit tests for core classes
+- End-to-end testing suite
+- Remove remaining redundant files
+- Update all React Native components to use the unified data models
 
 ## License
 

@@ -83,6 +83,10 @@ function registerRoutes(app) {
     res.sendFile(path.join(__dirname, '../public/settings.html'));
   });
   
+  app.get('/lead-detail.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/lead-detail.html'));
+  });
+  
   // Dashboard authentication check - updated to support the refactored client
   app.get('/dashboard-check', (req, res) => {
     try {

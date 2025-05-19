@@ -50,7 +50,7 @@ const NewCallFAB: React.FC<NewCallFABProps> = ({ leadId }) => {
       }
     } else {
       // Navigate to the new call screen where user can select a lead
-      navigation.navigate('LeadList' as never);
+      navigation.navigate('Leads' as never);
     }
   };
   
