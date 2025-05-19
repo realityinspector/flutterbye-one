@@ -870,14 +870,14 @@ class CallTracker {
 
           case 'place-call':
             // Find phone number through multiple methods
-            const phoneEl = document.querySelector('.phone-number') || 
+            let findPhoneEl = document.querySelector('.phone-number') || 
                 document.querySelector('[id*="phone"]') ||
                 document.querySelector('[class*="phone"]');
 
             let displayNumber = '';
 
-            if (phoneEl) {
-                displayNumber = phoneEl.textContent.trim();
+            if (findPhoneEl) {
+                displayNumber = findPhoneEl.textContent.trim();
             } else {
                 // Extract from the entire page if needed
                 const pageText = document.body.innerText;
@@ -1031,12 +1031,12 @@ class CallTracker {
 
             // Get the lead phone number to display
             let phoneDisplay = '';
-            const phoneEl = document.querySelector('.phone-number') || 
+            const phoneElement = document.querySelector('.phone-number') || 
                           document.querySelector('[id*="phone"]') ||
                           document.querySelector('[class*="phone"]');
 
-            if (phoneEl) {
-              phoneDisplay = `<div style="margin: 10px 0; font-weight: bold;">${phoneEl.textContent}</div>`;
+            if (phoneElement) {
+              phoneDisplay = `<div style="margin: 10px 0; font-weight: bold;">${phoneElement.textContent}</div>`;
             }
 
             confirmDialog.innerHTML = `
